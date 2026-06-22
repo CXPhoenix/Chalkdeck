@@ -1,7 +1,7 @@
 name: Deploy decks to GitHub Pages
 
-# 只在「發佈 Release」時部署（穩妥：merge 進 main 不會自動公開），
-# 外加手動觸發備用。Release 會 checkout 該 tag 的 commit → 部署的是被標記的確定狀態。
+# 只在「發佈 Release」時部署（穩妥：merge 進 main 不會自動公開），外加手動觸發備用。
+# Release 會 checkout 該 tag 的 commit → 部署的是被標記的確定狀態。
 on:
   release:
     types: [published]
@@ -13,7 +13,7 @@ permissions:
   pages: write
   id-token: write
 
-# 同時只跑一個部署，新的取代排隊中的
+# 同時只跑一個部署
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -21,6 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      kept: ${{ steps.filter.outputs.kept }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +40,29 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # allowlist：只保留 deploy/public-decks.txt 列到的 deck，其餘在這個「拋棄式」CI checkout 刪掉
+      # （不動 repo）。預設不公開；清單空 → kept=0 → 後面 build/部署整段跳過：
+      # 不會覆蓋既有站、也不會外洩任何 deck。
+      - name: Filter to allowlisted decks
+        id: filter
+        run: |
+          LIST=deploy/public-decks.txt
+          allow=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$LIST" 2>/dev/null | tr -d '\r' | sed 's/[[:space:]]//g' || true)
+          kept=0
+          for d in slides/*/; do
+            [ -d "$d" ] || continue
+            id=$(basename "$d")
+            if printf '%s\n' "$allow" | grep -qx "$id"; then
+              echo "publish : $id"; kept=$((kept+1))
+            else
+              echo "exclude : $id"; rm -rf "$d"
+            fi
+          done
+          echo "kept=$kept" >> "$GITHUB_OUTPUT"
+          echo "→ $kept deck(s) will be published"
+
       - name: Build (subpath = repo name)
+        if: steps.filter.outputs.kept != '0'
         run: pnpm build
         env:
           # GitHub Pages 專案站路徑：https://<user>.github.io/<repo>/
@@ -47,18 +71,23 @@ jobs:
       # GitHub Pages 沒有 SPA fallback：把 index.html 複製成 404.html，
       # 讓 /s/<deck-id> 這種深層連結（Sites iframe 會直接打）不會 404。
       - name: SPA fallback for deep links
+        if: steps.filter.outputs.kept != '0'
         run: cp dist/index.html dist/404.html
 
       - name: Configure Pages
+        if: steps.filter.outputs.kept != '0'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: steps.filter.outputs.kept != '0'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: build
+    # 清單空（kept=0）就整個跳過部署
+    if: needs.build.outputs.kept != '0'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
