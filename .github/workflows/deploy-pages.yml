@@ -64,12 +64,13 @@ jobs:
           echo "kept=$kept" >> "$GITHUB_OUTPUT"
           echo "→ $kept deck(s) will be published"
 
-      - name: Build (subpath = repo name)
+      - name: Build (root base for custom domain)
         if: steps.filter.outputs.kept != '0'
         run: pnpm build
         env:
-          # GitHub Pages 專案站路徑：https://<user>.github.io/<repo>/
-          OSD_BASE: /${{ github.event.repository.name }}/
+          # custom domain（chalkdeck.rtfm.diy）服務在根目錄 → base = '/'
+          # 若日後改回 github.io 子路徑（/<repo>/）服務，這行要還原成 /<repo>/，否則 assets 全 404
+          OSD_BASE: /
 
       # GitHub Pages 沒有 SPA fallback：把 index.html 複製成 404.html，
       # 讓 /s/<deck-id> 這種深層連結（Sites iframe 會直接打）不會 404。
