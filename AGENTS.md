@@ -42,6 +42,7 @@ You are authoring **slides** in this repo. Every slide is arbitrary React code t
 ## Which skill to use
 
 - **Drafting a new deck** — use the `create-slide` skill. It walks through scoping questions, structure, and hand-off.
+- **Quickly scaffolding a deck on the `fhsh-isiphs-universal` theme** — use the `new-deck` skill (local, not managed by `@open-slide/core`). It runs `scripts/new-deck.mjs` (`pnpm new:deck <id>`) to inject the theme boilerplate into `slides/<id>/index.tsx`, then starts the dev server. Defers page-content authoring to `slide-authoring`.
 - **Applying inspector comments** (`@slide-comment` markers in a page) — use the `apply-comments` skill.
 - **Creating or extracting a theme** — use the `create-theme` skill. Themes live as markdown under `themes/<id>.md` and are read by `create-slide` before authoring.
 - **Resolving "this page" / "this element"** — when the user references the current slide or selection without naming it, consult the `current-slide` skill. It reads the dev server's `node_modules/.open-slide/current.json` to find which slide, page, and inspector-picked element they mean.
