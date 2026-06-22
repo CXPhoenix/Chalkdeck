@@ -1,6 +1,6 @@
-# open-slide workspace
+# Chalkdeck
 
-Slides as React components. Each slide lives under `slides/<id>/index.tsx` and default-exports an array of page components. The `@open-slide/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+Teaching slide decks authored as React components, built on the **open-slide** framework (`@open-slide/core`). Each slide lives under `slides/<id>/index.tsx` and default-exports an array of page components — the runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode, so you just write the pages.
 
 ## Getting started
 
@@ -18,6 +18,7 @@ Then open the dev server and edit `slides/getting-started/index.tsx`, or create 
 | `pnpm dev` | Start the dev server with hot reload. |
 | `pnpm build` | Build a static bundle you can deploy. |
 | `pnpm preview` | Preview the built bundle locally. |
+| `pnpm new:deck <id>` | Scaffold a new deck on the `fhsh-isiphs-universal` theme (see the `new-deck` skill). |
 
 ## Authoring a slide
 
@@ -45,7 +46,7 @@ See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 
 ## Claude Code integration
 
-This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make slides about X" and the `create-slide` skill takes over. Use `apply-comments` to iterate via inspector-style markers inside your source.
+This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make slides about X" and the `create-slide` skill takes over. To quickly scaffold a new deck on the `fhsh-isiphs-universal` theme, use the local `new-deck` skill (or run `pnpm new:deck <id>`). Use `apply-comments` to iterate via inspector-style markers inside your source.
 
 ## Config
 
