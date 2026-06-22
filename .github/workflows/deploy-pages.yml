@@ -29,7 +29,9 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          # 對齊本機 pnpm 主版本：pnpm-workspace.yaml 用了 allowBuilds（pnpm 10+ 語法），
+          # pnpm 9 會誤判「packages field missing」而失敗。
+          version: 11
 
       - name: Setup Node
         uses: actions/setup-node@v4
