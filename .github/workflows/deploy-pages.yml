@@ -78,6 +78,11 @@ jobs:
         if: steps.filter.outputs.kept != '0'
         run: cp dist/index.html dist/404.html
 
+      # 寫入 CNAME，避免 Actions 部署把 custom domain 設定洗掉（artifact 內含 CNAME → Pages 會保留）。
+      - name: Write CNAME for custom domain
+        if: steps.filter.outputs.kept != '0'
+        run: echo 'chalkdeck.rtfm.diy' > dist/CNAME
+
       - name: Configure Pages
         if: steps.filter.outputs.kept != '0'
         uses: actions/configure-pages@v5
