@@ -766,7 +766,8 @@ const P2bS6: Page = () => (
 );
 const P2bS7a: Page = () => (
   <StepPage theme={T} badge="步驟 7 / 共 9" beat="動作" title="啊哈點 ②：在網址上動手腳">
-    <Mono>{`GET /sales../meetings/2026-q1.md`}</Mono>
+    <Mono>{`GET /sales../meetings/2026-Q1-africa-expansion.md`}</Mono>
+
     <div style={{ marginTop: 28 }}>
       <Bullet>用 <span style={{ fontFamily: MONO }}>/sales..</span> 跳出原本的目錄，讀到內部會議檔</Bullet>
       <Bullet sub>這一步只是「示範遍歷原語」——還沒拿到 flag</Bullet>
@@ -842,8 +843,174 @@ const PART2B: Page[] = [
   P2bTeach, P2bPunch, P2bBehind, P2bDemoRisk,
 ];
 
+// ════════════════ Part 2c ③ REV／WASM — Solivan Verify（高潮）════════════════
+const P2cSection: Page = () => <Section theme={T} title="③ REV／WASM" subtitle="Solivan Verify · 高潮" />;
+
+const P2cScenario: Page = () => (
+  <Default theme={T} title="情境：Solivan Verify">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>一張 SDG 主題的 2D 像素 RPG 地圖，要跑三項永續驗證</Bullet>
+      <Bullet>系統「全程靜默」：做對做錯都不回應</Bullet>
+      <Bullet>地圖上有塊金色「封閉現場」，看得到、走得近，<span style={{ color: '#e07b1a' }}>就是走不進去</span></Bullet>
+    </div>
+  </Default>
+);
+
+const P2cEssence: Page = () => (
+  <Statement theme={T} eyebrow="這題在玩什麼">
+    走不進去的牆，<br />用記憶體把它<span style={{ color: '#e07b1a' }}>「推開」</span>。
+  </Statement>
+);
+
+const P2cWasm: Page = () => (
+  <Default theme={T} title="WASM 為什麼有趣">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>WebAssembly＝編譯後的二進位，<span style={{ fontFamily: MONO }}>strings／wasm2wat</span> 只看到框架痕跡</Bullet>
+      <Bullet>但它活在瀏覽器裡——記憶體完全攤在 DevTools 面前</Bullet>
+      <Bullet sub>「難靜態反編譯、易動態分析」的最佳教材</Bullet>
+    </div>
+  </Default>
+);
+
+const P2cMethod: Page = () => (
+  <Default theme={T} title="這題在考什麼">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>client-side trust 的反例：封閉區只靠「前端碰撞檢查」把關（CWE-693）</Bullet>
+      <Bullet>位置加密用 WASM 內的 RSA-OAEP（不是瀏覽器 crypto.subtle）→ 逼你真的去碰 WASM</Bullet>
+      <Bullet sub>核心方法論：靜態分析撈不到 → 改用動態分析</Bullet>
+    </div>
+  </Default>
+);
+
+// ── writeup（9 步，console script demo 路徑）──
+const P2cS1: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 9" beat="動作" title="先把三項 SDG 驗證答對">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>地圖上跑 SDG 6／7／13 三題問答，答對 3 題</Bullet>
+      <Bullet sub>題庫共 150 題、5 張隨機地圖——反 speedrun，不能事先背答案</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cS2: Page = () => (
+  <StepPage theme={T} badge="步驟 2 / 共 9" beat="觀察" title="最後一關：走不進那塊金色的地">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>最後一筆簽核非得在封閉區內完成</Bullet>
+      <Bullet>但方向鍵怎麼走，都停在牆外一格</Bullet>
+      <Bullet sub>通行證一核發只有 120 秒——時間壓力</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cMemeFrustrate: Page = () => <MemeSlot theme={T} intent="覺得自己太笨／作者太壞：方向鍵怎麼按都進不去" />;
+
+const P2cS3: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 9" beat="原理" title="為什麼走不進去？">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>封閉區是 1×1 單格，碰撞檢查刻意寫成 off-by-one（邊界差一格）</Bullet>
+      <Bullet>於是你永遠卡在牆外一格——一道「幽靈牆」(phantom wall)</Bullet>
+      <Bullet sub>這不是 bug，是出題者埋的刻意線索</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cS4: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 9" beat="觀察" title="靜態分析：什麼都撈不到">
+    <Mono>{`$ strings wasm_game_bg.wasm | grep -i flag\n(無)`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>strings／wasm2wat 只看到 Rust crate 路徑，沒有答案</Bullet>
+      <Bullet sub>製造懸念：那答案到底在哪？→ 換動態分析</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cMemeStatic: Page = () => <MemeSlot theme={T} intent="通靈：strings | grep flag 什麼都沒有，這是要我通靈嗎" />;
+
+const P2cS5: Page = () => (
+  <StepPage theme={T} badge="步驟 5 / 共 9" beat="動作" title="F12 開 console，把 WASM 攤開">
+    <Mono size={34}>{`> Object.keys(window.__GAME_WASM__)   // 列出 WASM exports\n> window.__GAME_MEMORY__               // WebAssembly.Memory（記憶體攤開）`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet sub>前端開場就把 WASM 與記憶體掛到 window，不用裝任何擴充</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cS6: Page = () => (
+  <StepPage theme={T} badge="步驟 6 / 共 9" beat="觀察" title="它一直在偷偷印自己的座標">
+    <Mono>{`[pos] x=12 y=34      // 每個 frame 印出當前座標`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>console 持續印當前 (x, y) → 我們知道「現在的值」是多少</Bullet>
+      <Bullet sub>有了已知值，就能在記憶體裡反查它的位址</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cS7: Page = () => (
+  <StepPage theme={T} badge="步驟 7 / 共 9" beat="動作 → 原理" title="掃描記憶體，收斂到座標的位址">
+    <Mono size={34}>{`> const mem = new Int32Array(window.__GAME_MEMORY__.buffer)\n> // 掃 mem 找出值 = 當前 x 的位址；走一格再掃；交集收斂`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet sub>3–4 次掃描就能定位 player_x／player_y 的 offset——這就是 Cheat Engine 的精神</Bullet>
+    </div>
+  </StepPage>
+);
+const P2cS8: Page = () => (
+  <StepPage theme={T} badge="步驟 8 / 共 9" beat="動作 → 高潮" title="改一個數字，角色瞬移進去">
+    <Mono size={34}>{`> mem[player_x_offset] = <封閉區 x>\n> mem[player_y_offset] = <封閉區 y>`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet>角色當場瞬移進封閉區 → HUD 變「通行證已核發」</Bullet>
+      <Bullet sub>WASM 自動把（加密的）座標送給後端 → server 唯一一次簽 JWT，寫進 <span style={{ fontFamily: MONO }}>window.__GAME_PASS__</span></Bullet>
+    </div>
+  </StepPage>
+);
+const P2cMemeTeleport: Page = () => <MemeSlot theme={T} intent="恍然大悟＋爽：改一個數字，角色直接瞬移進金色封閉區" />;
+
+const P2cS9: Page = () => (
+  <StepPage theme={T} badge="步驟 9 / 共 9" beat="動作 → 收網" title="按 E，換出 flag">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>在封閉區按 E → 前端 flag-terminal.js 算出 proof（sha256）</Bullet>
+      <Bullet>帶著 JWT ＋ proof 打 <span style={{ fontFamily: MONO }}>POST /api/flag</span> → console 印出 flag</Bullet>
+      <Bullet sub>JWT 只活 120 秒、alg=none 會被拒——雙重把關（玩家視角，不投影明文）</Bullet>
+    </div>
+  </StepPage>
+);
+
+const P2cPunch: Page = () => (
+  <Statement theme={T} eyebrow="這題的金句">
+    跑在使用者瀏覽器裡的驗證，<br />永遠<span style={{ color: '#e07b1a' }}>不能信任</span>。
+  </Statement>
+);
+const P2cTeach: Page = () => (
+  <Default theme={T} title="怎麼帶學生走這題">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>視覺化、遊戲化：不是枯燥的 ELF，是會動的 SDG 像素 RPG</Bullet>
+      <Bullet>即時爽感：改一個數字角色就瞬移——把 Cheat Engine 搬到瀏覽器</Bullet>
+      <Bullet>連結日常：為什麼線上遊戲會被外掛？因為前端不能信任</Bullet>
+      <Bullet sub>（正規工具是 Cetus 擴充；現場我們用 console script，免裝、節奏更穩）</Bullet>
+    </div>
+  </Default>
+);
+const P2cBehind: Page = () => (
+  <Default theme={T} title="出題幕後：最有說服力的故事">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>扮 brute-forcer 的 AI 找到致命缺陷：答案曾被放進玩家可讀的 JSON → 可秒解（F-8）</Bullet>
+      <Bullet>第一次修補（答案搬進 WASM 表）→ 扮 tool-grep-solver 的 AI 用一條 regex 就還原 → 判定無效</Bullet>
+      <Bullet sub>最終逼出整個架構重構（改成 RSA-OAEP ＋ server 端題庫）——AI 出題是對抗式迭代，不是一次生成</Bullet>
+    </div>
+  </Default>
+);
+const P2cDemoRisk: Page = () => (
+  <Default theme={T} title="現場 demo 的小提醒">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>JWT 只活 120 秒——先把 offset 找好、或一鍵 script 到位</Bullet>
+      <Bullet>舊頁面快取會卡 → 用無痕新分頁</Bullet>
+      <Bullet sub>保底：跑 blackbox 的 exploit.py 直接送密文，0.2 秒秒出 flag（少了爽感但保證可動）</Bullet>
+    </div>
+  </Default>
+);
+
+const PART2C: Page[] = [
+  P2cSection, P2cScenario, P2cEssence, P2cWasm, P2cMethod,
+  P2cS1, P2cS2, P2cMemeFrustrate, P2cS3, P2cS4, P2cMemeStatic,
+  P2cS5, P2cS6, P2cS7, P2cS8, P2cMemeTeleport, P2cS9,
+  P2cPunch, P2cTeach, P2cBehind, P2cDemoRisk,
+];
+
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
-export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B] satisfies Page[];
+export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B, ...PART2C] satisfies Page[];
 
 export const transition: SlideTransition = RISE;
 
