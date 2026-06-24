@@ -422,8 +422,232 @@ const PART1: Page[] = [
   P1AIIntro, P1AINouns, P1Pipeline, P1Personas, P1Verify, P1Meme2, P1AIAmplify, P1Download,
 ];
 
+// ════════════════════ Part 2a ① OSINT — SupplyTrace（暖場）════════════════════
+const P2aSection: Page = () => <Section theme={T} title="① OSINT" subtitle="SupplyTrace · 暖場" />;
+
+const P2aScenario: Page = () => (
+  <Default theme={T} title="情境：SupplyTrace">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>一個推動 SDG 12（責任消費與生產）的開放資料站</Bullet>
+      <Bullet>社群流傳一張截圖：有人「對接了非公開節點」</Bullet>
+      <Bullet>你是調查者——從公開素材，循「對接夥伴的閱讀路徑」追進去</Bullet>
+    </div>
+  </Default>
+);
+
+const P2aEssence: Page = () => (
+  <Statement theme={T} eyebrow="這題在考什麼">
+    沒有漏洞可打，<br />只有線索要<span style={{ color: '#e07b1a' }}>「串」</span>。
+  </Statement>
+);
+
+const P2aObjectives: Page = () => (
+  <Default theme={T} title="考點">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>沒有傳統程式漏洞（無 SQLi／SSRF／SSTI）</Bullet>
+      <Bullet>pivoting（線索接力）：把分散各處的線索接起來</Bullet>
+      <Bullet>cross-source correlation：網站 × git 歷史 × 第三方 SaaS</Bullet>
+      <Bullet>辨識「複製貼上殘留」型憑證洩漏</Bullet>
+    </div>
+  </Default>
+);
+
+const P2aWarmup: Page = () => (
+  <Default theme={T} title="為什麼用它暖場">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>門檻低、不用寫 code——瀏覽器 ＋ <span style={{ fontFamily: MONO }}>curl</span> ＋ <span style={{ fontFamily: MONO }}>git</span> 就能走完</Bullet>
+      <Bullet>貼近生活：可以延伸談數位足跡與隱私</Bullet>
+      <Bullet>每一步都有「啊哈」時刻，失敗點明確、好除錯</Bullet>
+    </div>
+  </Default>
+);
+
+// ── writeup（11 步，低密度、絕不跳步）──
+const P2aS1: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 11" beat="動作" title="訪首頁，讀「給夥伴」的暗示">
+    <Mono>{`http://localhost:8088/`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>首頁 §Partners 寫著「給對接夥伴」「內部文件庫」「AI 輔助文書流程」</Bullet>
+      <Bullet sub>← 在暗示：有非公開入口、有內部慣例可循</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS2: Page = () => (
+  <StepPage theme={T} badge="步驟 2 / 共 11" beat="觀察 → 線索" title="直接敲 /.git/（注意尾斜線）">
+    <Mono>{`$ curl -s http://localhost:8088/.git/HEAD\nref: refs/heads/main`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>nginx 沒擋 /.git/，目錄列表（autoindex）把整個版控攤出來</Bullet>
+      <Bullet sub>一個請求就確認漏洞 → 下一步：整包 clone 回來</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aMemeAha: Page = () => <MemeSlot theme={T} intent="恍然大悟：原來整包 .git 都被當靜態檔 serve 出來了" />;
+
+const P2aS3a: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 11" beat="動作" title="git clone 整包歷史">
+    <Mono>{`$ git clone http://localhost:8088/.git supplytrace`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet><span style={{ fontFamily: MONO }}>.git/HEAD</span> 回 200 → dumb-HTTP 相容，clone 直接成立</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS3b: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 11" beat="原理" title="為什麼整個 repo 能被拉回？">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>.git 目錄被當成「靜態檔」對外 serve，沒有任何存取控制</Bullet>
+      <Bullet>版控歷史＝所有改過的檔案 ＋ 訊息，全都在裡面</Bullet>
+      <Bullet sub>教學點：別把 .git 推到公開的網站根目錄</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS4: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 11" beat="動作 → 觀察" title="看有哪些 branch">
+    <Mono>{`$ git branch -a\n* main\n  remotes/origin/internal/api-handover`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>main 是乾淨的；<span style={{ fontFamily: MONO }}>internal/api-handover</span> 才藏東西</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS5: Page = () => (
+  <StepPage theme={T} badge="步驟 5 / 共 11" beat="動作" title="先讀 main 的 CONTRIBUTING.md">
+    <Mono>{`$ git checkout main`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>CONTRIBUTING.md 提到「交接事項在 handover branch」</Bullet>
+      <Bullet sub>連這種小步也交代——這就是「不跳步」的 writeup</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS6: Page = () => (
+  <StepPage theme={T} badge="步驟 6 / 共 11" beat="動作 → 線索" title="切到 internal branch，檔案變多了">
+    <Mono>{`$ git checkout internal/api-handover`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>多出 <span style={{ fontFamily: MONO }}>CLAUDE.md</span>、<span style={{ fontFamily: MONO }}>SKILL.md</span>、<span style={{ fontFamily: MONO }}>RUNBOOK.md</span></Bullet>
+      <Bullet sub>「給 AI 與內部人看」的文件 → 下一步：讀 CLAUDE.md</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS7a: Page = () => (
+  <StepPage theme={T} badge="步驟 7 / 共 11" beat="動作" title="從 CLAUDE.md 撈出 Postman 連結">
+    <div style={{ marginBottom: 24 }}>
+      <Bullet>CLAUDE.md 裡寫著一個 Postman 公開 workspace 的 URL</Bullet>
+    </div>
+    <ShotSlot hint="CLAUDE.md 內文：含一行 Postman workspace URL（玩家視角）" h={360} />
+  </StepPage>
+);
+const P2aS7b: Page = () => (
+  <StepPage theme={T} badge="步驟 7 / 共 11" beat="原理" title="教育意義最濃的一段">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>CLAUDE.md 還有一段「為什麼我們把 token 留在範例裡」的辯護</Bullet>
+      <Bullet>AI 時代的新資安面：把憑證寫進「給 AI 讀的規格檔」</Bullet>
+      <Bullet sub>可以問學生：你的 repo 有沒有夾帶 .env、截圖有沒有露 token？</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS8: Page = () => (
+  <StepPage theme={T} badge="步驟 8 / 共 11" beat="動作 → 觀察" title="打開 Postman 公開 workspace">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>免登入就能看 → 裡面有 production 與 internal-development 兩個 collection</Bullet>
+      <Bullet sub>我們要的東西在 internal-development</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS9: Page = () => (
+  <StepPage theme={T} badge="步驟 9 / 共 11" beat="動作" title="找 'Redeem (treasury)' 範例請求">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>internal-development collection 裡有一個 Redeem 範例請求</Bullet>
+      <Bullet sub>這就是後台兌換端點的「使用範例」</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS10a: Page = () => (
+  <StepPage theme={T} badge="步驟 10 / 共 11" beat="觀察" title="token 不在你以為的地方">
+    <div style={{ marginBottom: 24 }}>
+      <Bullet>Headers 分頁看起來空空的——Postman 把明文 Bearer 自動加密 vault 了</Bullet>
+    </div>
+    <Mono>{`Authorization: Bearer ••••••`}</Mono>
+  </StepPage>
+);
+const P2aS10b: Page = () => (
+  <StepPage theme={T} badge="步驟 10 / 共 11" beat="線索" title="token 藏在「說明文字」裡">
+    <div style={{ marginBottom: 24 }}>
+      <Bullet>範例請求的 description 有一段 cURL snippet → 32-hex 的 Bearer token</Bullet>
+      <Bullet>nonce 藏在 url.raw（網址）裡</Bullet>
+    </div>
+    <Mono>{`Authorization: Bearer <32-hex token>\nPOST /internal/admin/<nonce>/redeem`}</Mono>
+  </StepPage>
+);
+const P2aMemeEvil: Page = () => <MemeSlot theme={T} intent="作者太壞了／這是通靈：token 不在 header，藏在『說明文字』裡" />;
+
+const P2aS10c: Page = () => (
+  <StepPage theme={T} badge="步驟 10 / 共 11" beat="原理" title="為什麼會這樣漏？">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>「複製貼上殘留」型洩漏——示範請求裡寫死了真 token，忘了改掉</Bullet>
+      <Bullet sub>flag 的文字直接點題：<span style={{ fontFamily: MONO }}>pasted postman token</span></Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS11a: Page = () => (
+  <StepPage theme={T} badge="步驟 11 / 共 11" beat="動作" title="帶著 token ＋ nonce 打後台">
+    <Mono size={34}>{`$ curl -X POST \\\n    http://localhost:8088/internal/admin/<nonce>/redeem \\\n    -H "Authorization: Bearer <32-hex token>"`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet sub>把撿到的 nonce 填進網址、token 填進 Authorization</Bullet>
+    </div>
+  </StepPage>
+);
+const P2aS11b: Page = () => (
+  <StepPage theme={T} badge="步驟 11 / 共 11" beat="觀察 → 收網" title="後端怎麼驗？對了才給 flag">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>nonce 用 <span style={{ fontFamily: MONO }}>hmac.compare_digest</span> 比對，錯 → 404</Bullet>
+      <Bullet>token 須 32-hex → sha256 → 比對，錯 → 401</Bullet>
+      <Bullet sub>兩關都過 → 回傳 flag（玩家視角，此處不投影）</Bullet>
+    </div>
+  </StepPage>
+);
+
+// ── 帶學生 + 出題幕後 ──
+const P2aTeach: Page = () => (
+  <Default theme={T} title="怎麼帶學生走這題">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>全班一起看首頁找線索 → 引導發現 /.git/</Bullet>
+      <Bullet>一起 <span style={{ fontFamily: MONO }}>git clone</span> ＋ <span style={{ fontFamily: MONO }}>git branch -a</span></Bullet>
+      <Bullet>分組讀 CLAUDE.md 找 URL → 開 Postman 撿 token → 一個 curl 拿 flag</Bullet>
+    </div>
+  </Default>
+);
+const P2aPunch: Page = () => (
+  <Statement theme={T} eyebrow="這題的金句">
+    真實的資料外洩，<br />常常不是高超駭客技術，<br />而是<span style={{ color: '#e07b1a' }}>「複製貼上忘了改回去」</span>。
+  </Statement>
+);
+const P2aBehind1: Page = () => (
+  <Default theme={T} title="出題幕後：可控的擬真網路">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>OSINT 天生依賴外部資源（這題靠 Postman 公開 workspace）</Bullet>
+      <Bullet>但自動驗題不能每次真的去建一個 Postman workspace</Bullet>
+      <Bullet>解法：本機假 Postman（mock），與真實路徑共用同一份 template、同一組 token</Bullet>
+      <Bullet sub>→「驗過的鏈 ＝ 玩家會走的鏈」，且離線、可重現</Bullet>
+    </div>
+  </Default>
+);
+const P2aBehind2: Page = () => (
+  <Default theme={T} title="出題幕後：不能洩題">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>題目描述用 grep 強制檢查（reverse blacklist）</Bullet>
+      <Bullet>禁止出現 <span style={{ fontFamily: MONO }}>.git／postman／token／leak／bearer</span> 等字眼</Bullet>
+      <Bullet sub>出題的藝術：給夠線索，但不能破梗</Bullet>
+    </div>
+  </Default>
+);
+
+const PART2A: Page[] = [
+  P2aSection, P2aScenario, P2aEssence, P2aObjectives, P2aWarmup,
+  P2aS1, P2aS2, P2aMemeAha, P2aS3a, P2aS3b, P2aS4, P2aS5, P2aS6,
+  P2aS7a, P2aS7b, P2aS8, P2aS9, P2aS10a, P2aS10b, P2aMemeEvil, P2aS10c, P2aS11a, P2aS11b,
+  P2aTeach, P2aPunch, P2aBehind1, P2aBehind2,
+];
+
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
-export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1] satisfies Page[];
+export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A] satisfies Page[];
 
 export const transition: SlideTransition = RISE;
 
