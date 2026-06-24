@@ -692,7 +692,7 @@ const P2bS2: Page = () => (
   <StepPage theme={T} badge="步驟 2 / 共 9" beat="動作 → 原理" title="註冊、登入一個一般會員">
     <div style={{ marginTop: 8 }}>
       <Bullet>註冊與登入要先 GET 表單頁拿 CSRF token，再帶 token POST</Bullet>
-      <Bullet sub>連「先拿 CSRF token」這種小步也要交代——不跳步</Bullet>
+      <Bullet sub>連「先拿 CSRF token」這種小步也照樣交代清楚</Bullet>
       <Bullet sub>目的：先有一個「低權限身分」，等下從這裡往上爬</Bullet>
     </div>
   </StepPage>
@@ -748,7 +748,7 @@ const P2bS5b: Page = () => (
   </StepPage>
 );
 const P2bS5c: Page = () => (
-  <StepPage theme={T} badge="步驟 5 / 共 9" beat="觀察" title="最強的「啊哈」瞬間">
+  <StepPage theme={T} badge="步驟 5 / 共 9" beat="觀察" title="role 從 member 變 admin 的瞬間">
     <Mono>{`{ "id": <my_id>, "role": "admin" }`}</Mono>
     <div style={{ marginTop: 28 }}>
       <Bullet><span style={{ fontFamily: MONO }}>role</span> 從 member 變成 admin——一個請求就完成</Bullet>
@@ -822,8 +822,8 @@ const P2bPunch: Page = () => (
 const P2bBehind: Page = () => (
   <Default theme={T} title="出題幕後：最具體的 audit 紀錄">
     <div style={{ marginTop: 8 }}>
-      <Bullet>八階段 stages ledger，每階段都留 audit_verdict 與具體 notes</Bullet>
-      <Bullet>4 個 persona 平行對抗審查：Scoundrel／Lazy Developer／Confused Developer／Confused Player</Bullet>
+      <Bullet>完整的 stages ledger，每階段都留 audit_verdict 與具體 notes</Bullet>
+      <Bullet>4 個 persona 平行對抗審查：scoundrel／lazy-developer／confused-developer／confused-player</Bullet>
       <Bullet sub>其中一階段「採納了 6 個 Critical 修正」——出題不是一次到位，是反覆找碴</Bullet>
     </div>
   </Default>
@@ -1133,7 +1133,17 @@ const P2dS4: Page = () => (
   </StepPage>
 );
 
-// ── 防禦銜接 + 出題幕後 ──
+// ── 帶學生 + 防禦銜接 + 出題幕後 ──
+const P2dTeach: Page = () => (
+  <Default theme={T} title="怎麼帶學生走這題">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>適合進階學生／資安社團：要同時動用 PE、PCAP、密碼學三條線</Bullet>
+      <Bullet>零基礎設施：離線 PCAP ＋ 執行檔，發下去就能練</Bullet>
+      <Bullet>帶法：先一起 strings 找線索 → 分組拆 frame → 一起算金鑰</Bullet>
+      <Bullet sub>卡關引導：先點破「假 SMB 是裝飾」，再提示「counter 不是 0」</Bullet>
+    </div>
+  </Default>
+);
 const P2dDefenseValue: Page = () => (
   <Default theme={T} title="這題，就是命題的縮影">
     <div style={{ marginTop: 8 }}>
@@ -1167,7 +1177,7 @@ const PART2D: Page[] = [
   P2dSection, P2dScenario, P2dFlip, P2dEssence, P2dSkills,
   P2dS1a, P2dS1b, P2dS1c, P2dMemeFakeIOC,
   P2dS2a, P2dS2b, P2dS3a, P2dS3b, P2dMemeKeyHit, P2dS3c, P2dS4,
-  P2dDefenseValue, P2dBehind, P2dBridge,
+  P2dTeach, P2dDefenseValue, P2dBehind, P2dBridge,
 ];
 
 // ════════════════ Part 3 藍隊靶場 — HITCON CyberRange ════════════════
@@ -1246,7 +1256,7 @@ const P3Path: Page = () => (
     <div style={{ marginTop: 8 }}>
       <Bullet>高中玩 CTF（攻擊）：2025 HITCON CTF 銅牌隊 ICEDTEA 就是高中起家</Bullet>
       <Bullet>進階藍隊（CyberRange）：同年藍隊賽金牌是國家資安院 NICS 的 OTEX 隊</Bullet>
-      <Bullet sub>高中 CTF → 藍隊訓練 → 國家資安人才庫，這不是口號，是真實路徑</Bullet>
+      <Bullet sub>同一批人，從高中社團，一路打進國家級的資安團隊</Bullet>
     </div>
   </Default>
 );
@@ -1275,7 +1285,7 @@ const P4Argument: Page = () => (
     <div style={{ marginTop: 8 }}>
       <Bullet>CTF 教的是「攻擊者怎麼想」</Bullet>
       <Bullet>但 Eternal Relay 已經示範：要還原攻擊，你得先懂攻擊</Bullet>
-      <Bullet sub>鑑識分析師的價值，就是把 offensive 知識，翻成 defensive 判斷力</Bullet>
+      <Bullet sub>讀懂了攻擊怎麼來，你才有辦法把它擋下來——這就是防禦者的養成</Bullet>
     </div>
   </Default>
 );
