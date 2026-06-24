@@ -290,7 +290,7 @@ const P0Thesis: Page = () => (
 const P0Meme: Page = () => <MemeSlot theme={T} intent="開場破冰：駭客 ≠ 壞人，我們在教『防禦』" />;
 
 // ════════════════════════ Part 1 打 CTF → 出 CTF ════════════════════════
-const P1Section: Page = () => <Section theme={T} title="Part 1" subtitle="打 CTF，到出 CTF" />;
+const P1Section: Page = () => <Section theme={T} title="Part 1" subtitle="從打 CTF，到出 CTF" />;
 
 const P1WhatIsCTF: Page = () => (
   <Default theme={T} title="CTF 是什麼？">
