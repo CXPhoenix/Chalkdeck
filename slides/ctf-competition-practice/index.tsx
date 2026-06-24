@@ -1236,7 +1236,7 @@ const P3StudentNote: Page = () => (
   <Default theme={T} title="而這場研習，正是 ISIP 體系">
     <div style={{ marginTop: 8 }}>
       <Bullet>學生在貼近實戰的環境學：修補漏洞、強化防禦、團隊應變、分析複雜日誌</Bullet>
-      <Bullet>本研習主辦正是 ISIP（教育部高中資安計畫）——這條連結直接打到你的學生</Bullet>
+      <Bullet>本研習主辦正是 ISIP（教育部高中資安計畫）——你的學生，正站在這條線的起點</Bullet>
     </div>
   </Default>
 );
@@ -1255,8 +1255,63 @@ const PART3: Page[] = [
   P3Section, P3Banner, P3What, P3Orgs, P3Features, P3Compare, P3Student, P3StudentNote, P3Path,
 ];
 
+// ════════════════════════════ Part 4 收束 ════════════════════════════
+const P4Section: Page = () => <Section theme={T} title="Part 4" subtitle="收束" />;
+
+const P4Recap: Page = () => (
+  <Default theme={T} title="今天我們走過">
+    <div style={{ marginTop: 12 }}>
+      <Steps>
+        <Step><Bullet>四題：OSINT → Web → REV → Blue（從攻擊技巧，走到鑑識視角）</Bullet></Step>
+        <Step><Bullet>一條 AI 出題流水線（對抗式自我審查，把出題變工程）</Bullet></Step>
+        <Step><Bullet>一座藍隊靶場（HITCON CyberRange，把技巧放進真實事件）</Bullet></Step>
+      </Steps>
+    </div>
+  </Default>
+);
+
+const P4Argument: Page = () => (
+  <Default theme={T} title="會攻擊，不是終點">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>CTF 教的是「攻擊者怎麼想」</Bullet>
+      <Bullet>但 Eternal Relay 已經示範：要還原攻擊，你得先懂攻擊</Bullet>
+      <Bullet sub>鑑識分析師的價值，就是把 offensive 知識，翻成 defensive 判斷力</Bullet>
+    </div>
+  </Default>
+);
+
+const P4Thesis: Page = () => (
+  <Statement theme={T} eyebrow="所以，回到最初那句">
+    教攻擊，<br />是為了教出更棒的<br />藍隊防禦者。
+    <div style={{ fontSize: 42, fontWeight: 400, color: '#555', marginTop: 52, lineHeight: 1.5 }}>
+      這不是口號——是一條從高中 CTF，通往國家資安人才庫的真實路徑。
+    </div>
+  </Statement>
+);
+
+const P4Takeaway: Page = () => (
+  <Default theme={T} title="帶回課堂的三件事">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>用 AI skill 起一題：webchall-master／bluechall-master（已附下載）</Bullet>
+      <Bullet>用今天四題當分級教材：OSINT 暖場 → Blue 壓軸</Bullet>
+      <Bullet sub>帶學生從 CTF，一路走向 CyberRange</Bullet>
+    </div>
+  </Default>
+);
+
+const P4Meme: Page = () => <MemeSlot theme={T} intent="收尾：一起把學生帶上路／『防禦者集合』" />;
+
+const P4Thanks: Page = () => (
+  <Cover theme={T} title="謝謝聆聽" subtitle="Q & A" />
+);
+
+const PART4: Page[] = [P4Section, P4Recap, P4Argument, P4Thesis, P4Takeaway, P4Meme, P4Thanks];
+
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
-export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B, ...PART2C, ...PART2D, ...PART3] satisfies Page[];
+export default [
+  P0Cover, P0Roadmap, P0Thesis, P0Meme,
+  ...PART1, ...PART2A, ...PART2B, ...PART2C, ...PART2D, ...PART3, ...PART4,
+] satisfies Page[];
 
 export const transition: SlideTransition = RISE;
 
