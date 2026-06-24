@@ -208,8 +208,8 @@ const UL = ({ children, style }: { children: ReactNode; style?: CSSProperties })
 const OL = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <ol className="osd-list ord" style={style}>{children}</ol>
 );
-const LI = ({ children, sub = false }: { children: ReactNode; sub?: boolean }) => (
-  <li className={sub ? 'sub' : undefined}>{children}</li>
+const LI = ({ children, sub = false, style }: { children: ReactNode; sub?: boolean; style?: CSSProperties }) => (
+  <li className={sub ? 'sub' : undefined} style={style}>{children}</li>
 );
 
 // Bullet＝LI 別名（語意化 li）；外層必須是 <UL>/<OL>。沿用既有 <Bullet> 呼叫點。
@@ -285,12 +285,12 @@ const P0Intro: Page = () => (
       <h1 style={{ fontSize: 105, fontWeight: 700, margin: 0, lineHeight: 1.1 }}>自我介紹</h1>
     </div>
     <div style={{ position: 'absolute', top: 280, left: 200, width: 1000, zIndex: 2 }}>
-      <div style={{ fontSize: 92, fontWeight: 700, marginBottom: 48, letterSpacing: '0.15em' }}>陳　晉</div>
+      <div style={{ fontSize: 108, fontWeight: 700, marginBottom: 28, letterSpacing: '0.15em', lineHeight: 1.2 }}>陳　晉</div>
       <UL>
-        <LI>北區資安教學資源師培中心副主任</LI>
-        <LI>高中職資安推廣中心講師</LI>
-        <LI>復興高中資訊科技代理教師</LI>
-        <LI>國防管理學院資管系 CTF 教練</LI>
+        <LI style={{ fontSize: 62 }}>北區資安教學資源師培中心副主任</LI>
+        <LI style={{ fontSize: 62 }}>高中職資安推廣中心講師</LI>
+        <LI style={{ fontSize: 62 }}>復興高中資訊科技代理教師</LI>
+        <LI style={{ fontSize: 62 }}>國防管理學院資管系 CTF 教練</LI>
       </UL>
     </div>
     <div style={{ position: 'absolute', top: 250, right: 150, width: 540, height: 620, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 18, zIndex: 2 }}>
