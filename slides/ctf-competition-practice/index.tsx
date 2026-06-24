@@ -1009,8 +1009,167 @@ const PART2C: Page[] = [
   P2cPunch, P2cTeach, P2cBehind, P2cDemoRisk,
 ];
 
+// ════════════ Part 2d ④ Blue Team — Eternal Relay（壓軸 · 銜接防禦）════════════
+const P2dSection: Page = () => <Section theme={T} title="④ Blue Team" subtitle="Eternal Relay · 壓軸" />;
+
+const P2dScenario: Page = () => (
+  <Default theme={T} title="情境：Eternal Relay">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>某夜內部監測在 SPAN 港側錄到三段可疑訊號</Bullet>
+      <Bullet>三段來自三台不同主機，卻都指向同一個內網位址</Bullet>
+      <Bullet>鑑識小組另從一台受影響工作站，取回一份 Windows 執行檔</Bullet>
+    </div>
+  </Default>
+);
+
+const P2dFlip: Page = () => (
+  <Statement theme={T} eyebrow="壓軸的轉折">
+    這一次，<br />你是<span style={{ color: '#e07b1a' }}>藍隊</span>。
+  </Statement>
+);
+
+const P2dEssence: Page = () => (
+  <Default theme={T} title="你不是攻擊者，是鑑識分析師">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>不是發動攻擊——是「事後鑑識」，重建攻擊者做了什麼</Bullet>
+      <Bullet>素材＝三份 PCAP（側錄流量）＋ 一份取回的執行檔</Bullet>
+      <Bullet sub>這正是真實 SOC／DFIR 的工作模式</Bullet>
+    </div>
+  </Default>
+);
+
+const P2dSkills: Page = () => (
+  <Default theme={T} title="要同時動用三條技能線">
+    <Cards>
+      <Card title="PE 靜態結構" body="看 section table、抓 .rdata、認 C++ name mangling" />
+      <Card title="PCAP / 自訂協定" body="取 TCP payload、逆向 binary frame 格式" />
+      <Card title="對稱密碼學" body="ChaCha20、stream cipher、known-plaintext oracle" />
+    </Cards>
+    <div style={{ fontSize: 38, color: '#555', marginTop: 36, textAlign: 'center' }}>工具全是 OSS；不需商用 RE 工具、不需執行 PE、不需暴力。</div>
+  </Default>
+);
+
+// ── writeup（四步鑑識契約）──
+const P2dS1a: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 4" beat="動作" title="先 triage 那份執行檔">
+    <Mono>{`$ strings relay.exe | grep -E "relay|crypto|SMB2"`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>用 pefile 載入 relay.exe，定位 <span style={{ fontFamily: MONO }}>.rdata</span>（常數材料區）</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS1b: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 4" beat="觀察" title="符號表沒被 strip——線索全露了">
+    <Mono size={34}>{`relay::crypto::K\nderive_nonce\nchacha20_encrypt`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet>mangled symbol 直接告訴你：用的是 ChaCha20，金鑰叫 K</Bullet>
+      <Bullet sub>未 strip 的符號表，本身就是鑑識的禮物</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS1c: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 4" beat="陷阱（最重要的一拍）" title="別被假 IOC 帶著走">
+    <div style={{ marginBottom: 22 }}>
+      <Bullet>PE 裡還有一排 SMB banner：NEGOTIATE／NTLM relay／TREE_CONNECT IPC$／WRITE</Bullet>
+      <Bullet>看起來像 SMB 橫向移動（呼應題名 Eternal）</Bullet>
+    </div>
+    <Mono size={34}>{`但它們是空的 stub——沒有任何遠端呼叫實作`}</Mono>
+    <div style={{ marginTop: 22 }}>
+      <Bullet sub>真正的資料外傳走自訂 TCP frame。教藍隊：追真資料流，別追裝飾</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dMemeFakeIOC: Page = () => <MemeSlot theme={T} intent="作者太壞：一排 SMB banner 全是裝飾，真的資料流藏在別處" />;
+
+const P2dS2a: Page = () => (
+  <StepPage theme={T} badge="步驟 2 / 共 4" beat="動作 → 原理" title="把三份 PCAP 切成 frame">
+    <Mono size={30}>{`magic 0xC2C2 切 frame：\n[2B magic][1B index][1B total][12B nonce][2B len BE][N B 密文]`}</Mono>
+    <div style={{ marginTop: 22 }}>
+      <Bullet sub>tshark／scapy 取 TCP payload，照這個格式拆開每個 frame</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS2b: Page = () => (
+  <StepPage theme={T} badge="步驟 2 / 共 4" beat="觀察 → 陷阱" title="檔名順序，不是重組順序">
+    <Mono size={32}>{`host_a.pcap   MAC 02:aa:..   chunk_index = 2\nhost_b.pcap   MAC 02:bb:..   chunk_index = 0\nhost_c.pcap   MAC 02:cc:..   chunk_index = 1`}</Mono>
+    <div style={{ marginTop: 22 }}>
+      <Bullet sub>a/b/c 的檔名順序，與 chunk_index（2/0/1）刻意不重合 → 必須依 index 排</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS3a: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 4" beat="原理" title="nonce 是從 source MAC 長出來的">
+    <Mono size={34}>{`12B nonce = 00 00 00 00 │ <6B source MAC> │ 00 00`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet>每台主機的 nonce 都能從它的 MAC 推出來</Bullet>
+      <Bullet sub>看懂這條規律，就能對每段各自還原 keystream</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS3b: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 4" beat="動作（金鑰還原）" title="用「已知開頭」把金鑰逼出來">
+    <Mono size={30}>{`chunk_index==0 的明文 必以 "ISIP" 起首   ← crib（已知明文）\n對 .rdata 跑 32-byte sliding window：\n  解密前 4 bytes == b"ISIP" ? → 命中\n→ 命中 .rdata offset 64，取得 ChaCha20 金鑰`}</Mono>
+  </StepPage>
+);
+const P2dMemeKeyHit: Page = () => <MemeSlot theme={T} intent="恍然大悟：sliding window 在 .rdata offset 64 命中金鑰的瞬間" />;
+
+const P2dS3c: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 4" beat="陷阱" title="counter 不是 0，是 1">
+    <Mono size={34}>{`⚠ initial_counter = 1   （不是 RFC 8439 預設的 0）\n   solver 端用 cipher.seek(64) 對應`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet sub>用預設 counter=0 解出來會是亂碼——這一格差別卡死很多人</Bullet>
+    </div>
+  </StepPage>
+);
+const P2dS4: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 4" beat="動作 → 收網" title="解密、依序拼回，flag 現形">
+    <Mono size={34}>{`B(0) → C(1) → A(2)  依 chunk_index 排序\n→ 串接 → rstrip \\x00 → 過 FLAG_REGEX`}</Mono>
+    <div style={{ marginTop: 24 }}>
+      <Bullet>三段各自 ChaCha20 解密，依 index 拼回一條明文</Bullet>
+      <Bullet sub>flag 重組完成（玩家視角，不投影明文）</Bullet>
+    </div>
+  </StepPage>
+);
+
+// ── 防禦銜接 + 出題幕後 ──
+const P2dDefenseValue: Page = () => (
+  <Default theme={T} title="這題，就是命題的縮影">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>要還原攻擊，你得先懂攻擊——怎麼拆片、用 MAC 衍生 nonce、把 key 藏進 binary</Bullet>
+      <Bullet>但題目刻意把「攻擊裝飾（假 SMB）」和「真資料流」分開</Bullet>
+      <Bullet sub>訓練分析者：把 offensive 知識，翻轉成 defensive 判斷力</Bullet>
+    </div>
+  </Default>
+);
+const P2dBehind: Page = () => (
+  <Default theme={T} title="出題幕後：被獨立 AI 盲測過">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>七階段 pipeline，每階段一個 commit（git SHA 鏈可佐證）</Bullet>
+      <Bullet>最後一階段派 ctf-solver 盲測：只給玩家素材、10 分鐘解出</Bullet>
+      <Bullet>並記錄數條死胡同（全 XOR、不排序串接、counter 試 0/2/3…）</Bullet>
+      <Bullet sub>scoundrel 防線：任何 frame 若含明文 ISIP 直接 fail-fast → 確保沒洩 flag</Bullet>
+    </div>
+  </Default>
+);
+const P2dBridge: Page = () => (
+  <Default theme={T} title="從這裡，走向藍隊靶場">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>這題零基礎設施：離線 PCAP ＋ PE，研習場地直接能跑</Bullet>
+      <Bullet>但它涵蓋的技能——network forensics、binary triage、crypto recovery、multi-source correlation</Bullet>
+      <Bullet sub>正是 CyberRange 藍隊演練的核心模組 → 先建鑑識直覺，再進動態事件應變</Bullet>
+    </div>
+  </Default>
+);
+
+const PART2D: Page[] = [
+  P2dSection, P2dScenario, P2dFlip, P2dEssence, P2dSkills,
+  P2dS1a, P2dS1b, P2dS1c, P2dMemeFakeIOC,
+  P2dS2a, P2dS2b, P2dS3a, P2dS3b, P2dMemeKeyHit, P2dS3c, P2dS4,
+  P2dDefenseValue, P2dBehind, P2dBridge,
+];
+
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
-export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B, ...PART2C] satisfies Page[];
+export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B, ...PART2C, ...PART2D] satisfies Page[];
 
 export const transition: SlideTransition = RISE;
 
