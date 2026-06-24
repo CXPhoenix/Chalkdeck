@@ -159,14 +159,6 @@ const Statement = ({ theme, eyebrow, children }: { theme: Theme; eyebrow?: strin
   </DeckPage>
 );
 
-// 條列列（逐步揭露用，Step 的直接內容）
-const RoadRow = ({ children }: { children: ReactNode }) => (
-  <div style={{ fontSize: 60, lineHeight: 1.5, marginBottom: 22, display: 'flex', gap: 20 }}>
-    <span style={{ color: '#e07b1a', flex: '0 0 auto' }}>❖</span>
-    <span>{children}</span>
-  </div>
-);
-
 // 梗圖插槽：講者自填。圖檔放 assets/，命名 meme-<part>-<梗>.png；放好後在該頁 <MemeSlot/> 加 src 即可。
 // 例：<MemeSlot theme={T} intent="…" src={new URL('./assets/meme-2a-aha-gitleak.png', import.meta.url).href} />
 const MemeSlot = ({ theme, intent, src }: { theme: Theme; intent: string; src?: string }) => (
@@ -281,20 +273,20 @@ P0Cover.transition = SETTLE;
 
 const P0Roadmap: Page = () => (
   <Default theme={T} title="今天的路線">
-    <Steps>
-      <Step><RoadRow>OSINT — 從公開足跡找線索（暖場）</RoadRow></Step>
-      <Step><RoadRow>Web — 一條龍打進後台</RoadRow></Step>
-      <Step><RoadRow>REV／WASM — 在瀏覽器裡作弊（高潮）</RoadRow></Step>
-      <Step><RoadRow>Blue Team — 當一次鑑識分析師（壓軸）</RoadRow></Step>
-      <Step><RoadRow>貫穿全場：用 AI 幫你出題</RoadRow></Step>
-      <Step><RoadRow>收束：教攻擊，為了教更強的藍隊</RoadRow></Step>
-    </Steps>
+    <ul>
+      <li>OSINT — 從公開足跡找線索（暖場）</li>
+      <li>Web — 一條龍打進後台</li>
+      <li>REV／WASM — 在瀏覽器裡作弊（高潮）</li>
+      <li>Blue Team — 當一次鑑識分析師（壓軸）</li>
+      <li>貫穿全場：用 AI 幫你出題</li>
+      <li>收束：教攻擊，為了教更強的藍隊</li>
+    </ul>
   </Default>
 );
 
 const P0Thesis: Page = () => (
   <Statement theme={T} eyebrow="今天的主軸">
-    教攻擊，<br />是為了教出更棒的<br />藍隊防禦者。
+    教攻擊，<br />是為了教出更棒的{''}藍隊防禦者。
   </Statement>
 );
 
