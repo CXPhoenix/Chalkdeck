@@ -311,19 +311,6 @@ const P0Outline: Page = () => (
   </Default>
 );
 
-const P0Roadmap: Page = () => (
-  <Default theme={T} title="今天的路線">
-    <UL>
-      <LI>OSINT — 從公開足跡找線索</LI>
-      <LI>Web — 一條龍打進後台</LI>
-      <LI>REV／WASM — 在瀏覽器裡作弊</LI>
-      <LI>Blue Team — 當一次鑑識分析師</LI>
-      <LI>用 AI 幫你出題</LI>
-      <LI>學攻擊，為了變成更強的藍隊</LI>
-    </UL>
-  </Default>
-);
-
 const P0Thesis: Page = () => (
   <Statement theme={T} eyebrow="今天的主軸">
     學攻擊，<br />是為了更好的學會防禦！
@@ -1355,7 +1342,7 @@ const PART4: Page[] = [P4Section, P4Recap, P4Argument, P4Thesis, P4Takeaway, P4M
 
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
 export default [
-  P0Cover, P0Intro, P0Outline, P0Roadmap, P0Thesis, P0Meme,
+  P0Cover, P0Intro, P0Outline, P0Thesis, P0Meme,
   ...PART1, ...PART2A, ...PART2B, ...PART2C, ...PART2D, ...PART3, ...PART4,
 ] satisfies Page[];
 
