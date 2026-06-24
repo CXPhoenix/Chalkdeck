@@ -3,7 +3,7 @@
 // 內容藍本見 .spectra/subject/20260626_0628/（00–08 + HANDOFF）。
 import type { CSSProperties, ReactNode } from 'react';
 import type { DesignSystem, Page, SlideMeta, SlideTransition } from '@open-slide/core';
-import { useSlidePageNumber } from '@open-slide/core';
+import { Step, Steps, useSlidePageNumber } from '@open-slide/core';
 
 import isipLogo from '@assets/fhsh-isiphs/isip-hs/logo.png';
 import isipSection from '@assets/fhsh-isiphs/isip-hs/section-img.png';
@@ -38,6 +38,29 @@ if (typeof document !== 'undefined' && !document.getElementById('osd-fhsh-isiphs
     `.osd-list.ord>li{padding-left:10px;font-size:54px;line-height:1.5;margin-bottom:20px;}` +
     `.osd-list.ord>li::before{content:none;}` +
     `.osd-list.ord>li::marker{color:#e07b1a;font-weight:700;}` +
+    // P1 分類頁 Morph：常駐標籤 + 隱形 Step 計數器 + CSS :has() 驅動位移／變色
+    `.osd-morph-root{position:relative;width:100%;height:100%;}` +
+    `.osd-morph-steps{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;pointer-events:none;}` +
+    `.osd-morph-tag{position:absolute;display:inline-block;white-space:nowrap;border:3px solid #c4ccd6;color:#9aa3ad;background:#ffffff;border-radius:999px;padding:10px 32px;font-size:46px;font-weight:700;transition:left .6s cubic-bezier(.2,.7,.2,1),top .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1),color .45s ease,border-color .45s ease,background .45s ease,box-shadow .45s ease;}` +
+    `.osd-morph-tag.is-osint{left:150px;top:60px;transform:rotate(-7deg);}` +
+    `.osd-morph-tag.is-web{left:980px;top:30px;transform:rotate(6deg);}` +
+    `.osd-morph-tag.is-rev{left:560px;top:170px;transform:rotate(-4deg);}` +
+    `.osd-morph-tag.is-blue{left:980px;top:470px;transform:rotate(5deg);}` +
+    `.osd-morph-tag.is-pwn{left:430px;top:520px;transform:rotate(8deg);}` +
+    `.osd-morph-tag.is-crypto{left:1180px;top:250px;transform:rotate(-6deg);}` +
+    `.osd-morph-tag.is-misc{left:770px;top:410px;transform:rotate(7deg);}` +
+    // 第 k 步揭露 → 第 k 個今日類別收攏到左欄並高亮（OSINT→Web→REV→Blue）
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(1)[data-osd-step="revealed"]) .is-osint,` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(2)[data-osd-step="revealed"]) .is-web,` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(3)[data-osd-step="revealed"]) .is-rev,` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(4)[data-osd-step="revealed"]) .is-blue{border-color:#e07b1a;color:#e07b1a;background:#fff7ee;box-shadow:0 8px 24px rgba(224,123,26,.18);left:0;transform:none;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(1)[data-osd-step="revealed"]) .is-osint{top:24px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(2)[data-osd-step="revealed"]) .is-web{top:182px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(3)[data-osd-step="revealed"]) .is-rev{top:340px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(4)[data-osd-step="revealed"]) .is-blue{top:498px;}` +
+    `.osd-morph-caption{position:absolute;left:520px;top:600px;width:980px;font-size:34px;color:#6b7a90;line-height:1.4;}` +
+    `.osd-morph-hint{position:absolute;right:6px;top:24px;font-size:30px;color:#aeb6c2;}` +
+    `@media (prefers-reduced-motion:reduce){.osd-morph-tag{transition:none;}}` +
     `.osd-fhsh-content a{color:#0284c7;text-decoration:underline;text-underline-offset:2px;}` +
     `.osd-fhsh-content a:hover{color:#1e40af;}`;
   document.head.appendChild(style);
@@ -335,14 +358,30 @@ const P1WhatIsCTF: Page = () => (
   </Default>
 );
 
+// 分類頁 Morph：7 個常駐標籤先四散、灰；每按一次 → 今日 4 類依序收攏左欄並高亮。
+// 隱形的 <Steps> 只當揭露計數器（DOM 上 data-osd-step=revealed/pending），CSS :has() 據此驅動常駐標籤。
+// 無 step host（overview 縮圖／反向進入）時 framework 讓所有 Step revealed → 直接呈現完成態。
 const P1Categories: Page = () => (
   <Default theme={T} title="題目分類（今天走 4 類）">
-    <div style={{ marginTop: 24, marginBottom: 40 }}>
-      <Pill>OSINT</Pill><Pill>Web</Pill><Pill>REV</Pill><Pill color="#9aa3ad">Pwn</Pill>
-      <Pill color="#9aa3ad">Crypto</Pill><Pill>Forensics ／ Blue</Pill><Pill color="#9aa3ad">Misc</Pill>
-    </div>
-    <div style={{ fontSize: 54, lineHeight: 1.5, marginTop: 12 }}>
-      今天要介紹的內容：<span style={{ color: '#e07b1a', fontWeight: 700 }}>OSINT → Web → REV／WASM → Blue Team</span>
+    <div className="osd-morph-root">
+      <span className="osd-morph-tag is-osint">OSINT</span>
+      <span className="osd-morph-tag is-web">Web</span>
+      <span className="osd-morph-tag is-rev">REV／WASM</span>
+      <span className="osd-morph-tag is-blue">Forensics ／ Blue</span>
+      <span className="osd-morph-tag is-pwn">Pwn</span>
+      <span className="osd-morph-tag is-crypto">Crypto</span>
+      <span className="osd-morph-tag is-misc">Misc</span>
+      <div className="osd-morph-caption">就照這個順序破關：<b style={{ color: '#e07b1a' }}>OSINT → Web → REV／WASM → Blue Team</b></div>
+      <div className="osd-morph-hint">灰色＝今天不走的類別</div>
+      <div className="osd-morph-steps" aria-hidden>
+        {/* 順序攸關：第 1~4 個 Step 依序對應 OSINT／Web／REV／Blue（見上方 CSS :has nth-child 規則），勿增刪或重排 */}
+        <Steps>
+          <Step><i /></Step>
+          <Step><i /></Step>
+          <Step><i /></Step>
+          <Step><i /></Step>
+        </Steps>
+      </div>
     </div>
   </Default>
 );
