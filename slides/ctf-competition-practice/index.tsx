@@ -42,25 +42,26 @@ if (typeof document !== 'undefined' && !document.getElementById('osd-fhsh-isiphs
     `.osd-morph-root{position:relative;width:100%;height:100%;}` +
     `.osd-morph-steps{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;pointer-events:none;}` +
     `.osd-morph-tag{position:absolute;display:inline-block;white-space:nowrap;border:3px solid #c4ccd6;color:#9aa3ad;background:#ffffff;border-radius:999px;padding:10px 32px;font-size:46px;font-weight:700;transition:left .6s cubic-bezier(.2,.7,.2,1),top .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1),color .45s ease,border-color .45s ease,background .45s ease,box-shadow .45s ease;}` +
-    `.osd-morph-tag.is-osint{left:150px;top:60px;transform:rotate(-7deg);}` +
-    `.osd-morph-tag.is-web{left:980px;top:30px;transform:rotate(6deg);}` +
-    `.osd-morph-tag.is-rev{left:560px;top:170px;transform:rotate(-4deg);}` +
-    `.osd-morph-tag.is-blue{left:980px;top:470px;transform:rotate(5deg);}` +
-    `.osd-morph-tag.is-pwn{left:430px;top:520px;transform:rotate(8deg);}` +
-    `.osd-morph-tag.is-crypto{left:1180px;top:250px;transform:rotate(-6deg);}` +
-    `.osd-morph-tag.is-misc{left:770px;top:410px;transform:rotate(7deg);}` +
+    `.osd-morph-tag.is-osint{left:160px;top:60px;transform:rotate(-7deg);}` +
+    `.osd-morph-tag.is-web{left:640px;top:50px;transform:rotate(6deg);}` +
+    `.osd-morph-tag.is-rev{left:380px;top:220px;transform:rotate(-4deg);}` +
+    `.osd-morph-tag.is-blue{left:560px;top:330px;transform:rotate(5deg);}` +
+    `.osd-morph-tag.is-pwn{left:820px;top:120px;transform:rotate(8deg);}` +
+    `.osd-morph-tag.is-crypto{left:1180px;top:90px;transform:rotate(-6deg);}` +
+    `.osd-morph-tag.is-misc{left:1170px;top:300px;transform:rotate(7deg);}` +
     // 第 k 步揭露 → 第 k 個今日類別收攏到左欄並高亮（OSINT→Web→REV→Blue）
     `.osd-morph-root:has(.osd-morph-steps>div:nth-child(1)[data-osd-step="revealed"]) .is-osint,` +
     `.osd-morph-root:has(.osd-morph-steps>div:nth-child(2)[data-osd-step="revealed"]) .is-web,` +
     `.osd-morph-root:has(.osd-morph-steps>div:nth-child(3)[data-osd-step="revealed"]) .is-rev,` +
     `.osd-morph-root:has(.osd-morph-steps>div:nth-child(4)[data-osd-step="revealed"]) .is-blue{border-color:#e07b1a;color:#e07b1a;background:#fff7ee;box-shadow:0 8px 24px rgba(224,123,26,.18);left:0;transform:none;}` +
-    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(1)[data-osd-step="revealed"]) .is-osint{top:24px;}` +
-    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(2)[data-osd-step="revealed"]) .is-web{top:182px;}` +
-    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(3)[data-osd-step="revealed"]) .is-rev{top:340px;}` +
-    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(4)[data-osd-step="revealed"]) .is-blue{top:498px;}` +
-    `.osd-morph-caption{position:absolute;left:520px;top:600px;width:980px;font-size:34px;color:#6b7a90;line-height:1.4;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(1)[data-osd-step="revealed"]) .is-osint{top:12px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(2)[data-osd-step="revealed"]) .is-web{top:128px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(3)[data-osd-step="revealed"]) .is-rev{top:244px;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(4)[data-osd-step="revealed"]) .is-blue{top:360px;}` +
+    `.osd-morph-caption{position:absolute;left:12px;top:480px;width:1496px;font-size:78px;font-weight:700;color:#444444;line-height:1.3;opacity:0;transition:opacity .5s ease;}` +
+    `.osd-morph-root:has(.osd-morph-steps>div:nth-child(5)[data-osd-step="revealed"]) .osd-morph-caption{opacity:1;}` +
     `.osd-morph-hint{position:absolute;right:6px;top:24px;font-size:30px;color:#aeb6c2;}` +
-    `@media (prefers-reduced-motion:reduce){.osd-morph-tag{transition:none;}}` +
+    `@media (prefers-reduced-motion:reduce){.osd-morph-tag,.osd-morph-caption{transition:none;}}` +
     `.osd-fhsh-content a{color:#0284c7;text-decoration:underline;text-underline-offset:2px;}` +
     `.osd-fhsh-content a:hover{color:#1e40af;}`;
   document.head.appendChild(style);
@@ -371,11 +372,12 @@ const P1Categories: Page = () => (
       <span className="osd-morph-tag is-pwn">Pwn</span>
       <span className="osd-morph-tag is-crypto">Crypto</span>
       <span className="osd-morph-tag is-misc">Misc</span>
-      <div className="osd-morph-caption">就照這個順序破關：<b style={{ color: '#e07b1a' }}>OSINT → Web → REV／WASM → Blue Team</b></div>
+      <div className="osd-morph-caption">就照這個順序破關：<br /><b style={{ color: '#e07b1a' }}>OSINT → Web → REV／WASM → Blue</b></div>
       <div className="osd-morph-hint">灰色＝今天不走的類別</div>
       <div className="osd-morph-steps" aria-hidden>
-        {/* 順序攸關：第 1~4 個 Step 依序對應 OSINT／Web／REV／Blue（見上方 CSS :has nth-child 規則），勿增刪或重排 */}
+        {/* 順序攸關：第 1~4 步依序對應 OSINT／Web／REV／Blue，第 5 步（最後一 click）才顯示結論字（見上方 CSS :has nth-child 規則），勿增刪或重排 */}
         <Steps>
+          <Step><i /></Step>
           <Step><i /></Step>
           <Step><i /></Step>
           <Step><i /></Step>
