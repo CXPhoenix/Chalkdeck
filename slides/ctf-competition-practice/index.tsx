@@ -633,7 +633,7 @@ const P2aBehind2: Page = () => (
   <Default theme={T} title="出題幕後：不能洩題">
     <div style={{ marginTop: 8 }}>
       <Bullet>題目描述用 grep 強制檢查（reverse blacklist）</Bullet>
-      <Bullet>禁止出現 <span style={{ fontFamily: MONO }}>.git／postman／token／leak／bearer</span> 等字眼</Bullet>
+      <Bullet>禁止出現 <span style={{ fontFamily: MONO }}>.git／postman／OSINT／token／leak／bearer</span> 等字眼</Bullet>
       <Bullet sub>出題的藝術：給夠線索，但不能破梗</Bullet>
     </div>
   </Default>
