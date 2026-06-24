@@ -284,18 +284,21 @@ const P0Intro: Page = () => (
     <div style={{ position: 'absolute', top: 100, left: 134, width: 1651, height: 125, textAlign: 'center', zIndex: 2 }}>
       <h1 style={{ fontSize: 105, fontWeight: 700, margin: 0, lineHeight: 1.1 }}>自我介紹</h1>
     </div>
-    <div style={{ position: 'absolute', top: 280, left: 200, width: 1000, zIndex: 2 }}>
-      <div style={{ fontSize: 108, fontWeight: 700, marginBottom: 28, letterSpacing: '0.15em', lineHeight: 1.2 }}>陳　晉</div>
-      <UL>
-        <LI style={{ fontSize: 62 }}>北區資安教學資源師培中心副主任</LI>
-        <LI style={{ fontSize: 62 }}>高中職資安推廣中心講師</LI>
-        <LI style={{ fontSize: 62 }}>復興高中資訊科技代理教師</LI>
-        <LI style={{ fontSize: 62 }}>國防管理學院資管系 CTF 教練</LI>
-      </UL>
-    </div>
-    <div style={{ position: 'absolute', top: 250, right: 150, width: 540, height: 620, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 18, zIndex: 2 }}>
-      <div style={{ fontSize: 96, lineHeight: 1 }}>🧑‍🏫</div>
-      <div style={{ fontSize: 32, fontWeight: 700, color: '#6b7a90' }}>講者照片（待提供）</div>
+    {/* 名字＋經歷（左）與照片（右）兩欄，垂直置中、平衡上下空間 */}
+    <div style={{ position: 'absolute', top: 248, left: 200, right: 140, bottom: 110, display: 'flex', alignItems: 'center', gap: 70, zIndex: 2 }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 112, fontWeight: 700, marginBottom: 44, letterSpacing: '0.08em', lineHeight: 1.1 }}>陳　晉</div>
+        <UL>
+          <LI style={{ fontSize: 62 }}>北區資安教學資源師培中心副主任</LI>
+          <LI style={{ fontSize: 62 }}>高中職資安推廣中心講師</LI>
+          <LI style={{ fontSize: 62 }}>復興高中資訊科技代理教師</LI>
+          <LI style={{ fontSize: 62 }}>國防管理學院資管系 CTF 教練</LI>
+        </UL>
+      </div>
+      <div style={{ flex: '0 0 520px', height: 600, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 20 }}>
+        <div style={{ fontSize: 120, lineHeight: 1 }}>🧑‍🏫</div>
+        <div style={{ fontSize: 34, fontWeight: 700, color: '#6b7a90' }}>講者照片（待提供）</div>
+      </div>
     </div>
   </DeckPage>
 );
