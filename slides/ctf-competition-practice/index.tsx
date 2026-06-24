@@ -646,8 +646,204 @@ const PART2A: Page[] = [
   P2aTeach, P2aPunch, P2aBehind1, P2aBehind2,
 ];
 
+// ════════════════════ Part 2b ② Web — Homerun（主動攻擊）════════════════════
+const P2bSection: Page = () => <Section theme={T} title="② Web" subtitle="Homerun · 主動攻擊" />;
+
+const P2bScenario: Page = () => (
+  <Default theme={T} title="情境：Homerun">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>一個「買一雙送一雙」的公益送鞋活動站</Bullet>
+      <Bullet>站方深信：「沒有公開連結，就等於沒人找得到」</Bullet>
+      <Bullet sub>← 這個假設，正是整題的破口</Bullet>
+    </div>
+  </Default>
+);
+
+const P2bEssence: Page = () => (
+  <Statement theme={T} eyebrow="這題在打什麼">
+    以為藏起來，<br />就<span style={{ color: '#e07b1a' }}>安全</span>了。
+  </Statement>
+);
+
+const P2bChain: Page = () => (
+  <Default theme={T} title="一條三段式攻擊鏈">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>① OpenAPI schema 洩漏（資訊洩漏 · CWE-200）</Bullet>
+      <Bullet>② 自助提權（授權失效 · CWE-862 · OWASP Top 10 #1）</Bullet>
+      <Bullet>③ nginx alias off-by-slash 路徑遍歷</Bullet>
+      <Bullet sub>三段都是「設定／授權」錯誤——不用記艱深 payload，口頭就能講清為什麼中招</Bullet>
+    </div>
+  </Default>
+);
+
+// ── writeup（9 步）──
+const P2bS1: Page = () => (
+  <StepPage theme={T} badge="步驟 1 / 共 9" beat="動作" title="開首頁，聽公益送鞋的故事">
+    <Mono>{`http://localhost:8082/`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>先把「正常使用者看到的網站」走過一遍</Bullet>
+      <Bullet sub>偵察永遠是第一步——先知道有哪些功能、哪些頁面</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS2: Page = () => (
+  <StepPage theme={T} badge="步驟 2 / 共 9" beat="動作 → 原理" title="註冊、登入一個一般會員">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>註冊與登入要先 GET 表單頁拿 CSRF token，再帶 token POST</Bullet>
+      <Bullet sub>連「先拿 CSRF token」這種小步也要交代——不跳步</Bullet>
+      <Bullet sub>目的：先有一個「低權限身分」，等下從這裡往上爬</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS3: Page = () => (
+  <StepPage theme={T} badge="步驟 3 / 共 9" beat="觀察" title="以會員身分留言，確認自己很弱">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>用 member 身分留言成功 → 確認目前是「一般會員」權限</Bullet>
+      <Bullet sub>先確立「我現在能做什麼、不能做什麼」，提權才有對照</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS4a: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 9" beat="動作" title="啊哈點 ①：要一份 API 地圖">
+    <Mono>{`$ curl -s http://localhost:8082/api/openapi.json`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>整份 API schema（所有端點）一次攤在眼前</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS4b: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 9" beat="原理" title="為什麼這份地圖會外洩？">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>FastAPI／Swagger 預設就會開 <span style={{ fontFamily: MONO }}>/openapi.json</span> 與 docs</Bullet>
+      <Bullet>沒人連到 ≠ 不存在——它一直在那裡（CWE-200 資訊洩漏）</Bullet>
+      <Bullet sub>真實世界超高頻：上線忘了關 API 文件</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS4c: Page = () => (
+  <StepPage theme={T} badge="步驟 4 / 共 9" beat="觀察 → 線索" title="地圖上有一個不該給你的端點">
+    <Mono>{`POST /api/admin/promote/{user_id}`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>schema 裡有個「把使用者升成 admin」的端點</Bullet>
+      <Bullet sub>下一步：試試看一般會員能不能直接呼叫它</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bMemeMap: Page = () => <MemeSlot theme={T} intent="恍然大悟：整張 API 地圖（含後台端點）被一次攤開" />;
+
+const P2bS5a: Page = () => (
+  <StepPage theme={T} badge="步驟 5 / 共 9" beat="動作" title="自助提權：把自己升成 admin">
+    <Mono size={34}>{`$ curl -X POST \\\n    http://localhost:8082/api/admin/promote/<my_id> \\\n    -H "Cookie: session=<member session>"`}</Mono>
+  </StepPage>
+);
+const P2bS5b: Page = () => (
+  <StepPage theme={T} badge="步驟 5 / 共 9" beat="原理" title="為什麼一般會員打得動後台？">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>這個端點漏掉了 <span style={{ fontFamily: MONO }}>require_admin</span> 的權限檢查</Bullet>
+      <Bullet>於是任何登入的會員，都能呼叫它把自己升成 admin</Bullet>
+      <Bullet sub>授權失效（CWE-862）——OWASP Top 10 2021 排名第一</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS5c: Page = () => (
+  <StepPage theme={T} badge="步驟 5 / 共 9" beat="觀察" title="最強的「啊哈」瞬間">
+    <Mono>{`{ "id": <my_id>, "role": "admin" }`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet><span style={{ fontFamily: MONO }}>role</span> 從 member 變成 admin——一個請求就完成</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bMemeAdmin: Page = () => <MemeSlot theme={T} intent="作弊爽感：一個 curl，member 秒變 admin" />;
+
+const P2bS6: Page = () => (
+  <StepPage theme={T} badge="步驟 6 / 共 9" beat="觀察" title="驗證提權真的有用">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>升權前：<span style={{ fontFamily: MONO }}>/sales</span> 對非 admin 是擋的（403）</Bullet>
+      <Bullet>升權後：同一個 <span style={{ fontFamily: MONO }}>/sales</span> 通了</Bullet>
+      <Bullet sub>確認手上的 admin 是「真的能用」的，再往下走</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS7a: Page = () => (
+  <StepPage theme={T} badge="步驟 7 / 共 9" beat="動作" title="啊哈點 ②：在網址上動手腳">
+    <Mono>{`GET /sales../meetings/2026-q1.md`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>用 <span style={{ fontFamily: MONO }}>/sales..</span> 跳出原本的目錄，讀到內部會議檔</Bullet>
+      <Bullet sub>這一步只是「示範遍歷原語」——還沒拿到 flag</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS7b: Page = () => (
+  <StepPage theme={T} badge="步驟 7 / 共 9" beat="原理" title="一個尾斜線的差別">
+    <Mono size={32}>{`location /sales            ← 無尾斜線\nalias    /srv/internal/sales/   ← 有尾斜線\n\n/sales../flag.txt\n  → /srv/internal/sales/../flag.txt\n  → /srv/internal/flag.txt   ✗ 跳出去了`}</Mono>
+    <div style={{ marginTop: 22 }}>
+      <Bullet sub>nginx 著名設定陷阱：location 與 alias 尾斜線錯位 → 路徑遍歷</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS8: Page = () => (
+  <StepPage theme={T} badge="步驟 8 / 共 9" beat="觀察 → 線索" title="遍歷落地頁，把內部目錄看光">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>遍歷到內部目錄根，落地頁列出裡面所有檔案</Bullet>
+      <Bullet>清單裡指出 <span style={{ fontFamily: MONO }}>flag.txt</span> 的位置</Bullet>
+      <Bullet sub>注意：flag 在獨立的 flag.txt——會議檔只是「示範遍歷」的中繼，不是終點</Bullet>
+    </div>
+  </StepPage>
+);
+const P2bS9: Page = () => (
+  <StepPage theme={T} badge="步驟 9 / 共 9" beat="動作 → 收網" title="讀出那一格 flag.txt">
+    <Mono>{`GET /sales../flag.txt`}</Mono>
+    <div style={{ marginTop: 28 }}>
+      <Bullet>同一招遍歷，這次直接讀內部目錄根下的 flag.txt</Bullet>
+      <Bullet sub>flag 字面 b0g0＝Buy One Get One，呼應送鞋故事（玩家視角，不投影明文）</Bullet>
+    </div>
+  </StepPage>
+);
+
+// ── 帶學生 + 出題幕後 ──
+const P2bTeach: Page = () => (
+  <Default theme={T} title="怎麼帶學生走這題">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>開站講送鞋故事 → 點出兩個錯誤的安全假設</Bullet>
+      <Bullet>打開 openapi.json，讓學生看「地圖被攤開」</Bullet>
+      <Bullet>當場 curl promote → <span style={{ fontFamily: MONO }}>role: admin</span> 出現的瞬間最有戲</Bullet>
+      <Bullet>示範遍歷讀 flag → 最後跑 solve.py 看「出題者怎麼自動驗題」</Bullet>
+    </div>
+  </Default>
+);
+const P2bPunch: Page = () => (
+  <Statement theme={T} eyebrow="這題的金句">
+    藏起來，<br /><span style={{ color: '#e07b1a' }}>不等於</span>安全。
+  </Statement>
+);
+const P2bBehind: Page = () => (
+  <Default theme={T} title="出題幕後：最具體的 audit 紀錄">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>八階段 stages ledger，每階段都留 audit_verdict 與具體 notes</Bullet>
+      <Bullet>4 個 persona 平行對抗審查：Scoundrel／Lazy Developer／Confused Developer／Confused Player</Bullet>
+      <Bullet sub>其中一階段「採納了 6 個 Critical 修正」——出題不是一次到位，是反覆找碴</Bullet>
+    </div>
+  </Default>
+);
+const P2bDemoRisk: Page = () => (
+  <Default theme={T} title="現場 demo 的小提醒">
+    <div style={{ marginTop: 8 }}>
+      <Bullet>register／login 各有獨立的 <span style={{ fontFamily: MONO }}>5 次 / 5 分鐘</span> 限流桶</Bullet>
+      <Bullet>連跑幾次 solve.py 會撞 429</Bullet>
+      <Bullet sub>對策：demo 前 <span style={{ fontFamily: MONO }}>docker compose restart api</span> 清乾淨</Bullet>
+    </div>
+  </Default>
+);
+
+const PART2B: Page[] = [
+  P2bSection, P2bScenario, P2bEssence, P2bChain,
+  P2bS1, P2bS2, P2bS3, P2bS4a, P2bS4b, P2bS4c, P2bMemeMap,
+  P2bS5a, P2bS5b, P2bS5c, P2bMemeAdmin, P2bS6, P2bS7a, P2bS7b, P2bS8, P2bS9,
+  P2bTeach, P2bPunch, P2bBehind, P2bDemoRisk,
+];
+
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
-export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A] satisfies Page[];
+export default [P0Cover, P0Roadmap, P0Thesis, P0Meme, ...PART1, ...PART2A, ...PART2B] satisfies Page[];
 
 export const transition: SlideTransition = RISE;
 
