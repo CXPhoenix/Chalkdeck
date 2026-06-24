@@ -28,15 +28,16 @@ if (typeof document !== 'undefined' && !document.getElementById('osd-fhsh-isiphs
     `@font-face{font-family:'edukai';src:url(${edukaiWoff2}) format('woff2');font-weight:normal;font-style:normal;font-display:swap;}` +
     `.osd-fhsh-content p{font-size:64px;line-height:1.6;margin:0 0 24px;}` +
     `.osd-fhsh-content h3{font-size:78px;line-height:1.4;margin:0 0 16px;}` +
-    `.osd-fhsh-content ul{list-style:none;padding-left:64px;margin:0 0 24px;}` +
-    `.osd-fhsh-content ol{list-style:decimal;padding-left:96px;font-size:64px;line-height:1.6;margin:0 0 24px;}` +
-    `.osd-fhsh-content li{font-size:64px;line-height:1.6;}` +
-    `.osd-fhsh-content ul>li::before{content:"\\2756  ";}` +
-    `.osd-fhsh-content ul ul{padding-left:40px;}` +
-    `.osd-fhsh-content ul ul>li{font-size:58px;}` +
-    `.osd-fhsh-content ul ul>li::before{content:"\\27A2  ";}` +
-    `.osd-fhsh-content ul ul ul>li{font-size:52px;}` +
-    `.osd-fhsh-content ul ul ul>li::before{content:"\\25FC  ";}` +
+    // 真正語意化列表（UL/OL/LI 元件用，靠左對齊、不仿樣式）
+    `.osd-list{list-style:none;margin:0;padding:0;}` +
+    `.osd-list>li{position:relative;padding-left:50px;font-size:54px;line-height:1.5;margin-bottom:20px;}` +
+    `.osd-list>li::before{content:"\\2756";position:absolute;left:0;color:#e07b1a;}` +
+    `.osd-list>li.sub{padding-left:50px;font-size:44px;}` +
+    `.osd-list>li.sub::before{content:"\\27A2";color:#e07b1a;}` +
+    `.osd-list.ord{list-style:decimal;padding-left:64px;}` +
+    `.osd-list.ord>li{padding-left:10px;font-size:54px;line-height:1.5;margin-bottom:20px;}` +
+    `.osd-list.ord>li::before{content:none;}` +
+    `.osd-list.ord>li::marker{color:#e07b1a;font-weight:700;}` +
     `.osd-fhsh-content a{color:#0284c7;text-decoration:underline;text-underline-offset:2px;}` +
     `.osd-fhsh-content a:hover{color:#1e40af;}`;
   document.head.appendChild(style);
@@ -200,7 +201,18 @@ const Mono = ({ children, size = 38 }: { children: ReactNode; size?: number }) =
   <div style={{ fontFamily: MONO, fontSize: size, background: '#f4f2ec', border: '2px solid #e0dacb', borderRadius: 14, padding: '20px 28px', lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#1b1b1b' }}>{children}</div>
 );
 
-// 條列點（writeup / 一般頁用，密度比 osd-fhsh-content 低）
+// 語意化列表（真 ul/ol/li，不仿樣式）。LI sub=true → 次層（➢）。
+const UL = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
+  <ul className="osd-list" style={style}>{children}</ul>
+);
+const OL = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
+  <ol className="osd-list ord" style={style}>{children}</ol>
+);
+const LI = ({ children, sub = false }: { children: ReactNode; sub?: boolean }) => (
+  <li className={sub ? 'sub' : undefined}>{children}</li>
+);
+
+// 條列點（舊版 div 仿樣式；P2a–P4 尚未轉換的頁面仍用，逐步遷移到 UL/LI）
 const Bullet = ({ children, sub = false }: { children: ReactNode; sub?: boolean }) => (
   <div style={{ display: 'flex', gap: 18, fontSize: sub ? 44 : 54, lineHeight: 1.5, marginBottom: 20 }}>
     <span style={{ color: '#e07b1a', flex: '0 0 auto' }}>{sub ? '➢' : '❖'}</span>
@@ -271,22 +283,55 @@ const CYBERRANGE_BANNER = new URL('./assets/cyberrange-2026.png', import.meta.ur
 const P0Cover: Page = () => <Cover theme={T} title="資安競賽實務" subtitle="從解題，到防禦" />;
 P0Cover.transition = SETTLE;
 
+// 自我介紹（照片講者自填：把右側 placeholder 換成 <img src={new URL('./assets/speaker.png', import.meta.url).href} ...>）
+const P0Intro: Page = () => (
+  <DeckPage theme={T}>
+    <div style={{ position: 'absolute', top: 100, left: 134, width: 1651, height: 125, textAlign: 'center', zIndex: 2 }}>
+      <h1 style={{ fontSize: 105, fontWeight: 700, margin: 0, lineHeight: 1.1 }}>自我介紹</h1>
+    </div>
+    <div style={{ position: 'absolute', top: 280, left: 200, width: 1000, zIndex: 2 }}>
+      <div style={{ fontSize: 92, fontWeight: 700, marginBottom: 48, letterSpacing: '0.15em' }}>陳　晉</div>
+      <UL>
+        <LI>北區資安教學資源師培中心副主任</LI>
+        <LI>高中職資安推廣中心講師</LI>
+        <LI>復興高中資訊科技代理教師</LI>
+        <LI>國防管理學院資管系 CTF 教練</LI>
+      </UL>
+    </div>
+    <div style={{ position: 'absolute', top: 250, right: 150, width: 540, height: 620, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 18, zIndex: 2 }}>
+      <div style={{ fontSize: 96, lineHeight: 1 }}>🧑‍🏫</div>
+      <div style={{ fontSize: 32, fontWeight: 700, color: '#6b7a90' }}>講者照片（待提供）</div>
+    </div>
+  </DeckPage>
+);
+
+const P0Outline: Page = () => (
+  <Default theme={T} title="OUTLINE">
+    <OL style={{ marginTop: 16 }}>
+      <LI>CTF 是什麼、怎麼用 AI 出題</LI>
+      <LI>四題實戰：OSINT → Web → REV → Blue Team</LI>
+      <LI>藍隊靶場：HITCON CyberRange</LI>
+      <LI>收束：學攻擊，是為了更會防禦</LI>
+    </OL>
+  </Default>
+);
+
 const P0Roadmap: Page = () => (
   <Default theme={T} title="今天的路線">
-    <ul>
-      <li>OSINT — 從公開足跡找線索（暖場）</li>
-      <li>Web — 一條龍打進後台</li>
-      <li>REV／WASM — 在瀏覽器裡作弊（高潮）</li>
-      <li>Blue Team — 當一次鑑識分析師（壓軸）</li>
-      <li>貫穿全場：用 AI 幫你出題</li>
-      <li>收束：教攻擊，為了教更強的藍隊</li>
-    </ul>
+    <UL>
+      <LI>OSINT — 從公開足跡找線索</LI>
+      <LI>Web — 一條龍打進後台</LI>
+      <LI>REV／WASM — 在瀏覽器裡作弊</LI>
+      <LI>Blue Team — 當一次鑑識分析師</LI>
+      <LI>用 AI 幫你出題</LI>
+      <LI>學攻擊，為了變成更強的藍隊</LI>
+    </UL>
   </Default>
 );
 
 const P0Thesis: Page = () => (
   <Statement theme={T} eyebrow="今天的主軸">
-    教攻擊，<br />是為了教出更棒的{''}藍隊防禦者。
+    學攻擊，<br />是為了更好的學會防禦！
   </Statement>
 );
 
@@ -297,11 +342,11 @@ const P1Section: Page = () => <Section theme={T} title="Part 1" subtitle="從打
 
 const P1WhatIsCTF: Page = () => (
   <Default theme={T} title="CTF 是什麼？">
-    <div style={{ marginTop: 8 }}>
-      <Bullet>Capture The Flag — 把藏起來的一串 <span style={{ fontFamily: MONO }}>flag</span> 找出來，換分數</Bullet>
-      <Bullet>最常見＝Jeopardy（解謎式）：一格一題、各自獨立、越難分越高</Bullet>
-      <Bullet>打的不是真實系統——是出題者準備好的「靶場」，合法、安全</Bullet>
-    </div>
+    <UL style={{ marginTop: 8 }}>
+      <LI>Capture The Flag — 把藏起來的一串 <span style={{ fontFamily: MONO }}>flag</span> 找出來，換分數</LI>
+      <LI>最常見＝Jeopardy（解謎式）：一格一題、各自獨立、越難分越高</LI>
+      <LI>打的不是真實系統——是出題者準備好的「靶場」，合法、安全</LI>
+    </UL>
   </Default>
 );
 
@@ -311,24 +356,21 @@ const P1Categories: Page = () => (
       <Pill>OSINT</Pill><Pill>Web</Pill><Pill>REV</Pill><Pill color="#9aa3ad">Pwn</Pill>
       <Pill color="#9aa3ad">Crypto</Pill><Pill>Forensics ／ Blue</Pill><Pill color="#9aa3ad">Misc</Pill>
     </div>
-    <div style={{ fontSize: 54, lineHeight: 1.5 }}>
-      今天的路線：<span style={{ color: '#e07b1a', fontWeight: 700 }}>OSINT → Web → REV／WASM → Blue Team</span>
-      <div style={{ fontSize: 42, color: '#555', marginTop: 18 }}>從「不用寫 code」一路到「鑑識分析」，難度與深度逐步上升。</div>
+    <div style={{ fontSize: 54, lineHeight: 1.5, marginTop: 12 }}>
+      今天要介紹的內容：<span style={{ color: '#e07b1a', fontWeight: 700 }}>OSINT → Web → REV／WASM → Blue Team</span>
     </div>
   </Default>
 );
 
 const P1Lifecycle: Page = () => (
   <Default theme={T} title="一道題的生命週期">
-    <div style={{ marginTop: 12 }}>
-      <Steps>
-        <Step><Bullet>① 出題：定考點 → 寫題目敘述 → 做靶機</Bullet></Step>
-        <Step><Bullet>② 部署：用 Docker 把靶機架起來，給選手連</Bullet></Step>
-        <Step><Bullet>③ 解題：選手分析、找漏洞、拿到 flag</Bullet></Step>
-        <Step><Bullet>④ 驗題：出題者自己（或派人）確認「真的解得出來、沒有非預期解」</Bullet></Step>
-        <Step><Bullet>⑤ writeup：把解法寫成步驟教學，賽後分享</Bullet></Step>
-      </Steps>
-    </div>
+    <OL style={{ marginTop: 12 }}>
+      <LI>出題：定考點 → 寫題目敘述 → 做靶機</LI>
+      <LI>部署：用 Docker 把靶機架起來，給選手連</LI>
+      <LI>解題：選手分析、找漏洞、拿到 flag</LI>
+      <LI>驗題：出題者自己（或派人）確認「真的解得出來、沒有非預期解」</LI>
+      <LI>writeup：把解法寫成步驟教學，賽後分享</LI>
+    </OL>
   </Default>
 );
 
@@ -1320,7 +1362,7 @@ const PART4: Page[] = [P4Section, P4Recap, P4Argument, P4Thesis, P4Takeaway, P4M
 
 // ── 匯出 ──────────────────────────────────────────────────────────────────────────
 export default [
-  P0Cover, P0Roadmap, P0Thesis, P0Meme,
+  P0Cover, P0Intro, P0Outline, P0Roadmap, P0Thesis, P0Meme,
   ...PART1, ...PART2A, ...PART2B, ...PART2C, ...PART2D, ...PART3, ...PART4,
 ] satisfies Page[];
 
