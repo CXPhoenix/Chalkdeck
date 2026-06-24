@@ -167,27 +167,36 @@ const RoadRow = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-// 梗圖插槽：講者自填。改成真梗圖時把整頁換成 <ImagePage src={...}/> 即可。
-const MemeSlot = ({ theme, intent }: { theme: Theme; intent: string }) => (
+// 梗圖插槽：講者自填。圖檔放 assets/，命名 meme-<part>-<梗>.png；放好後在該頁 <MemeSlot/> 加 src 即可。
+// 例：<MemeSlot theme={T} intent="…" src={new URL('./assets/meme-2a-aha-gitleak.png', import.meta.url).href} />
+const MemeSlot = ({ theme, intent, src }: { theme: Theme; intent: string; src?: string }) => (
   <DeckPage theme={theme} showPageNumber={false}>
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
-      <div style={{ width: 1180, height: 540, border: '8px dashed #e0c485', borderRadius: 28, background: '#fbf7ee', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 28 }}>
-        <div style={{ fontSize: 140, lineHeight: 1 }}>🖼️</div>
-        <div style={{ fontSize: 52, fontWeight: 700, color: '#b07d23' }}>MEME 插槽</div>
-        <div style={{ fontSize: 40, color: '#6b5836', textAlign: 'center', maxWidth: 980, lineHeight: 1.5 }}>意圖：{intent}</div>
-      </div>
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 2, padding: 70 }}>
+      {src ? (
+        <img src={src} alt={intent} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 20 }} />
+      ) : (
+        <div style={{ width: 1180, height: 540, border: '8px dashed #e0c485', borderRadius: 28, background: '#fbf7ee', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 28 }}>
+          <div style={{ fontSize: 140, lineHeight: 1 }}>🖼️</div>
+          <div style={{ fontSize: 52, fontWeight: 700, color: '#b07d23' }}>MEME 插槽</div>
+          <div style={{ fontSize: 40, color: '#6b5836', textAlign: 'center', maxWidth: 980, lineHeight: 1.5 }}>意圖：{intent}</div>
+        </div>
+      )}
     </div>
   </DeckPage>
 );
 
-// 截圖插槽：講者 demo 時補玩家視角截圖（勿露 src/solution/flag）。
-const ShotSlot = ({ hint, h = 470 }: { hint: string; h?: number }) => (
-  <div style={{ width: '100%', height: h, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16 }}>
-    <div style={{ fontSize: 76, lineHeight: 1 }}>🖥️</div>
-    <div style={{ fontSize: 34, fontWeight: 700, color: '#6b7a90' }}>截圖插槽（玩家視角）</div>
-    <div style={{ fontSize: 30, color: '#7c8a9c', textAlign: 'center', maxWidth: 1100, lineHeight: 1.5 }}>{hint}</div>
-  </div>
-);
+// 截圖插槽：講者 demo 時補玩家視角截圖（勿露 src/solution/flag）。放好圖後加 src 即可。
+// 例：<ShotSlot hint="…" src={new URL('./assets/shot-2a-claude-md.png', import.meta.url).href} />
+const ShotSlot = ({ hint, h = 470, src }: { hint: string; h?: number; src?: string }) =>
+  src ? (
+    <img src={src} alt={hint} style={{ width: '100%', height: h, objectFit: 'contain', borderRadius: 16, background: '#f6f8fb', border: '2px solid #e3e8ef' }} />
+  ) : (
+    <div style={{ width: '100%', height: h, border: '6px dashed #cfd6e0', borderRadius: 20, background: '#f6f8fb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16 }}>
+      <div style={{ fontSize: 76, lineHeight: 1 }}>🖥️</div>
+      <div style={{ fontSize: 34, fontWeight: 700, color: '#6b7a90' }}>截圖插槽（玩家視角）</div>
+      <div style={{ fontSize: 30, color: '#7c8a9c', textAlign: 'center', maxWidth: 1100, lineHeight: 1.5 }}>{hint}</div>
+    </div>
+  );
 
 // 標籤膠囊（分類 / 技術詞）
 const Pill = ({ children, color = '#e07b1a' }: { children: ReactNode; color?: string }) => (
