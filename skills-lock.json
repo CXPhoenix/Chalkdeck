@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "scientific-visualization": {
+      "source": "k-dense-ai/claude-scientific-skills",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-visualization/SKILL.md",
+      "computedHash": "a98d6d08cc0b10e5c2b312e33aad1864f294e028c9e772296f4c5be6aa16eb47"
+    },
+    "seaborn": {
+      "source": "k-dense-ai/claude-scientific-skills",
+      "sourceType": "github",
+      "skillPath": "skills/seaborn/SKILL.md",
+      "computedHash": "142b99dc61082b275f9ac2450cfca0362723f779a1182eda497d7e647ee09e3c"
+    }
+  }
+}
