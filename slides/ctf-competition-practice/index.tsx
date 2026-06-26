@@ -89,6 +89,9 @@ if (
     `.osd-whatisctf:has(.osd-steplist-steps>div:nth-child(5)[data-osd-step="revealed"]) .s5,` +
     `.osd-whatisctf:has(.osd-steplist-steps>div:nth-child(6)[data-osd-step="revealed"]) .s6{opacity:1;}` +
     `@media (prefers-reduced-motion:reduce){.osd-whatisctf .reveal{transition:none;}}` +
+    // P1Personas：4 個壞玩家攻擊者卡（2×2 grid，紅隊色，呼應 AdvReview 對抗者節點）；沿用 osd-steplist 逐顆浮現。
+    `.osd-personas{display:grid;grid-template-columns:1fr 1fr;gap:28px 32px;list-style:none;margin:0;padding:0;}` +
+    `.osd-personas>li{margin:0;}` +
     `.osd-fhsh-content a{color:#0284c7;text-decoration:underline;text-underline-offset:2px;}` +
     `.osd-fhsh-content a:hover{color:#1e40af;}`;
   document.head.appendChild(style);
@@ -219,6 +222,8 @@ const DeckPage = ({
         overflow: "hidden",
       }}
     >
+      {/* @slide-comment id="c-d6dbeb52" ts="2026-06-26T07:24:03.013Z" text="eyJub3RlIjoi6YCZ5LiA6aCB5aSa6aSY5LqGIn0" */}
+      {/* @slide-comment id="c-00dd07c0" ts="2026-06-26T07:17:30.735Z" text="eyJub3RlIjoi5pS-6aGM55uu6Kqq5piO77yM5LiN5piv5pS-5oOF5aKDIn0" */}
       <Frame theme={theme} />
       {children}
       <img
@@ -788,17 +793,15 @@ const Mono = ({
   </div>
 );
 
-// writeup 步驟頁：徽章「步驟 N / 共 M」+ 四拍標記（動作/原理/觀察/線索）+ 低密度內容
+// writeup 步驟頁：徽章「N/M」（報告人視角，精簡）+ 標題 + 低密度內容
 const StepPage = ({
   theme,
   badge,
-  beat,
   title,
   children,
 }: {
   theme: Theme;
   badge: string;
-  beat?: string;
   title: ReactNode;
   children: ReactNode;
 }) => (
@@ -806,43 +809,28 @@ const StepPage = ({
     <div
       style={{
         position: "absolute",
-        top: 96,
+        top: 120,
         left: 200,
         right: 160,
-        display: "flex",
-        gap: 24,
-        alignItems: "center",
         zIndex: 2,
       }}
     >
-      <span
-        style={{
-          fontSize: 38,
-          fontWeight: 700,
-          color: "#fff",
-          background: "#e07b1a",
-          borderRadius: 10,
-          padding: "6px 26px",
-        }}
-      >
-        {badge}
-      </span>
-      {beat && (
-        <span style={{ fontSize: 38, fontWeight: 700, color: "#b07d23" }}>
-          {beat}
+      <h1 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 66, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>
+        <span
+          style={{
+            fontSize: 38,
+            fontWeight: 700,
+            color: "#fff",
+            background: "#e07b1a",
+            borderRadius: 10,
+            padding: "6px 26px",
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {badge}
         </span>
-      )}
-    </div>
-    <div
-      style={{
-        position: "absolute",
-        top: 168,
-        left: 200,
-        right: 160,
-        zIndex: 2,
-      }}
-    >
-      <h1 style={{ fontSize: 66, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>
         {title}
       </h1>
     </div>
@@ -1126,23 +1114,28 @@ const P1Section: Page = () => (
 // 逐拍揭露示範：真 <ul><li>（osd-list 保留 ❖ bullet）+ 同層隱形 <Steps> 當計數器。
 // 六拍＝flag→Jeopardy→A&D→KoH（Pill 逐顆）→最常見→靶場；對應規則見上方 .osd-whatisctf CSS。
 // 編輯器／縮圖／PDF 無 step host → 全部 revealed（完成態）；只有 Present（按 f）從前頁翻入才分段。
+// 賽制三選項（Pill）刻意放在 <ul> 外的獨立 <div>：避免任一 render 情境（字型晚載、CSS override 未生效）
+// 出現孤兒項目符號；reveal class（s2~s4）放 span 上、靠 :has() 對應，與結構無關，移出後仍正確分拍。
 const P1WhatIsCTF: Page = () => (
   <Default theme={T} title="CTF 是什麼？">
     <div className="osd-steplist-root osd-whatisctf">
       <ul className="osd-list" style={{ marginTop: 8 }}>
         <li className="reveal s1">
-          Capture The Flag：把藏起來的一串{" "}
-          <span style={{ fontFamily: MONO }}>flag</span> 找出來，換分數
+          Capture The Flag：找出藏起來的{" "}
+          <span style={{ fontFamily: MONO }}>flag</span>，換分數
         </li>
-        <li className="pillrow">
-          <div style={{ display: "flex", justifyContent: "space-around" }}>
-            <span className="reveal s2"><Pill>Jeopardy</Pill></span>
-            <span className="reveal s3"><Pill>Attack & Defense (A&D)</Pill></span>
-            <span className="reveal s4"><Pill>King of Hill (KoH)</Pill></span>
-          </div>
-        </li>
-        <li className="reveal s5">最常見＝Jeopardy（解謎式）：一格一題、各自獨立、越難分越高</li>
-        <li className="reveal s6">打的不是真實系統——是出題者準備好的「靶場」，合法、安全</li>
+      </ul>
+      <div
+        className="pillrow"
+        style={{ display: "flex", justifyContent: "space-around", margin: "20px 0" }}
+      >
+        <span className="reveal s2"><Pill>🧩 Jeopardy</Pill></span>
+        <span className="reveal s3"><Pill>⚔️ Attack & Defense (A&D)</Pill></span>
+        <span className="reveal s4"><Pill>👑 King of Hill (KoH)</Pill></span>
+      </div>
+      <ul className="osd-list">
+        <li className="reveal s5">最常見是 Jeopardy（解謎式）：一格一題、越難分越高</li>
+        <li className="reveal s6">打的不是真實系統，是出題者準備的「靶場」——合法、安全</li>
       </ul>
       <div className="osd-steplist-steps" aria-hidden={true}>
         <Steps>
@@ -1208,26 +1201,42 @@ const P1Bridge1: Page = () => (
   </Statement>
 );
 
-// 逐拍揭露：OL 五拍依序浮現（通用 osd-steplist 1:1 對應；decimal 編號隨 li 一起淡入、不會跳號）。
+// 出題生命週期：5 關水平流程圖（靜態，無高亮，與 P1Pipeline 同一視覺語彙）。
+const LIFE_STAGES = [
+  { n: "①", name: "出題", desc: "定考點・做靶機" },
+  { n: "②", name: "驗題", desc: "確認可解・無非預期解" },
+  { n: "③", name: "部署", desc: "用 Docker 架靶機" },
+  { n: "④", name: "解題", desc: "選手找漏洞・拿 flag" },
+  { n: "⑤", name: "writeup", desc: "寫解法・賽後分享" },
+];
 const P1Lifecycle: Page = () => (
   <Default theme={T} title="出題的生命週期">
-    <div className="osd-steplist-root">
-      <ol className="osd-list ord osd-steplist" style={{ marginTop: 12 }}>
-        <li>出題：定考點 → 寫題目敘述 → 做靶機</li>
-        <li>驗題：出題者自己（或派人）確認「真的解得出來、沒有非預期解」</li>
-        <li>部署：用 Docker 把靶機架起來，給選手連</li>
-        <li>解題：選手分析、找漏洞、拿到 flag</li>
-        <li>writeup：把解法寫成步驟教學，賽後分享</li>
-      </ol>
-      <div className="osd-steplist-steps" aria-hidden={true}>
-        <Steps>
-          <Step />
-          <Step />
-          <Step />
-          <Step />
-          <Step />
-        </Steps>
-      </div>
+    <div style={{ height: "100%", display: "flex", alignItems: "center" }}>
+      <svg viewBox="0 108 1520 174" width="100%" style={{ display: "block" }}>
+        <defs>
+          <marker id="ahLife" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" refX="14" refY="10" orient="auto">
+            <path d="M2,2 L18,10 L2,18 Z" fill="#e07b1a" />
+          </marker>
+        </defs>
+        {LIFE_STAGES.map((s, i) => {
+          const x = 10 + i * 306;
+          const cx = x + 136;
+          return (
+            <g key={s.name}>
+              {i < LIFE_STAGES.length - 1 && (
+                <line x1={x + 276} y1={185} x2={x + 302} y2={185} stroke="#e07b1a" strokeWidth="5" markerEnd="url(#ahLife)" />
+              )}
+              <rect x={x} y={120} width={272} height={150} rx={22} fill="#fffaf3" stroke="#e8a460" strokeWidth={3.5} />
+              <text x={cx} y={190} textAnchor="middle" fontSize="40" fontWeight="700" fill="#b8650f">
+                {s.n} {s.name}
+              </text>
+              <text x={cx} y={236} textAnchor="middle" fontSize="24" fill="#8a5a2a">
+                {s.desc}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   </Default>
 );
@@ -1265,15 +1274,15 @@ const P1AINouns: Page = () => (
     <div style={{ paddingTop: "8%" }}>
       <Cards>
         <Card
-          title="AI agent"
+          title="🤖 AI agent"
           body="會自己讀檔、跑指令、做決定的 AI：不只是聊天框。"
         />
         <Card
-          title="skill 技能包"
+          title="📦 skill 技能包"
           body="給 agent 的一本專業手冊＋工具，這裡是「出 CTF 題」的手冊。"
         />
         <Card
-          title="pipeline 流水線"
+          title="🏭 pipeline 流水線"
           body="把出題拆成有順序的關卡，每關交付一點、檢查一次。"
         />
       </Cards>
@@ -1281,7 +1290,13 @@ const P1AINouns: Page = () => (
   </Default>
 );
 
-const PIPE_STAGES = ["Brief", "Design", "Implement", "V&V", "Publish"];
+const PIPE_STAGES = [
+  { en: "Brief", zh: "接題" },
+  { en: "Design", zh: "設計考點" },
+  { en: "Implement", zh: "做靶機" },
+  { en: "V&V", zh: "驗題", focus: true },
+  { en: "Publish", zh: "上線" },
+];
 const P1Pipeline: Page = () => (
   <Default theme={T} title="AI 出題路徑">
     <div
@@ -1289,37 +1304,44 @@ const P1Pipeline: Page = () => (
         display: "flex",
         justifyContent: "space-around",
         flexWrap: "wrap",
-        gap: 24,
+        gap: 18,
         alignItems: "center",
-        marginTop: 36,
+        marginTop: 28,
       }}
     >
       <Steps>
         {PIPE_STAGES.map((s, i) => (
-          <Step key={s}>
-            <span style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <Step key={s.en}>
+            <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <span
                 style={{
-                  fontFamily: MONO,
-                  fontSize: 40,
-                  fontWeight: 700,
-                  border: "3px solid #e07b1a",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  border: s.focus ? "4px solid #e07b1a" : "3px solid #e8a460",
                   borderRadius: 14,
-                  padding: "12px 24px",
-                  color: "#b8650f",
+                  padding: "8px 20px",
+                  background: s.focus ? "#fde7cf" : "transparent",
                 }}
               >
-                {s}
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: "#b8650f" }}>
+                  {s.en}
+                </span>
+                <span style={{ fontSize: 23, color: "#8a5a2a", marginTop: 2 }}>{s.zh}</span>
               </span>
               {i < PIPE_STAGES.length - 1 && (
-                <span style={{ fontSize: 40, color: "#e07b1a" }}>→</span>
+                <span style={{ fontSize: 38, color: "#e07b1a" }}>→</span>
               )}
             </span>
           </Step>
         ))}
       </Steps>
     </div>
-    <div style={{ fontSize: 48, lineHeight: 1.5, marginTop: 56 }}>
+    <div style={{ fontSize: 28, color: "#8a5a2a", textAlign: "center", marginTop: 16 }}>
+      ＝生命週期的「出題＋驗題」用 AI skill 跑一遍（
+      <b style={{ color: "#b8650f" }}>V&amp;V＝驗題</b>那一關）
+    </div>
+    <div style={{ fontSize: 48, lineHeight: 1.5, marginTop: 36 }}>
       <Steps>
         <Step>
           每一關出完 →<br />
@@ -1354,15 +1376,43 @@ const P1Pipeline: Page = () => (
   </Default>
 );
 
-// 逐拍揭露：四個『壞玩家』persona 依序浮現（通用 osd-steplist 1:1 對應）。
+// 4 個壞玩家攻擊者卡（紅隊色，呼應 AdvReview「對抗者 AI 分身」節點）；清單型 → 沿用 osd-steplist 逐顆浮現。
+const PERSONAS = [
+  { icon: "🃏", name: "scoundrel", q: "有沒有什麼作弊捷徑？" },
+  { icon: "🔨", name: "brute-forcer", q: "能不能暴力硬解？" },
+  { icon: "🧩", name: "confused-player", q: "新手能懂題目嗎？描述會不會反而洩題？" },
+  { icon: "🔍", name: "decompiler-trust", q: "反編譯後，會看到不該看的東西嗎？" },
+];
 const P1Personas: Page = () => (
   <Default theme={T} title="用 Sub Agent 扮演『壞玩家』們">
     <div className="osd-steplist-root">
-      <ul className="osd-list osd-steplist" style={{ marginTop: 12 }}>
-        <li>scoundrel：有沒有什麼作弊捷徑？</li>
-        <li>brute-forcer：能不能暴力硬解？</li>
-        <li>confused-player：新手能懂題目嗎？描述會不會反而洩題？</li>
-        <li>decompiler-trust：反編譯後，會看到不該看的東西嗎？</li>
+      <div style={{ fontSize: 34, color: "#555", marginTop: 4, marginBottom: 24 }}>
+        前面那個「<span style={{ fontWeight: 700, color: "#c0392b" }}>對抗者 AI 分身</span>
+        」，其實就是這 4 個壞玩家分身：
+      </div>
+      <ul className="osd-steplist osd-personas">
+        {PERSONAS.map((p) => (
+          <li key={p.name}>
+            <div
+              style={{
+                border: "3px solid #c0392b",
+                borderRadius: 20,
+                background: "#fdf3f2",
+                padding: "18px 28px",
+                height: "100%",
+                boxSizing: "border-box",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+                <span style={{ fontSize: 52 }}>{p.icon}</span>
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: "#b03a30" }}>
+                  {p.name}
+                </span>
+              </div>
+              <div style={{ fontSize: 33, marginTop: 10, color: "#333", lineHeight: 1.4 }}>{p.q}</div>
+            </div>
+          </li>
+        ))}
       </ul>
       <div className="osd-steplist-steps" aria-hidden={true}>
         <Steps>
@@ -1376,26 +1426,51 @@ const P1Personas: Page = () => (
   </Default>
 );
 
+// 3 道驗證關卡（綠色 gate＝要通過的檢查）→ 清單型保留逐關浮現；過完三關才接 AR callout。
+const VERIFY_GATES = [
+  { tag: "① 可解？", title: "solve.py", mono: true, desc: "每題一支、不寫死 flag；跑得過＝可解" },
+  { tag: "② 不靠答案？", title: "獨立 AI 盲測", desc: "派 ctf-solver，只給玩家素材、不准看答案" },
+  { tag: "③ 換腦也過？", title: "跨模型驗收", desc: "Claude／Codex／Gemini 各跑一輪都過", note: "有錢的話 😄" },
+];
 const P1Verify: Page = () => (
   <Default theme={T} title="出完題，怎麼確認它可解？">
-    <ul className="osd-list" style={{ marginTop: 12 }}>
-      <li>
-        每題一支 <span style={{ fontFamily: MONO }}>solve.py</span>，不寫死
-        flag：跑得過＝題目真的可解
-      </li>
-      <li>再派獨立 AI（ctf-solver）盲測：只給玩家素材、不准看答案</li>
-      <li>
-        <Steps>
-          跨模型驗收：Claude / Codex / Gemini 各跑一輪都要過
-          <br />
-          <Step>
-            <span style={{ fontSize: 32, color: "#aaa", paddingLeft: "82%" }}>
-              有錢的話...
-            </span>
+    <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", marginTop: 40 }}>
+      <Steps>
+        {VERIFY_GATES.map((g, i) => (
+          <Step key={g.title}>
+            <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+              {i > 0 && <span style={{ fontSize: 44, color: "#e07b1a", margin: "0 14px" }}>→</span>}
+              <div
+                style={{
+                  width: 416,
+                  boxSizing: "border-box",
+                  border: "3px solid #2e8b57",
+                  borderRadius: 18,
+                  background: "#edf7f0",
+                  padding: "16px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: 26, fontWeight: 700, color: "#2e8b57" }}>{g.tag}</div>
+                <div
+                  style={{
+                    fontFamily: g.mono ? MONO : undefined,
+                    fontSize: 36,
+                    fontWeight: 700,
+                    color: "#b8650f",
+                    marginTop: 4,
+                  }}
+                >
+                  {g.title}
+                </div>
+                <div style={{ fontSize: 26, color: "#555", marginTop: 8, lineHeight: 1.35 }}>{g.desc}</div>
+                {g.note && <div style={{ fontSize: 22, color: "#aaa", marginTop: 6 }}>{g.note}</div>}
+              </div>
+            </div>
           </Step>
-        </Steps>
-      </li>
-    </ul>
+        ))}
+      </Steps>
+    </div>
     <Steps>
       <Step>
         <div
@@ -1403,15 +1478,15 @@ const P1Verify: Page = () => (
             backgroundColor: "rgba(224,123,26,0.12)",
             border: "2px solid #e07b1a",
             borderRadius: "1.5rem",
-            marginTop: 24,
+            marginTop: 36,
             padding: "16px 32px",
             fontSize: 34,
             lineHeight: 1.45,
           }}
         >
-          ⚔️ 確認『可解』還不夠 → 下一步是{" "}
-          <span style={{ fontSize: '4.2rem', fontWeight: 700, color: "#b8650f" }}>Adversarial Review</span>：<br />
-          <span style={{ paddingLeft: '4rem' }}>派 AI 當「攻擊者」反過來攻破它（作弊／非預期解／洩題）</span>
+          ⚔️ 三關都過，也只證明『可解』 → 下一步是{" "}
+          <span style={{ fontSize: "4.2rem", fontWeight: 700, color: "#b8650f" }}>Adversarial Review</span>：<br />
+          <span style={{ paddingLeft: "4rem" }}>派 AI 當「攻擊者」反過來攻破它（作弊／非預期解／洩題）</span>
         </div>
       </Step>
     </Steps>
@@ -1438,7 +1513,7 @@ const P1AdvReviewTerm: Page = () => (
         「two sides who oppose each other」— Merriam-Webster
       </div>
     </div>
-    <svg viewBox="0 0 1520 250" width="100%" style={{ display: "block", marginTop: 28 }}>
+    <svg viewBox="0 0 1520 250" width="100%" style={{ display: "block", marginTop: 44 }}>
       <defs>
         <marker id="ahTermB" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" refX="15" refY="11" orient="auto">
           <path d="M2,2 L20,11 L2,20 Z" fill="#3a6ea5" />
@@ -1464,28 +1539,28 @@ const P1AdvReviewTerm: Page = () => (
   </Default>
 );
 
-// ② 為什麼在 LLM 上重要：模型抓不到自己的錯；換「不同／對抗」視角才補得起盲點。
-// 回答「換不同模型 review 是否＝adversarial review」（同一家族、互補）。
+// ② 為什麼在 LLM 上需要：模型審「自己的作品」會偏心、同盲點；要換個 AI 站對立面（並換模型）才補得起來。
+//    對抗＝換立場、換不同模型＝換多樣性，兩個槓桿互補（也回應「換模型 review 會更好」的社群討論）。
 const P1AdvReviewLLM: Page = () => (
-  <Default theme={T} title="為什麼 LLM 需要對抗式審查？">
+  <Default theme={T} title="為什麼需要讓 LLM 做對抗式審查？">
     <div style={{ fontSize: 48, fontWeight: 700, lineHeight: 1.35, marginTop: 8 }}>
-      LLM 最大的弱點：
-      <span style={{ color: "#c0392b" }}>抓不到自己的錯</span>
+      AI 出題、又自己審 →{" "}
+      <span style={{ color: "#c0392b" }}>看不見自己的盲點</span>
     </div>
-    <svg viewBox="0 0 1520 320" width="100%" style={{ display: "block", marginTop: 24 }}>
+    <svg viewBox="0 0 1520 320" width="100%" style={{ display: "block", marginTop: 40 }}>
       <line x1="760" y1="20" x2="760" y2="300" stroke="#dce0e6" strokeWidth="2" strokeDasharray="6 8" />
-      <text x="380" y="52" textAnchor="middle" fontSize="38" fontWeight="700" fill="#c0392b">❌ 同一個模型自審</text>
+      <text x="380" y="52" textAnchor="middle" fontSize="38" fontWeight="700" fill="#c0392b">❌ 同一個 AI 自己審自己</text>
       <circle cx="338" cy="178" r="90" fill="rgba(224,123,26,0.28)" stroke="#e07b1a" strokeWidth="3" />
       <circle cx="422" cy="178" r="90" fill="rgba(224,123,26,0.28)" stroke="#e07b1a" strokeWidth="3" />
       <text x="296" y="192" textAnchor="middle" fontSize="42" fontWeight="700" fill="#9a5a1a">A</text>
       <text x="464" y="192" textAnchor="middle" fontSize="42" fontWeight="700" fill="#9a5a1a">A</text>
-      <text x="380" y="308" textAnchor="middle" fontSize="30" fill="#8a5a2a">盲點重疊 → 一起漏</text>
-      <text x="1140" y="52" textAnchor="middle" fontSize="38" fontWeight="700" fill="#2e8b57">✅ 換不同模型</text>
+      <text x="380" y="308" textAnchor="middle" fontSize="30" fill="#8a5a2a">同立場・同盲點 → 一起漏</text>
+      <text x="1140" y="52" textAnchor="middle" fontSize="38" fontWeight="700" fill="#2e8b57">✅ 換個 AI 站對立面攻</text>
       <circle cx="1060" cy="178" r="90" fill="rgba(224,123,26,0.28)" stroke="#e07b1a" strokeWidth="3" />
       <circle cx="1220" cy="178" r="90" fill="rgba(58,110,165,0.28)" stroke="#3a6ea5" strokeWidth="3" />
       <text x="1022" y="192" textAnchor="middle" fontSize="42" fontWeight="700" fill="#9a5a1a">A</text>
       <text x="1258" y="192" textAnchor="middle" fontSize="42" fontWeight="700" fill="#2c5378">B</text>
-      <text x="1140" y="308" textAnchor="middle" fontSize="30" fill="#4a7a5a">盲點錯開 → 互相補刀</text>
+      <text x="1140" y="308" textAnchor="middle" fontSize="30" fill="#4a7a5a">換立場・換模型 → 互相補刀</text>
     </svg>
     <div
       style={{
@@ -1498,9 +1573,9 @@ const P1AdvReviewLLM: Page = () => (
         marginTop: 20,
       }}
     >
-      你說的「換不同模型 review」和{" "}
-      <span style={{ fontWeight: 700, color: "#b8650f" }}>Adversarial Review</span>{" "}
-      同一家族：換模型重<b>多樣性</b>、對抗重<b>立場</b>，合用最強。
+      對抗式審查＝請<b>另一個 AI 站到對立面</b>、專門攻破你的題；
+      再<b>換一個模型</b>來當對手，盲點錯得更開。{" "}
+      <span style={{ fontWeight: 700, color: "#b8650f" }}>對抗（立場）× 換模型（多樣性），互補最強。</span>
     </div>
   </Default>
 );
@@ -1509,7 +1584,7 @@ const P1AdvReviewLLM: Page = () => (
 // 靜態圖（一眼看懂、不分拍）；原生 SVG，不依賴外部圖檔。內容區 1520×700。
 const P1AdvReview: Page = () => (
   <Default theme={T} title="出題審題：派 AI 攻破自己的題">
-    <svg viewBox="0 0 1520 350" width="100%" style={{ display: "block", marginTop: "1rem" }}>
+    <svg viewBox="0 0 1520 350" width="100%" style={{ display: "block", marginTop: "2rem" }}>
       <defs>
         <marker id="ahO" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" refX="14" refY="10" orient="auto">
           <path d="M2,2 L18,10 L2,18 Z" fill="#e07b1a" />
@@ -1608,7 +1683,7 @@ const P1Download: Page = () => (
       />
       <DownloadCard
         name="bluechall-master"
-        desc="Blue Team／數位鑑識／逆向。本場壓軸 Eternal Relay 用它。"
+        desc="Blue Team／數位鑑識／逆向。本場 Eternal Relay 用它。"
         href={BLUECHALL_ZIP}
         size="232 KB"
       />
@@ -1633,7 +1708,7 @@ const PART1: Page[] = [
   P1Bridge1,
   P1Lifecycle,
   // P1Lenses,
-  P1Meme1,
+  // P1Meme1,
   P1AIIntro,
   P1AIIntro2,
   P1AINouns,
@@ -1642,16 +1717,70 @@ const PART1: Page[] = [
   P1AdvReviewTerm,
   P1AdvReviewLLM,
   P1AdvReview,
-  P1Meme2,
+  // P1Meme2,
   P1Personas,
   P1AIAmplify,
   P1DCChat,
   P1Download,
 ];
 
-// ════════════════════ Part 2a ① OSINT — SupplyTrace（暖場）════════════════════
+// ════════════════════════ Part 2 解題實戰（四題）════════════════════════
+const P2Section: Page = () => (
+  <Section theme={T} title="Part 2" subtitle="解題實戰" />
+);
+
+// Part 2 總覽：四題一頁看完。每張卡＝編號＋類別＋題名（mono）＋一句核心命題；
+// ④ Blue Team 用藍色，視覺上預告「攻 → 防」視角翻轉（顏色＋編號＋類別三重冗餘編碼，
+// 不靠顏色單獨承載語意；設計法見 /scientific-visualization）。本頁為總覽 → 靜態、不分拍。
+const P2_CHALLENGES = [
+  { n: "①", cat: "OSINT", name: "SupplyTrace", concept: "沒有漏洞可打，只有線索要「串」", accent: "#e07b1a" },
+  { n: "②", cat: "Web", name: "Homerun", concept: "以為藏起來，就安全了", accent: "#e07b1a" },
+  { n: "③", cat: "REV / WASM", name: "Solivan Verify", concept: "靜態撈不到 → 改用動態分析", accent: "#e07b1a" },
+  { n: "④", cat: "Blue Team", name: "Eternal Relay", concept: "視角翻轉：攻擊者 → 鑑識分析師", accent: "#2e7bd6" },
+];
+
+const P2Preview: Page = () => (
+  <Default theme={T} title="四道題目">
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "28px 32px",
+        marginTop: 4,
+      }}
+    >
+      {P2_CHALLENGES.map((c) => (
+        <div
+          key={c.n}
+          style={{
+            border: `4px solid ${c.accent}`,
+            borderRadius: 22,
+            background: "#fffdf8",
+            padding: "26px 36px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", gap: 18 }}>
+            <span style={{ fontSize: 60, fontWeight: 700, color: c.accent, lineHeight: 1 }}>
+              {c.n}
+            </span>
+            <span style={{ fontSize: 46, fontWeight: 700, color: c.accent }}>{c.cat}</span>
+          </div>
+          <div style={{ fontFamily: MONO, fontSize: 40, fontWeight: 700, color: "#2a2a2a" }}>
+            {c.name}
+          </div>
+          <div style={{ fontSize: 34, lineHeight: 1.4, color: "#555" }}>{c.concept}</div>
+        </div>
+      ))}
+    </div>
+  </Default>
+);
+
+// ════════════════════ Part 2a ① OSINT — SupplyTrace（線索串接）════════════════════
 const P2aSection: Page = () => (
-  <Section theme={T} title="① OSINT" subtitle="SupplyTrace · 暖場" />
+  <Section theme={T} title="① OSINT" subtitle="SupplyTrace · 線索串接" />
 );
 
 const P2aScenario: Page = () => (
@@ -1684,7 +1813,7 @@ const P2aObjectives: Page = () => (
 );
 
 const P2aWarmup: Page = () => (
-  <Default theme={T} title="為什麼用它暖場">
+  <Default theme={T} title="為什麼把它放第一題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>
         門檻低、不用寫 code——瀏覽器 ＋{" "}
@@ -1692,7 +1821,7 @@ const P2aWarmup: Page = () => (
         <span style={{ fontFamily: MONO }}>git</span> 就能走完
       </li>
       <li>貼近生活：可以延伸談數位足跡與隱私</li>
-      <li>每一步都有「啊哈」時刻，失敗點明確、好除錯</li>
+      <li>每一步的結果都明確，失敗點清楚、容易定位除錯</li>
     </ul>
   </Default>
 );
@@ -1701,8 +1830,7 @@ const P2aWarmup: Page = () => (
 const P2aS1: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 11"
-    beat="動作"
+    badge="1/11"
     title="訪首頁，讀「給夥伴」的暗示"
   >
     <Mono>{`http://localhost:8088/`}</Mono>
@@ -1717,8 +1845,7 @@ const P2aS1: Page = () => (
 const P2aS2: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 2 / 共 11"
-    beat="觀察 → 線索"
+    badge="2/11"
     title="直接敲 /.git/（注意尾斜線）"
   >
     <Mono>{`$ curl -s http://localhost:8088/.git/HEAD\nref: refs/heads/main`}</Mono>
@@ -1738,8 +1865,7 @@ const P2aMemeAha: Page = () => (
 const P2aS3a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 11"
-    beat="動作"
+    badge="3/11"
     title="git clone 整包歷史"
   >
     <Mono>{`$ git clone http://localhost:8088/.git supplytrace`}</Mono>
@@ -1754,8 +1880,7 @@ const P2aS3a: Page = () => (
 const P2aS3b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 11"
-    beat="原理"
+    badge="3/11"
     title="為什麼整個 repo 能被拉回？"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1768,8 +1893,7 @@ const P2aS3b: Page = () => (
 const P2aS4: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 11"
-    beat="動作 → 觀察"
+    badge="4/11"
     title="看有哪些 branch"
   >
     <Mono>{`$ git branch -a\n* main\n  remotes/origin/internal/api-handover`}</Mono>
@@ -1784,8 +1908,7 @@ const P2aS4: Page = () => (
 const P2aS5: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 5 / 共 11"
-    beat="動作"
+    badge="5/11"
     title="先讀 main 的 CONTRIBUTING.md"
   >
     <Mono>{`$ git checkout main`}</Mono>
@@ -1798,8 +1921,7 @@ const P2aS5: Page = () => (
 const P2aS6: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 6 / 共 11"
-    beat="動作 → 線索"
+    badge="6/11"
     title="切到 internal branch，檔案變多了"
   >
     <Mono>{`$ git checkout internal/api-handover`}</Mono>
@@ -1816,8 +1938,7 @@ const P2aS6: Page = () => (
 const P2aS7a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 7 / 共 11"
-    beat="動作"
+    badge="7/11"
     title="從 CLAUDE.md 撈出 Postman 連結"
   >
     <ul className="osd-list" style={{ marginBottom: 24 }}>
@@ -1832,8 +1953,7 @@ const P2aS7a: Page = () => (
 const P2aS7b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 7 / 共 11"
-    beat="原理"
+    badge="7/11"
     title="教育意義最濃的一段"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1848,8 +1968,7 @@ const P2aS7b: Page = () => (
 const P2aS8: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 8 / 共 11"
-    beat="動作 → 觀察"
+    badge="8/11"
     title="打開 Postman 公開 workspace"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1863,8 +1982,7 @@ const P2aS8: Page = () => (
 const P2aS9: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 9 / 共 11"
-    beat="動作"
+    badge="9/11"
     title="找 'Redeem (treasury)' 範例請求"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1876,8 +1994,7 @@ const P2aS9: Page = () => (
 const P2aS10a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 10 / 共 11"
-    beat="觀察"
+    badge="10/11"
     title="token 不在你以為的地方"
   >
     <ul className="osd-list" style={{ marginBottom: 24 }}>
@@ -1891,8 +2008,7 @@ const P2aS10a: Page = () => (
 const P2aS10b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 10 / 共 11"
-    beat="線索"
+    badge="10/11"
     title="token 藏在「說明文字」裡"
   >
     <ul className="osd-list" style={{ marginBottom: 24 }}>
@@ -1914,8 +2030,7 @@ const P2aMemeEvil: Page = () => (
 const P2aS10c: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 10 / 共 11"
-    beat="原理"
+    badge="10/11"
     title="為什麼會這樣漏？"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1932,8 +2047,7 @@ const P2aS10c: Page = () => (
 const P2aS11a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 11 / 共 11"
-    beat="動作"
+    badge="11/11"
     title="帶著 token ＋ nonce 打後台"
   >
     <Mono
@@ -1947,8 +2061,7 @@ const P2aS11a: Page = () => (
 const P2aS11b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 11 / 共 11"
-    beat="觀察 → 收網"
+    badge="11/11"
     title="後端怎麼驗？對了才給 flag"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1962,7 +2075,7 @@ const P2aS11b: Page = () => (
   </StepPage>
 );
 
-// ── 帶學生 + 出題幕後 ──
+// ── 帶學生（出題幕後已暫時隱藏，見下方 block comment）──
 const P2aTeach: Page = () => (
   <Default theme={T} title="怎麼帶學生走這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -1978,7 +2091,7 @@ const P2aTeach: Page = () => (
   </Default>
 );
 const P2aPunch: Page = () => (
-  <Statement theme={T} eyebrow="這題的金句">
+  <Statement theme={T} eyebrow="這題的重點概念">
     真實的資料外洩，
     <br />
     常常不是高超駭客技術，
@@ -1986,6 +2099,8 @@ const P2aPunch: Page = () => (
     而是<span style={{ color: "#e07b1a" }}>「複製貼上忘了改回去」</span>。
   </Statement>
 );
+// ── 出題幕後（暫時隱藏，未刪除；恢復＝解除下方 block comment ＋ 還原 PART2 陣列中對應引用）──
+/*
 const P2aBehind1: Page = () => (
   <Default theme={T} title="出題幕後：可控的擬真網路">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2014,6 +2129,7 @@ const P2aBehind2: Page = () => (
     </ul>
   </Default>
 );
+*/
 
 const PART2A: Page[] = [
   P2aSection,
@@ -2023,7 +2139,7 @@ const PART2A: Page[] = [
   P2aWarmup,
   P2aS1,
   P2aS2,
-  P2aMemeAha,
+  // P2aMemeAha,
   P2aS3a,
   P2aS3b,
   P2aS4,
@@ -2035,14 +2151,15 @@ const PART2A: Page[] = [
   P2aS9,
   P2aS10a,
   P2aS10b,
-  P2aMemeEvil,
+  // P2aMemeEvil,
   P2aS10c,
   P2aS11a,
   P2aS11b,
   P2aTeach,
   P2aPunch,
-  P2aBehind1,
-  P2aBehind2,
+  // 出題幕後（暫時隱藏）
+  // P2aBehind1,
+  // P2aBehind2,
 ];
 
 // ════════════════════ Part 2b ② Web — Homerun（主動攻擊）════════════════════
@@ -2084,8 +2201,7 @@ const P2bChain: Page = () => (
 const P2bS1: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 9"
-    beat="動作"
+    badge="1/9"
     title="開首頁，聽公益送鞋的故事"
   >
     <Mono>{`http://localhost:8082/`}</Mono>
@@ -2098,8 +2214,7 @@ const P2bS1: Page = () => (
 const P2bS2: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 2 / 共 9"
-    beat="動作 → 原理"
+    badge="2/9"
     title="註冊、登入一個一般會員"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2112,8 +2227,7 @@ const P2bS2: Page = () => (
 const P2bS3: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 9"
-    beat="觀察"
+    badge="3/9"
     title="以會員身分留言，確認自己很弱"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2125,8 +2239,7 @@ const P2bS3: Page = () => (
 const P2bS4a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 9"
-    beat="動作"
+    badge="4/9"
     title="啊哈點 ①：要一份 API 地圖"
   >
     <Mono>{`$ curl -s http://localhost:8082/api/openapi.json`}</Mono>
@@ -2138,8 +2251,7 @@ const P2bS4a: Page = () => (
 const P2bS4b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 9"
-    beat="原理"
+    badge="4/9"
     title="為什麼這份地圖會外洩？"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2155,8 +2267,7 @@ const P2bS4b: Page = () => (
 const P2bS4c: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 9"
-    beat="觀察 → 線索"
+    badge="4/9"
     title="地圖上有一個不該給你的端點"
   >
     <Mono>{`POST /api/admin/promote/{user_id}`}</Mono>
@@ -2176,8 +2287,7 @@ const P2bMemeMap: Page = () => (
 const P2bS5a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 5 / 共 9"
-    beat="動作"
+    badge="5/9"
     title="自助提權：把自己升成 admin"
   >
     <Mono
@@ -2188,8 +2298,7 @@ const P2bS5a: Page = () => (
 const P2bS5b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 5 / 共 9"
-    beat="原理"
+    badge="5/9"
     title="為什麼一般會員打得動後台？"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2205,8 +2314,7 @@ const P2bS5b: Page = () => (
 const P2bS5c: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 5 / 共 9"
-    beat="觀察"
+    badge="5/9"
     title="role 從 member 變 admin 的瞬間"
   >
     <Mono>{`{ "id": <my_id>, "role": "admin" }`}</Mono>
@@ -2225,8 +2333,7 @@ const P2bMemeAdmin: Page = () => (
 const P2bS6: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 6 / 共 9"
-    beat="觀察"
+    badge="6/9"
     title="驗證提權真的有用"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2244,8 +2351,7 @@ const P2bS6: Page = () => (
 const P2bS7a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 7 / 共 9"
-    beat="動作"
+    badge="7/9"
     title="啊哈點 ②：在網址上動手腳"
   >
     <Mono>{`GET /sales../meetings/2026-Q1-africa-expansion.md`}</Mono>
@@ -2262,8 +2368,7 @@ const P2bS7a: Page = () => (
 const P2bS7b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 7 / 共 9"
-    beat="原理"
+    badge="7/9"
     title="一個尾斜線的差別"
   >
     <Mono
@@ -2279,8 +2384,7 @@ const P2bS7b: Page = () => (
 const P2bS8: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 8 / 共 9"
-    beat="觀察 → 線索"
+    badge="8/9"
     title="遍歷落地頁，把內部目錄看光"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2297,8 +2401,7 @@ const P2bS8: Page = () => (
 const P2bS9: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 9 / 共 9"
-    beat="動作 → 收網"
+    badge="9/9"
     title="讀出那一格 flag.txt"
   >
     <Mono>{`GET /sales../flag.txt`}</Mono>
@@ -2311,7 +2414,7 @@ const P2bS9: Page = () => (
   </StepPage>
 );
 
-// ── 帶學生 + 出題幕後 ──
+// ── 帶學生（出題幕後已暫時隱藏，見下方 block comment）──
 const P2bTeach: Page = () => (
   <Default theme={T} title="怎麼帶學生走這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2328,12 +2431,14 @@ const P2bTeach: Page = () => (
   </Default>
 );
 const P2bPunch: Page = () => (
-  <Statement theme={T} eyebrow="這題的金句">
+  <Statement theme={T} eyebrow="這題的重點概念">
     藏起來，
     <br />
     <span style={{ color: "#e07b1a" }}>不等於</span>安全。
   </Statement>
 );
+// ── 出題幕後（暫時隱藏，未刪除；恢復方式同上）──
+/*
 const P2bBehind: Page = () => (
   <Default theme={T} title="出題幕後：最具體的 audit 紀錄">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2350,6 +2455,7 @@ const P2bBehind: Page = () => (
     </ul>
   </Default>
 );
+*/
 const P2bDemoRisk: Page = () => (
   <Default theme={T} title="現場 demo 的小提醒">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2378,11 +2484,11 @@ const PART2B: Page[] = [
   P2bS4a,
   P2bS4b,
   P2bS4c,
-  P2bMemeMap,
+  // P2bMemeMap,
   P2bS5a,
   P2bS5b,
   P2bS5c,
-  P2bMemeAdmin,
+  // P2bMemeAdmin,
   P2bS6,
   P2bS7a,
   P2bS7b,
@@ -2390,13 +2496,14 @@ const PART2B: Page[] = [
   P2bS9,
   P2bTeach,
   P2bPunch,
-  P2bBehind,
+  // 出題幕後（暫時隱藏）
+  // P2bBehind,
   P2bDemoRisk,
 ];
 
-// ════════════════ Part 2c ③ REV／WASM — Solivan Verify（高潮）════════════════
+// ════════════════ Part 2c ③ REV／WASM — Solivan Verify（動態分析）════════════════
 const P2cSection: Page = () => (
-  <Section theme={T} title="③ REV／WASM" subtitle="Solivan Verify · 高潮" />
+  <Section theme={T} title="③ REV／WASM" subtitle="Solivan Verify · 動態分析" />
 );
 
 const P2cScenario: Page = () => (
@@ -2453,8 +2560,7 @@ const P2cMethod: Page = () => (
 const P2cS1: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 9"
-    beat="動作"
+    badge="1/9"
     title="先把三項 SDG 驗證答對"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2468,8 +2574,7 @@ const P2cS1: Page = () => (
 const P2cS2: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 2 / 共 9"
-    beat="觀察"
+    badge="2/9"
     title="最後一關：走不進那塊金色的地"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2486,8 +2591,7 @@ const P2cMemeFrustrate: Page = () => (
 const P2cS3: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 9"
-    beat="原理"
+    badge="3/9"
     title="為什麼走不進去？"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2502,8 +2606,7 @@ const P2cS3: Page = () => (
 const P2cS4: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 9"
-    beat="觀察"
+    badge="4/9"
     title="靜態分析：什麼都撈不到"
   >
     <Mono>{`$ strings wasm_game_bg.wasm | grep -i flag\n(無)`}</Mono>
@@ -2523,23 +2626,21 @@ const P2cMemeStatic: Page = () => (
 const P2cS5: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 5 / 共 9"
-    beat="動作"
+    badge="5/9"
     title="F12 開 console，把 WASM 攤開"
   >
     <Mono
       size={34}
     >{`> Object.keys(window.__GAME_WASM__)   // 列出 WASM exports\n> window.__GAME_MEMORY__               // WebAssembly.Memory（記憶體攤開）`}</Mono>
     <ul className="osd-list" style={{ marginTop: 24 }}>
-      <li className="sub">前端開場就把 WASM 與記憶體掛到 window，不用裝任何擴充</li>
+      <li className="sub">前端載入時就把 WASM 與記憶體掛到 window，不用裝任何擴充</li>
     </ul>
   </StepPage>
 );
 const P2cS6: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 6 / 共 9"
-    beat="觀察"
+    badge="6/9"
     title="它一直在偷偷印自己的座標"
   >
     <Mono>{`[pos] x=12 y=34      // 每個 frame 印出當前座標`}</Mono>
@@ -2552,8 +2653,7 @@ const P2cS6: Page = () => (
 const P2cS7: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 7 / 共 9"
-    beat="動作 → 原理"
+    badge="7/9"
     title="掃描記憶體，收斂到座標的位址"
   >
     <Mono
@@ -2570,8 +2670,7 @@ const P2cS7: Page = () => (
 const P2cS8: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 8 / 共 9"
-    beat="動作 → 高潮"
+    badge="8/9"
     title="改一個數字，角色瞬移進去"
   >
     <Mono
@@ -2596,8 +2695,7 @@ const P2cMemeTeleport: Page = () => (
 const P2cS9: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 9 / 共 9"
-    beat="動作 → 收網"
+    badge="9/9"
     title="按 E，換出 flag"
   >
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2615,7 +2713,7 @@ const P2cS9: Page = () => (
 );
 
 const P2cPunch: Page = () => (
-  <Statement theme={T} eyebrow="這題的金句">
+  <Statement theme={T} eyebrow="這題的重點概念">
     跑在使用者瀏覽器裡的驗證，
     <br />
     永遠<span style={{ color: "#e07b1a" }}>不能信任</span>。
@@ -2626,7 +2724,7 @@ const P2cTeach: Page = () => (
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>視覺化、遊戲化：不是枯燥的 ELF，是會動的 SDG 像素 RPG</li>
       <li>
-        即時爽感：改一個數字角色就瞬移——把 Cheat Engine 搬到瀏覽器
+        即時回饋：改一個數字，角色就瞬移——把 Cheat Engine 搬到瀏覽器
       </li>
       <li>連結日常：為什麼線上遊戲會被外掛？因為前端不能信任</li>
       <li className="sub">
@@ -2635,6 +2733,8 @@ const P2cTeach: Page = () => (
     </ul>
   </Default>
 );
+// ── 出題幕後（暫時隱藏，未刪除；恢復方式同上）──
+/*
 const P2cBehind: Page = () => (
   <Default theme={T} title="出題幕後：最有說服力的故事">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2653,6 +2753,7 @@ const P2cBehind: Page = () => (
     </ul>
   </Default>
 );
+*/
 const P2cDemoRisk: Page = () => (
   <Default theme={T} title="現場 demo 的小提醒">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2660,7 +2761,7 @@ const P2cDemoRisk: Page = () => (
       <li>舊頁面快取會卡 → 用無痕新分頁</li>
       <li className="sub">
         保底：跑 blackbox 的 exploit.py 直接送密文，0.2 秒秒出
-        flag（少了爽感但保證可動）
+        flag（少了現場手動操作的過程，但保證可動）
       </li>
     </ul>
   </Default>
@@ -2674,25 +2775,26 @@ const PART2C: Page[] = [
   P2cMethod,
   P2cS1,
   P2cS2,
-  P2cMemeFrustrate,
+  // P2cMemeFrustrate,
   P2cS3,
   P2cS4,
-  P2cMemeStatic,
+  // P2cMemeStatic,
   P2cS5,
   P2cS6,
   P2cS7,
   P2cS8,
-  P2cMemeTeleport,
+  // P2cMemeTeleport,
   P2cS9,
   P2cPunch,
   P2cTeach,
-  P2cBehind,
+  // 出題幕後（暫時隱藏）
+  // P2cBehind,
   P2cDemoRisk,
 ];
 
-// ════════════ Part 2d ④ Blue Team — Eternal Relay（壓軸 · 銜接防禦）════════════
+// ════════════ Part 2d ④ Blue Team — Eternal Relay（數位鑑識 · 銜接防禦）════════════
 const P2dSection: Page = () => (
-  <Section theme={T} title="④ Blue Team" subtitle="Eternal Relay · 壓軸" />
+  <Section theme={T} title="④ Blue Team" subtitle="Eternal Relay · 數位鑑識" />
 );
 
 const P2dScenario: Page = () => (
@@ -2706,7 +2808,7 @@ const P2dScenario: Page = () => (
 );
 
 const P2dFlip: Page = () => (
-  <Statement theme={T} eyebrow="壓軸的轉折">
+  <Statement theme={T} eyebrow="視角的轉折">
     這一次，
     <br />
     你是<span style={{ color: "#e07b1a" }}>藍隊</span>。
@@ -2756,8 +2858,7 @@ const P2dSkills: Page = () => (
 const P2dS1a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 4"
-    beat="動作"
+    badge="1/4"
     title="先 triage 那份執行檔"
   >
     <Mono>{`$ strings relay.exe | grep -E "relay|crypto|SMB2"`}</Mono>
@@ -2772,8 +2873,7 @@ const P2dS1a: Page = () => (
 const P2dS1b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 4"
-    beat="觀察"
+    badge="1/4"
     title="符號表沒被 strip——線索全露了"
   >
     <Mono size={34}>{`relay::crypto::K\nderive_nonce\nchacha20_encrypt`}</Mono>
@@ -2786,8 +2886,7 @@ const P2dS1b: Page = () => (
 const P2dS1c: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 1 / 共 4"
-    beat="陷阱（最重要的一拍）"
+    badge="1/4"
     title="別被假 IOC 帶著走"
   >
     <ul className="osd-list" style={{ marginBottom: 22 }}>
@@ -2815,8 +2914,7 @@ const P2dMemeFakeIOC: Page = () => (
 const P2dS2a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 2 / 共 4"
-    beat="動作 → 原理"
+    badge="2/4"
     title="把三份 PCAP 切成 frame"
   >
     <Mono
@@ -2832,8 +2930,7 @@ const P2dS2a: Page = () => (
 const P2dS2b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 2 / 共 4"
-    beat="觀察 → 陷阱"
+    badge="2/4"
     title="檔名順序，不是重組順序"
   >
     <Mono
@@ -2849,8 +2946,7 @@ const P2dS2b: Page = () => (
 const P2dS3a: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 4"
-    beat="原理"
+    badge="3/4"
     title="nonce 是從 source MAC 長出來的"
   >
     <Mono size={34}>{`12B nonce = 00 00 00 00 │ <6B source MAC> │ 00 00`}</Mono>
@@ -2863,8 +2959,7 @@ const P2dS3a: Page = () => (
 const P2dS3b: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 4"
-    beat="動作（金鑰還原）"
+    badge="3/4"
     title="用「已知開頭」把金鑰逼出來"
   >
     <Mono
@@ -2882,8 +2977,7 @@ const P2dMemeKeyHit: Page = () => (
 const P2dS3c: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 3 / 共 4"
-    beat="陷阱"
+    badge="3/4"
     title="counter 不是 0，是 1"
   >
     <Mono
@@ -2897,8 +2991,7 @@ const P2dS3c: Page = () => (
 const P2dS4: Page = () => (
   <StepPage
     theme={T}
-    badge="步驟 4 / 共 4"
-    beat="動作 → 收網"
+    badge="4/4"
     title="解密、依序拼回，flag 現形"
   >
     <Mono
@@ -2911,7 +3004,7 @@ const P2dS4: Page = () => (
   </StepPage>
 );
 
-// ── 帶學生 + 防禦銜接 + 出題幕後 ──
+// ── 帶學生 + 防禦銜接（出題幕後已暫時隱藏，見下方 block comment）──
 const P2dTeach: Page = () => (
   <Default theme={T} title="怎麼帶學生走這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2938,6 +3031,8 @@ const P2dDefenseValue: Page = () => (
     </ul>
   </Default>
 );
+// ── 出題幕後（暫時隱藏，未刪除；恢復方式同上）──
+/*
 const P2dBehind: Page = () => (
   <Default theme={T} title="出題幕後：被獨立 AI 盲測過">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2950,6 +3045,7 @@ const P2dBehind: Page = () => (
     </ul>
   </Default>
 );
+*/
 const P2dBridge: Page = () => (
   <Default theme={T} title="從這裡，走向藍隊靶場">
     <ul className="osd-list" style={{ marginTop: 8 }}>
@@ -2974,17 +3070,18 @@ const PART2D: Page[] = [
   P2dS1a,
   P2dS1b,
   P2dS1c,
-  P2dMemeFakeIOC,
+  // P2dMemeFakeIOC,
   P2dS2a,
   P2dS2b,
   P2dS3a,
   P2dS3b,
-  P2dMemeKeyHit,
+  // P2dMemeKeyHit,
   P2dS3c,
   P2dS4,
   P2dTeach,
   P2dDefenseValue,
-  P2dBehind,
+  // 出題幕後（暫時隱藏）
+  // P2dBehind,
   P2dBridge,
 ];
 
@@ -3168,9 +3265,9 @@ const PART3: Page[] = [
   P3Path,
 ];
 
-// ════════════════════════════ Part 4 收束 ════════════════════════════
+// ════════════════════════════ Part 4 總結 ════════════════════════════
 const P4Section: Page = () => (
-  <Section theme={T} title="Part 4" subtitle="收束" />
+  <Section theme={T} title="Part 4" subtitle="總結" />
 );
 
 const P4Recap: Page = () => (
@@ -3222,14 +3319,14 @@ const P4Takeaway: Page = () => (
       <li>
         用 AI skill 起一題：webchall-master／bluechall-master（已附下載）
       </li>
-      <li>用今天四題當分級教材：OSINT 暖場 → Blue 壓軸</li>
+      <li>用今天四題當分級教材：難度從 OSINT 遞增到 Blue Team</li>
       <li className="sub">帶學生從 CTF，一路走向 CyberRange</li>
     </ul>
   </Default>
 );
 
 const P4Meme: Page = () => (
-  <MemeSlot theme={T} intent="收尾：一起把學生帶上路／『防禦者集合』" />
+  <MemeSlot theme={T} intent="一起把學生帶上路／『防禦者集合』" />
 );
 
 const P4Thanks: Page = () => (
@@ -3242,7 +3339,7 @@ const PART4: Page[] = [
   P4Argument,
   P4Thesis,
   P4Takeaway,
-  P4Meme,
+  // P4Meme,
   P4Thanks,
 ];
 
@@ -3252,8 +3349,10 @@ export default [
   P0Intro,
   P0Outline,
   P0Thesis,
-  P0Meme,
+  // P0Meme,
   ...PART1,
+  P2Section,
+  P2Preview,
   ...PART2A,
   ...PART2B,
   ...PART2C,
