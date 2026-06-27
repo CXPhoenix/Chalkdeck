@@ -222,8 +222,6 @@ const DeckPage = ({
         overflow: "hidden",
       }}
     >
-      {/* @slide-comment id="c-d6dbeb52" ts="2026-06-26T07:24:03.013Z" text="eyJub3RlIjoi6YCZ5LiA6aCB5aSa6aSY5LqGIn0" */}
-      {/* @slide-comment id="c-00dd07c0" ts="2026-06-26T07:17:30.735Z" text="eyJub3RlIjoi5pS-6aGM55uu6Kqq5piO77yM5LiN5piv5pS-5oOF5aKDIn0" */}
       <Frame theme={theme} />
       {children}
       <img
@@ -1000,6 +998,14 @@ const CYBERRANGE_BANNER = new URL(
   "./assets/cyberrange-2026.png",
   import.meta.url,
 ).href;
+const SPEAKER_PHOTO = new URL(
+  "./assets/788abeb3-37ac-4f36-9018-dae67dffe210.png",
+  import.meta.url,
+).href;
+const SHOT_DC_VERIFY = new URL(
+  "./assets/shot-1-dc-verify.jpeg",
+  import.meta.url,
+).href;
 
 // ════════════════════════════ Part 0 開場（精簡）════════════════════════════
 const P0Cover: Page = () => (
@@ -1007,7 +1013,7 @@ const P0Cover: Page = () => (
 );
 P0Cover.transition = SETTLE;
 
-// 自我介紹（照片講者自填：把右側 placeholder 換成 <img src={new URL('./assets/speaker.png', import.meta.url).href} ...>）
+// 自我介紹（左：姓名＋經歷；右：講者照片）
 const P0Intro: Page = () => (
   <DeckPage theme={T}>
     <div
@@ -1054,31 +1060,22 @@ const P0Intro: Page = () => (
           陳　晉
         </div>
         <ul className="osd-list">
-          <li style={{ fontSize: 62 }}>北區資安教學資源師培中心副主任</li>
-          <li style={{ fontSize: 62 }}>高中職資安推廣中心講師</li>
-          <li style={{ fontSize: 62 }}>復興高中資訊科技代理教師</li>
-          <li style={{ fontSize: 62 }}>國防管理學院資管系 CTF 教練</li>
+          <li style={{ fontSize: 54 }}>北區資安教學資源師培中心副主任</li>
+          <li style={{ fontSize: 54 }}>高中職資安推廣中心講師</li>
+          <li style={{ fontSize: 54 }}>復興高中資訊科技代理教師</li>
+          <li style={{ fontSize: 54 }}>國防管理學院資管系 CTF 教練</li>
         </ul>
       </div>
-      <div
+      <img
+        src={SPEAKER_PHOTO}
+        alt="講者照片：陳晉"
         style={{
-          flex: "0 0 520px",
-          height: 600,
-          border: "6px dashed #cfd6e0",
-          borderRadius: 20,
-          background: "#f6f8fb",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 20,
+          flex: "0 0 auto",
+          height: "680px",
+          objectFit: "contain",
+          filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.16))",
         }}
-      >
-        <div style={{ fontSize: 120, lineHeight: 1 }}>🧑‍🏫</div>
-        <div style={{ fontSize: 34, fontWeight: 700, color: "#6b7a90" }}>
-          講者照片（待提供）
-        </div>
-      </div>
+      />
     </div>
   </DeckPage>
 );
@@ -1665,7 +1662,8 @@ const P1DCChat: Page = () => (
   <Default theme={T} title="和驗題組的 DC 對話">
     <div style={{ paddingTop: 20 }}>
       <ShotSlot
-        hint="與驗題組在 Discord 的對話：回報問題 → 折回去修 → 放行（之後把截圖放 assets/shot-1-dc-verify.png，再於此加 src）"
+        hint="與驗題組在 Discord 的對話：回報問題 → 折回去修 → 放行"
+        src={SHOT_DC_VERIFY}
         h={600}
       />
     </div>
@@ -1944,10 +1942,6 @@ const P2aS7a: Page = () => (
     <ul className="osd-list" style={{ marginBottom: 24 }}>
       <li>CLAUDE.md 裡寫著一個 Postman 公開 workspace 的 URL</li>
     </ul>
-    <ShotSlot
-      hint="CLAUDE.md 內文：含一行 Postman workspace URL（玩家視角）"
-      h={360}
-    />
   </StepPage>
 );
 const P2aS7b: Page = () => (
@@ -2077,7 +2071,7 @@ const P2aS11b: Page = () => (
 
 // ── 帶學生（出題幕後已暫時隱藏，見下方 block comment）──
 const P2aTeach: Page = () => (
-  <Default theme={T} title="怎麼帶學生走這題">
+  <Default theme={T} title="如何帶學生解這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>全班一起看首頁找線索 → 引導發現 /.git/</li>
       <li>
@@ -2416,7 +2410,7 @@ const P2bS9: Page = () => (
 
 // ── 帶學生（出題幕後已暫時隱藏，見下方 block comment）──
 const P2bTeach: Page = () => (
-  <Default theme={T} title="怎麼帶學生走這題">
+  <Default theme={T} title="如何帶學生解這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>開站講送鞋故事 → 點出兩個錯誤的安全假設</li>
       <li>打開 openapi.json，讓學生看「地圖被攤開」</li>
@@ -2720,7 +2714,7 @@ const P2cPunch: Page = () => (
   </Statement>
 );
 const P2cTeach: Page = () => (
-  <Default theme={T} title="怎麼帶學生走這題">
+  <Default theme={T} title="如何帶學生解這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>視覺化、遊戲化：不是枯燥的 ELF，是會動的 SDG 像素 RPG</li>
       <li>
@@ -3006,7 +3000,7 @@ const P2dS4: Page = () => (
 
 // ── 帶學生 + 防禦銜接（出題幕後已暫時隱藏，見下方 block comment）──
 const P2dTeach: Page = () => (
-  <Default theme={T} title="怎麼帶學生走這題">
+  <Default theme={T} title="如何帶學生解這題">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>適合進階學生／資安社團：要同時動用 PE、PCAP、密碼學三條線</li>
       <li>零基礎設施：離線 PCAP ＋ 執行檔，發下去就能練</li>
@@ -3018,7 +3012,7 @@ const P2dTeach: Page = () => (
   </Default>
 );
 const P2dDefenseValue: Page = () => (
-  <Default theme={T} title="這題，就是命題的縮影">
+  <Default theme={T} title="這題就是翻轉的重點">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>
         要還原攻擊，你得先懂攻擊——怎麼拆片、用 MAC 衍生 nonce、把 key 藏進
@@ -3064,7 +3058,7 @@ const P2dBridge: Page = () => (
 const PART2D: Page[] = [
   P2dSection,
   P2dScenario,
-  P2dFlip,
+  // P2dFlip,  // 刪頁
   P2dEssence,
   P2dSkills,
   P2dS1a,
@@ -3078,8 +3072,8 @@ const PART2D: Page[] = [
   // P2dMemeKeyHit,
   P2dS3c,
   P2dS4,
-  P2dTeach,
-  P2dDefenseValue,
+  // P2dTeach,  // 刪頁
+  // P2dDefenseValue,  // 刪頁
   // 出題幕後（暫時隱藏）
   // P2dBehind,
   P2dBridge,
@@ -3145,7 +3139,8 @@ const P3What: Page = () => (
       <li>
         參賽隊扮演企業內部 IR 團隊，從大量告警與日誌找出攻擊者足跡並應變
       </li>
-      <li className="sub">被定位為「臺灣難度最高的藍隊資安競賽之一」</li>
+      <li className="sub" style={{ marginLeft: "2rem" }}>
+        被定位為「臺灣難度最高的藍隊資安競賽之一」</li>
     </ul>
   </Default>
 );
@@ -3223,6 +3218,20 @@ const P3Student: Page = () => (
   <Statement theme={T} eyebrow="這條線，直接連到你的學生">
     CyberRange 有「學生場」，
     <br />與 <span style={{ color: "#e07b1a" }}>ISIP</span> 合辦。
+    <div
+      style={{
+        fontSize: 40,
+        fontWeight: 400,
+        color: "#555",
+        marginTop: 56,
+        lineHeight: 1.6,
+      }}
+    >
+      「解完這題我學會超多 wireshark 技能，而且也看到攻擊時的樣貌」
+      <div style={{ fontSize: 28, color: "#888", marginTop: 18 }}>
+        —— 我帶的學生
+      </div>
+    </div>
   </Statement>
 );
 
@@ -3256,9 +3265,9 @@ const P3Path: Page = () => (
 const PART3: Page[] = [
   P3Section,
   P3Banner,
-  P3What,
-  P3Orgs,
-  P3Features,
+  // P3What,  // 刪頁
+  // P3Orgs,  // 刪頁
+  // P3Features,  // 刪頁
   P3Compare,
   P3Student,
   P3StudentNote,
@@ -3273,9 +3282,10 @@ const P4Section: Page = () => (
 const P4Recap: Page = () => (
   <Default theme={T} title="今天我們走過">
     <ul className="osd-list" style={{ marginTop: 12 }}>
-      <li>四題：OSINT → Web → REV → Blue（從攻擊技巧，走到鑑識視角）</li>
+      <li>
+        四題：OSINT → Web → REV → Blue</li>
       <li>一條 AI 出題流水線（對抗式自我審查，把出題變工程）</li>
-      <li>一座藍隊靶場（HITCON CyberRange，把技巧放進真實事件）</li>
+      <li>介紹藍隊靶場</li>
     </ul>
   </Default>
 );
@@ -3299,28 +3309,16 @@ const P4Thesis: Page = () => (
     是為了更好的
     <br />
     學會防禦！
-    <div
-      style={{
-        fontSize: 42,
-        fontWeight: 400,
-        color: "#555",
-        marginTop: 52,
-        lineHeight: 1.5,
-      }}
-    >
-      這不是口號——是一條從高中 CTF，通往國家資安人才庫的真實路徑。
-    </div>
   </Statement>
 );
 
 const P4Takeaway: Page = () => (
-  <Default theme={T} title="帶回課堂的三件事">
+  <Default theme={T} title="帶回課堂的兩件事">
     <ul className="osd-list" style={{ marginTop: 8 }}>
       <li>
         用 AI skill 起一題：webchall-master／bluechall-master（已附下載）
       </li>
       <li>用今天四題當分級教材：難度從 OSINT 遞增到 Blue Team</li>
-      <li className="sub">帶學生從 CTF，一路走向 CyberRange</li>
     </ul>
   </Default>
 );
