@@ -5,8 +5,11 @@
 #   - 預設不公開。只有列在這裡的 deck 才會被 build & 部署到 GitHub Pages。
 #   - 沒列到的 deck（草稿、demo、私密）不會出現在站上、也沒有可達 URL。
 #   - 以 # 開頭的行與空行會被忽略。
-#   - 這份清單目前是空的 → 發 Release 也不會公開任何 deck（部署會被跳過）。
+#   - 清單為空時 → 發 Release 也不會公開任何 deck（部署會被跳過）。
 #
 # 範例（要公開時把井號拿掉、改成你的 deck id）：
 # week3-network-basics
 # intro-to-crypto
+
+# ── 已登記公開 ──
+ctf-competition-practice
