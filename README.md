@@ -36,7 +36,7 @@ export default [Cover] satisfies Page[];
 
 Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
 
-See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
+See the "open-slide" section of [`AGENTS.md`](./AGENTS.md) for the full authoring guide.
 
 ## Navigation
 
@@ -47,6 +47,8 @@ See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 ## Claude Code integration
 
 This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make slides about X" and the `create-slide` skill takes over. To quickly scaffold a new deck on the `fhsh-isiphs-universal` theme, use the local `new-deck` skill (or run `pnpm new:deck <id>`). Use `apply-comments` to iterate via inspector-style markers inside your source.
+
+Changes follow the [harness-agile](https://github.com/CXPhoenix/harness-agile) delivery pipeline shared by Claude Code and Codex: requirement → spec with traceability matrix → adversarial review → tickets → implementation → review → verification. The rules live in [`AGENTS.md`](./AGENTS.md); day-to-day usage is in [`docs/guide.md`](./docs/guide.md). Run `python3 scripts/verify-project.py` to check the agent configuration.
 
 ## Config
 

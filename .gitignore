@@ -1,5 +1,26 @@
 node_modules
 dist
 .DS_Store
+__pycache__/
+*.py[cod]
+
+# Spectra 本機資料（已改用 harness-agile；.spectra/subject/ 仍保存 deck 內容藍本）
 .spectra/
-openspec/.vector-search.db*
+
+# Runtime 本機設定與 worktree
+.claude/settings.local.json
+.claude/worktrees/
+.codex/*.local.toml
+.worktrees/
+.scratch/
+
+# Credentials belong to each runtime's local configuration.
+.env
+.env.*
+!.env.example
+
+# Local standalone vulnerability reproduction repositories.
+/.proj.vuln.recur/
+
+# Session handoffs expire and stay local.
+/.proj.handoffs/
