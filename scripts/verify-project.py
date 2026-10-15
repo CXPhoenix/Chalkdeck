@@ -119,9 +119,64 @@ def verify(root):
     return names, errors
 
 
+STALE_GLOSSARY_TOKENS = ("CONTEXT.md", "CONTEXT-MAP.md", "CONTEXT-FORMAT.md")
+
+
+def _markdown_files(top, skip):
+    """Regular *.md files under top, not descending into directories named in skip."""
+    found = []
+    for directory, subdirs, names in os.walk(top):
+        subdirs[:] = [d for d in subdirs if d not in skip]
+        found.extend(Path(directory, n) for n in names if n.endswith(".md") and Path(directory, n).is_file())
+    return found
+
+
+def _glossary_scan_files(root):
+    """The scanned set of .proj.specs/0001-glossary-rename/traceability.md."""
+    claude = root / ".claude/skills"
+    shared = {
+        link.name for link in (claude.iterdir() if claude.is_dir() else ())
+        if link.is_symlink() and Path(os.readlink(link)) == Path("..", "..", ".agents", "skills", link.name)
+    }
+    files = []
+    for tree in (claude, root / ".agents/skills"):
+        for skill in tree.iterdir() if tree.is_dir() else ():
+            if skill.name not in shared and skill.is_dir() and not skill.is_symlink():
+                files.extend(_markdown_files(skill, {"node_modules"}))
+    files.extend(root / name for name in ("AGENTS.md", "CLAUDE.md", "docs/README.md") if (root / name).is_file())
+    agents_docs = root / "docs/agents"
+    if agents_docs.is_dir():
+        files.extend(p for p in _markdown_files(agents_docs, set()) if "skill-tuning" not in p.relative_to(agents_docs).parts[:1])
+    return files
+
+
 def check_glossary(root):
     """Return one message per glossary-convention violation (see epic 0001-glossary-rename)."""
-    return []
+    messages = []
+    glossary = root / "GLOSSARY.md"
+    if glossary.is_symlink() or not glossary.is_file() or not glossary.read_bytes().strip():
+        messages.append("GLOSSARY.md is missing, not a regular file, or blank")
+    # Exact names from directory listings, so case-insensitive file systems give the same result.
+    forbidden = [name for name in ("CONTEXT.md", "CONTEXT-MAP.md") if name in os.listdir(root)]
+    scanned = _glossary_scan_files(root)
+    forbidden.extend(
+        path.relative_to(root).as_posix() for path in scanned
+        if path.name == "CONTEXT-FORMAT.md" and path.relative_to(root).parts[:1] in ((".claude",), (".agents",))
+    )
+    messages.extend(f"{rel} must not exist (renamed to GLOSSARY)" for rel in sorted(forbidden))
+    hits, unreadable = [], []
+    for path in scanned:
+        rel = path.relative_to(root).as_posix()
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            unreadable.append(rel)
+            continue
+        for number, line in enumerate(text.splitlines(), start=1):
+            hits.extend((rel, number, token) for token in STALE_GLOSSARY_TOKENS if token in line)
+    messages.extend(f"{rel}: cannot read as UTF-8" for rel in sorted(unreadable))
+    messages.extend(f"{rel}:{number}: stale glossary token {token}" for rel, number, token in sorted(hits))
+    return messages
 
 
 def main():

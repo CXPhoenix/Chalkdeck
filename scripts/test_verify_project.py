@@ -49,6 +49,161 @@ class GlossaryCheckTest(unittest.TestCase):
     def test_clean_fixture_reports_nothing(self):
         self.assertEqual(self.fx.check(), [])
 
+    def test_stale_token_in_claude_skill_is_reported(self):
+        self.fx.write(".claude/skills/domain-modeling/SKILL.md", "---\nname: domain-modeling\n---\nUpdate `CONTEXT.md` inline.\n")
+        self.assertEqual(self.fx.check(), [".claude/skills/domain-modeling/SKILL.md:4: stale glossary token CONTEXT.md"])
+
+
+    def test_hits_in_subdirectories_are_reported(self):
+        self.fx.write(".claude/skills/domain-modeling/references/format.md", "Use CONTEXT.md.\n")
+        self.fx.write("docs/agents/notes/extra.md", "Use CONTEXT.md.\n")
+        self.assertEqual(self.fx.check(), [
+            ".claude/skills/domain-modeling/references/format.md:1: stale glossary token CONTEXT.md",
+            "docs/agents/notes/extra.md:1: stale glossary token CONTEXT.md",
+        ])
+
+    def test_one_message_per_path_line_token_sorted(self):
+        self.fx.write("docs/agents/domain.md", "a CONTEXT.md and CONTEXT-MAP.md\nb CONTEXT.md twice CONTEXT.md\n")
+        self.fx.write("AGENTS.md", "see CONTEXT.md\n")
+        self.assertEqual(self.fx.check(), [
+            "AGENTS.md:1: stale glossary token CONTEXT.md",
+            "docs/agents/domain.md:1: stale glossary token CONTEXT-MAP.md",
+            "docs/agents/domain.md:1: stale glossary token CONTEXT.md",
+            "docs/agents/domain.md:2: stale glossary token CONTEXT.md",
+        ])
+
+class StaleTokenRootsTest(unittest.TestCase):
+    """Row 9: each stale token in each scanned root type."""
+
+    TOKENS = ("CONTEXT.md", "CONTEXT-MAP.md", "CONTEXT-FORMAT.md")
+    ROOTS = (
+        ".claude/skills/domain-modeling/SKILL.md",
+        ".agents/skills/domain-modeling/SKILL.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "docs/README.md",
+        "docs/agents/domain.md",
+    )
+
+    def test_each_token_in_each_root(self):
+        for rel in self.ROOTS:
+            for token in self.TOKENS:
+                with self.subTest(root=rel, token=token):
+                    fx = Fixture()
+                    self.addCleanup(fx.close)
+                    fx.write(rel, f"line one\nsee {token} here\n")
+                    self.assertEqual(fx.check(), [f"{rel}:2: stale glossary token {token}"])
+
+
+class NotScannedTest(unittest.TestCase):
+    """Row 11 and ticket item 6: paths outside the scanned set give no message."""
+
+    PATHS = (
+        "docs/adr/0001-example.md",
+        "docs/legacy-openspec/specs/x/spec.md",
+        "docs/agents/skill-tuning/report.md",
+        "docs/agents/skill-sources.json",
+        "scripts/notes.md",
+        ".proj.specs/0001-x/spec.en.md",
+        ".claude/skills/domain-modeling/node_modules/pkg/README.md",
+        ".agents/skills/domain-modeling/agents/openai.yaml",
+    )
+
+    def test_each_not_scanned_path(self):
+        for rel in self.PATHS:
+            with self.subTest(path=rel):
+                fx = Fixture()
+                self.addCleanup(fx.close)
+                fx.write(rel, "mentions CONTEXT.md\n")
+                self.assertEqual(fx.check(), [])
+
+    def test_symlinked_shared_skill_is_not_scanned(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write(".agents/skills/seaborn/SKILL.md", "---\nname: seaborn\n---\nmentions CONTEXT.md\n")
+        os.symlink("../../.agents/skills/seaborn", fx.root / ".claude/skills/seaborn")
+        self.assertEqual(fx.check(), [])
+
+
+class LookAlikeTest(unittest.TestCase):
+    """Row 12 and ticket item 6: look-alikes give no message; substrings of a token hit."""
+
+    def test_look_alikes_give_no_message(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write("docs/agents/domain.md", "context\nsingle-context\n# Context Map\nCONTEXT\ncontext.md\nGLOSSARY.md\nGLOSSARY-FORMAT.md\n")
+        self.assertEqual(fx.check(), [])
+
+    def test_substrings_of_a_token_hit(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write("docs/agents/domain.md", "see CONTEXT.mdx\nlink ./src/x/CONTEXT.md\n")
+        self.assertEqual(fx.check(), [
+            "docs/agents/domain.md:1: stale glossary token CONTEXT.md",
+            "docs/agents/domain.md:2: stale glossary token CONTEXT.md",
+        ])
+
+
+class GlossaryFileTest(unittest.TestCase):
+    """Row 13 and ticket item 5: GLOSSARY.md must be a regular, non-blank file."""
+
+    MESSAGE = "GLOSSARY.md is missing, not a regular file, or blank"
+
+    def setUp(self):
+        self.fx = Fixture()
+        self.addCleanup(self.fx.close)
+        (self.fx.root / "GLOSSARY.md").unlink()
+
+    def test_missing(self):
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
+    def test_symlink(self):
+        self.fx.write("docs/real-glossary.md", "# Glossary\n")
+        os.symlink("docs/real-glossary.md", self.fx.root / "GLOSSARY.md")
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
+    def test_whitespace_only(self):
+        self.fx.write("GLOSSARY.md", " \n\t\n")
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
+
+class ForbiddenPathTest(unittest.TestCase):
+    """Row 14 and ticket item 4: old glossary files must not exist; names match exactly."""
+
+    PATHS = (
+        "CONTEXT.md",
+        "CONTEXT-MAP.md",
+        ".claude/skills/domain-modeling/CONTEXT-FORMAT.md",
+        ".agents/skills/domain-modeling/CONTEXT-FORMAT.md",
+    )
+
+    def test_each_forbidden_path(self):
+        for rel in self.PATHS:
+            with self.subTest(path=rel):
+                fx = Fixture()
+                self.addCleanup(fx.close)
+                fx.write(rel, "old glossary\n")
+                self.assertEqual(fx.check(), [f"{rel} must not exist (renamed to GLOSSARY)"])
+
+    def test_lowercase_name_is_not_forbidden(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write("context.md", "unrelated notes\n")
+        self.assertEqual(fx.check(), [])
+
+
+class UnreadableFileTest(unittest.TestCase):
+    """Row 15 and ticket item 3: an unreadable scanned file is reported and scanning continues."""
+
+    def test_non_utf8_file_is_reported_and_scanning_continues(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        (fx.root / "docs/agents/broken.md").write_bytes(b"caf\xe9 CONTEXT.md\n")
+        fx.write("AGENTS.md", "see CONTEXT.md\n")
+        self.assertEqual(fx.check(), [
+            "docs/agents/broken.md: cannot read as UTF-8",
+            "AGENTS.md:1: stale glossary token CONTEXT.md",
+        ])
 
 if __name__ == "__main__":
     unittest.main()
