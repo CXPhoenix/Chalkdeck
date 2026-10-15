@@ -26,6 +26,36 @@ takes a branch — `tickets/T-0000/walking-skeleton` — rather than committing 
 **Its output is the seams, not the code.** Expect most of the skeleton's implementation to be
 replaced by the epics that follow. That is the plan working, not the plan failing.
 
+## Deck content track
+
+Two kinds of work run through this repository (terms in `CONTEXT.md`). **Template work** — themes,
+scripts, global assets, deploy configuration, skills, project configuration — takes stages 1–9.
+**Deck content work** — a change confined to one deck's `slides/<deck-id>/` folder, its own assets
+included — takes this lighter track instead. See [ADR-0004](../adr/0004-two-track-delivery.md).
+
+**Classify before starting.** If a change touches anything outside `slides/<deck-id>/`, it is
+template work, even when it began as a deck edit; split the shared part into its own epic or ticket.
+Editing another deck is a separate piece of deck content work, not part of this one.
+
+**What the track skips:** the spec, adversarial review, tickets, the test plan and coverage tables,
+and the TDD loop. A deck has no seam that a unit test can hold, so those gates would produce paper,
+not evidence.
+
+**What the track keeps:**
+
+1. **Branch:** `decks/<deck-id>` from `main`, landing on `main` through a PR whose description
+   comes from `/tw-emoji-pr-note`. Merging does not publish anything.
+2. **Authoring rules:** the `open-slide` section of `AGENTS.md` and the `slide-authoring` skill.
+3. **Verification:** render every changed page in the dev server (`pnpm dev`) and check it there;
+   that browser page is the real surface. Report which pages were checked.
+4. **Delivered decks stay frozen:** on a deck that has been presented, accept only typo and
+   broken-link fixes. Anything larger becomes a new deck with a new deck id.
+5. **Commits** use `/tw-emoji-commit`, as everywhere.
+
+**The allowlist** (`deploy/public-decks.txt`) is edited on this track, but only on the author's
+explicit instruction for a named deck id. Never add a deck because it looks finished. Going public
+still requires a published GitHub Release, which uses `/tw-emoji-release-note`.
+
 ## Stage 1 — Converge the requirement
 
 Run `/grill-with-docs`. It is user-invoked; ask the user to run it rather than trying to invoke it

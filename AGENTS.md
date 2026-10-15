@@ -26,13 +26,30 @@ plans, research and change history there. Keep adopted project rules in `docs/`.
 
 **chalkdeck** — 以 open-slide 撰寫、建置並發佈 React 投影片的 repo。
 
-<!-- PLACEHOLDER — the user has not written this yet. -->
+**Purpose.** Let the author produce interactive teaching decks quickly with AI agents, publish them
+safely, and keep the public ones as a talk record, on a consistent FHSH AiSP × ISIP.hs visual
+identity. When these pull against each other, the order is: speed of authoring, then publishing
+safety, then visual consistency.
 
-_What this project is for, who it serves, and what it must do._
+**Who it serves.** The author is the repository owner plus the agents working for them; no other
+teacher contributes. The audience is the students and workshop participants a deck is presented to.
+Public URLs exist for sharing and for the talk record, not for a general web audience.
 
-**Gate (product work):** while this section is a placeholder, the only permitted work is the walking skeleton
-(below) and the conversation that defines it. Before writing a spec, opening a ticket, or writing
-implementation code, ask the user to run `/grill-with-docs` and fill this section in.
+**Must hold.** Vocabulary is defined in [CONTEXT.md](CONTEXT.md).
+
+1. **Private by default.** Only decks listed in the allowlist (`deploy/public-decks.txt`) are built
+   and deployed, and only when a GitHub Release is published. An agent edits the allowlist only on
+   the author's explicit instruction.
+2. **A deck id is its URL.** Never rename a public deck's folder.
+3. **Decks are self-contained.** Template work never changes an existing deck.
+4. **No framework changes, no new dependencies.** Use `@open-slide/core` as shipped, `react`, and
+   standard web APIs.
+5. **A delivered deck is frozen.** After a deck has been presented, fix only typos and broken
+   links; a reworked or repeated talk gets a new deck id.
+
+**Two tracks.** Deck content work (only `slides/<deck id>/`) takes the light track; template work
+takes the full pipeline below. See [docs/agents/workflow.md](docs/agents/workflow.md#deck-content-track)
+and [ADR-0004](docs/adr/0004-two-track-delivery.md).
 
 ## Delivery model
 
@@ -47,7 +64,7 @@ See [ADR-0001](docs/adr/0001-walking-skeleton-then-epic-loop.md).
 
 **This repository adopted harness-agile on 2026-10-15 as an existing project.** The open-slide
 toolchain and the decks already on `main` are the walking skeleton, so the exemption has expired:
-start every new piece of work at stage 1. The earlier Spectra/OpenSpec specs and archived changes
+start every new piece of template work at stage 1. The earlier Spectra/OpenSpec specs and archived changes
 are frozen in [docs/legacy-openspec/](docs/legacy-openspec/README.md) — read them for background,
 never write to them, and carry any still-binding requirement into a new `.proj.specs/` epic.
 
@@ -75,6 +92,9 @@ upstream examples; use the existing configuration without asking to set it up ag
 
 1. **One branch per ticket:** `tickets/<ticket-id>/<ticket-slug>` (e.g. `tickets/T-0007/session-store`).
    Ticket ids are global, sequential, and permanent — branch names depend on them never changing.
+   Ticket branches start from `main` and land on `main`; the old `template` branch is retired
+   ([ADR-0005](docs/adr/0005-retire-template-branch.md)). Deck content work has no ticket and uses
+   `decks/<deck-id>` instead, landing through a PR.
 2. **Two tables gate a ticket's tests.** A **test plan table** before the first test is written, which
    the user approves; a **coverage report table** when the ticket closes. Between them, `/tdd` governs
    the loop: one seam, one test, one minimal implementation per cycle.
