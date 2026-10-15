@@ -2,7 +2,7 @@
 id: T-0001
 title: Rename the project glossary to GLOSSARY and guard it in the verifier
 epic: 0001-glossary-rename
-status: todo
+status: processing
 blocked_by: []
 ---
 
@@ -106,3 +106,27 @@ Spec AC1–AC13 apply, with these refinements (P1 resolutions from review):
 開工前需要你做的事：合併 PR #4。開始寫測試之前，我會先把 test plan table 給你核准。
 
 ## Comments
+
+### 2026-10-16 — Branch and base
+
+Branch `tickets/T-0001/glossary-rename` created from `main` at B = `3b383c27e041ed6a103e875ce6cde09cf094625a` (merge of PR #4), in a worktree outside the main checkout.
+
+### 2026-10-16 — Test plan table (approved)
+
+Approved by the author on 2026-10-16: 「核准 T-0001 的 test plan table。PR #4 合併後就開始 red → green。」
+
+Seam: `check_glossary(root) -> list[str]` in `scripts/verify-project.py`, loaded with `importlib`; fixtures built in a temporary directory outside the repository, symlinks created explicitly; tests assert the returned list only. Test file `scripts/test_verify_project.py`. The first commit adds a stub returning `[]`, so red runs fail on assertions.
+
+| Seam | Test intent | Scope | Acceptance criterion | Boundary conditions |
+|---|---|---|---|---|
+| `check_glossary` | clean fixture returns an empty list | `GLOSSARY.md`, one skill per tree, `docs/agents/` | Row 16, AC9 | no tokens |
+| `check_glossary` | every stale token is found in every scanned root type | 3 tokens × 6 root types (Claude skill, Codex skill, AGENTS.md, CLAUDE.md, docs/README.md, docs/agents/*.md) | Row 9, AC9 | message `<path>:<1-based line>: stale glossary token <token>` |
+| `check_glossary` | hits in subdirectories are found | a skill's `references/`, a `docs/agents/` subdirectory | Row 9 | recursive scan |
+| `check_glossary` | one message per (path, line, token), ordered | two tokens on one line, same token twice on one line, two files | Row 10, ticket item 2 | sorted by path, line, token |
+| `check_glossary` | not-scanned paths give no message | `docs/adr/`, `docs/legacy-openspec/`, `docs/agents/skill-tuning/`, `skill-sources.json`, shared-skill symlink, `scripts/`, `.proj.specs/`, a skill's `node_modules/` | Row 11, ticket item 6 | non-`.md` files are not scanned |
+| `check_glossary` | look-alikes give no message; substrings hit | `context`, `single-context`, `Context Map`, bare `CONTEXT`, `context.md`, `GLOSSARY.md`, `GLOSSARY-FORMAT.md` → none; `CONTEXT.mdx`, `./src/x/CONTEXT.md` → hit | Row 12, ticket item 6 | case-sensitive |
+| `check_glossary` | glossary file problems are reported | `GLOSSARY.md` missing, a symlink, whitespace-only | Row 13, ticket item 5 | regular file with non-whitespace content |
+| `check_glossary` | forbidden paths are reported | root `CONTEXT.md`, root `CONTEXT-MAP.md`, `CONTEXT-FORMAT.md` in a skill of each tree; root lowercase `context.md` is not forbidden | Row 14, ticket item 4 | exact-name match from directory listings |
+| `check_glossary` | unreadable files are reported and scanning continues | one non-UTF-8 `.md` plus a hit in another file | Row 15, ticket item 3 | both messages present |
+
+Not unit tests (results recorded here): new verifier exit 1 on B's tree and exit 0 at HEAD (AC10); line-equivalence check (AC3); manual E2E with `/domain-modeling`, test term reverted afterwards.

@@ -115,7 +115,13 @@ def verify(root):
     except (OSError, ValueError) as error:
         errors.append(f"Runtime configuration cannot be checked: {error}")
 
+    errors.extend(check_glossary(root))
     return names, errors
+
+
+def check_glossary(root):
+    """Return one message per glossary-convention violation (see epic 0001-glossary-rename)."""
+    return []
 
 
 def main():
