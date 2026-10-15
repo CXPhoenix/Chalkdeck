@@ -28,7 +28,7 @@ replaced by the epics that follow. That is the plan working, not the plan failin
 
 ## Deck content track
 
-Two kinds of work run through this repository (terms in `CONTEXT.md`). **Template work** — themes,
+Two kinds of work run through this repository (terms in `GLOSSARY.md`). **Template work** — themes,
 scripts, global assets, deploy configuration, skills, project configuration — takes stages 1–9.
 **Deck content work** — a change confined to one deck's `slides/<deck-id>/` folder, its own assets
 included — takes this lighter track instead. See [ADR-0004](../adr/0004-two-track-delivery.md).
