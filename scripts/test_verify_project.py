@@ -49,11 +49,6 @@ class GlossaryCheckTest(unittest.TestCase):
     def test_clean_fixture_reports_nothing(self):
         self.assertEqual(self.fx.check(), [])
 
-    def test_stale_token_in_claude_skill_is_reported(self):
-        self.fx.write(".claude/skills/domain-modeling/SKILL.md", "---\nname: domain-modeling\n---\nUpdate `CONTEXT.md` inline.\n")
-        self.assertEqual(self.fx.check(), [".claude/skills/domain-modeling/SKILL.md:4: stale glossary token CONTEXT.md"])
-
-
     def test_hits_in_subdirectories_are_reported(self):
         self.fx.write(".claude/skills/domain-modeling/references/format.md", "Use CONTEXT.md.\n")
         self.fx.write("docs/agents/notes/extra.md", "Use CONTEXT.md.\n")
@@ -71,6 +66,7 @@ class GlossaryCheckTest(unittest.TestCase):
             "docs/agents/domain.md:1: stale glossary token CONTEXT.md",
             "docs/agents/domain.md:2: stale glossary token CONTEXT.md",
         ])
+
 
 class StaleTokenRootsTest(unittest.TestCase):
     """Row 9: each stale token in each scanned root type."""
@@ -106,6 +102,8 @@ class NotScannedTest(unittest.TestCase):
         "scripts/notes.md",
         ".proj.specs/0001-x/spec.en.md",
         ".claude/skills/domain-modeling/node_modules/pkg/README.md",
+        ".agents/skills/domain-modeling/node_modules/pkg/README.md",
+        ".proj.tickets/0001-x/T-0001-x.md",
         ".agents/skills/domain-modeling/agents/openai.yaml",
     )
 
@@ -133,6 +131,12 @@ class LookAlikeTest(unittest.TestCase):
         self.addCleanup(fx.close)
         fx.write("docs/agents/domain.md", "context\nsingle-context\n# Context Map\nCONTEXT\ncontext.md\nGLOSSARY.md\nGLOSSARY-FORMAT.md\n")
         self.assertEqual(fx.check(), [])
+
+    def test_line_numbers_count_newlines_only(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write("docs/agents/domain.md", "a\x0cb\u2028c\nsee CONTEXT.md\n")
+        self.assertEqual(fx.check(), ["docs/agents/domain.md:2: stale glossary token CONTEXT.md"])
 
     def test_substrings_of_a_token_hit(self):
         fx = Fixture()
@@ -166,6 +170,21 @@ class GlossaryFileTest(unittest.TestCase):
         self.fx.write("GLOSSARY.md", " \n\t\n")
         self.assertEqual(self.fx.check(), [self.MESSAGE])
 
+    def test_unicode_whitespace_only(self):
+        self.fx.write("GLOSSARY.md", "\ufeff\u3000\u00a0\n")
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
+    def test_empty_file(self):
+        self.fx.write("GLOSSARY.md", "")
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
+    @unittest.skipIf(os.geteuid() == 0, "root can read unreadable files")
+    def test_unreadable(self):
+        path = self.fx.write("GLOSSARY.md", "# Glossary\n")
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.assertEqual(self.fx.check(), [self.MESSAGE])
+
 
 class ForbiddenPathTest(unittest.TestCase):
     """Row 14 and ticket item 4: old glossary files must not exist; names match exactly."""
@@ -184,6 +203,12 @@ class ForbiddenPathTest(unittest.TestCase):
                 self.addCleanup(fx.close)
                 fx.write(rel, "old glossary\n")
                 self.assertEqual(fx.check(), [f"{rel} must not exist (renamed to GLOSSARY)"])
+
+    def test_format_file_inside_node_modules_is_not_forbidden(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        fx.write(".claude/skills/domain-modeling/node_modules/pkg/CONTEXT-FORMAT.md", "vendored\n")
+        self.assertEqual(fx.check(), [])
 
     def test_lowercase_name_is_not_forbidden(self):
         fx = Fixture()
@@ -204,6 +229,16 @@ class UnreadableFileTest(unittest.TestCase):
             "docs/agents/broken.md: cannot read as UTF-8",
             "AGENTS.md:1: stale glossary token CONTEXT.md",
         ])
+
+    @unittest.skipIf(os.geteuid() == 0, "root can read unreadable files")
+    def test_permission_denied_file_is_reported(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        path = fx.write("docs/agents/locked.md", "CONTEXT.md\n")
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.assertEqual(fx.check(), ["docs/agents/locked.md: cannot read as UTF-8"])
+
 
 if __name__ == "__main__":
     unittest.main()

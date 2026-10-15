@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Check portable project instructions, per-runtime skill trees and native role configs.
+"""Check portable project instructions, per-runtime skill trees, native role configs
+and the project glossary convention.
 
 Python 3.11+. Read-only and offline; run from any working directory.
 This checks configuration structure, not model-backed workflow behavior.
@@ -17,6 +18,16 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ("research", "security-review", "tw-emoji-commit", "tw-emoji-pr-note", "tw-emoji-release-note", "evidence-report", "agent-browser", "i-have-adhd", "tune-skills")
 SANITIZERS = (("tw-emoji-commit", "sanitize_commit.py"), ("tw-emoji-pr-note", "sanitize_pr_note.py"), ("tw-emoji-release-note", "sanitize_release_note.py"))
+# chalkdeck: the project glossary is GLOSSARY.md (epic 0001-glossary-rename); these are the old names.
+STALE_GLOSSARY_TOKENS = ("CONTEXT.md", "CONTEXT-MAP.md", "CONTEXT-FORMAT.md")
+
+
+def shared_skill_names(claude_skills):
+    """Names of .claude/skills/<name> symlinks to ../../.agents/skills/<name> (open-slide's layout)."""
+    return {
+        link.name for link in (claude_skills.iterdir() if claude_skills.is_dir() else ())
+        if link.is_symlink() and Path(os.readlink(link)) == Path("..", "..", ".agents", "skills", link.name)
+    }
 
 
 def verify(root):
@@ -41,11 +52,9 @@ def verify(root):
     # chalkdeck: open-slide's `pnpm sync:skills` keeps its skills (and other packaged ones) in
     # .agents/skills and links .claude/skills/<name> to them. Such shared skills are exempt from
     # the independent-copy checks; their SKILL.md frontmatter is still checked.
-    shared = set()
-    for link in trees["Claude"].iterdir() if trees["Claude"].exists() else ():
-        if link.is_symlink() and Path(os.readlink(link)) == Path("..", "..", ".agents", "skills", link.name):
-            check((trees["Codex"] / link.name / "SKILL.md").is_file(), f"Broken shared skill link: {link.name}")
-            shared.add(link.name)
+    shared = shared_skill_names(trees["Claude"])
+    for name in sorted(shared):
+        check((trees["Codex"] / name / "SKILL.md").is_file(), f"Broken shared skill link: {name}")
     policies = {}
     for runtime, skills_root in trees.items():
         check(not skills_root.is_symlink() and not skills_root.parent.is_symlink(), f"{runtime} skill root must be a real directory")
@@ -119,9 +128,7 @@ def verify(root):
     return names, errors
 
 
-STALE_GLOSSARY_TOKENS = ("CONTEXT.md", "CONTEXT-MAP.md", "CONTEXT-FORMAT.md")
-
-
+# chalkdeck: glossary convention check (epic 0001-glossary-rename).
 def _markdown_files(top, skip):
     """Regular *.md files under top, not descending into directories named in skip."""
     found = []
@@ -132,12 +139,10 @@ def _markdown_files(top, skip):
 
 
 def _glossary_scan_files(root):
-    """The scanned set of .proj.specs/0001-glossary-rename/traceability.md."""
+    """*.md files in every non-shared skill of both trees (minus node_modules/), AGENTS.md,
+    CLAUDE.md, docs/README.md, and docs/agents/ except its top-level skill-tuning/ reports."""
     claude = root / ".claude/skills"
-    shared = {
-        link.name for link in (claude.iterdir() if claude.is_dir() else ())
-        if link.is_symlink() and Path(os.readlink(link)) == Path("..", "..", ".agents", "skills", link.name)
-    }
+    shared = shared_skill_names(claude)
     files = []
     for tree in (claude, root / ".agents/skills"):
         for skill in tree.iterdir() if tree.is_dir() else ():
@@ -145,16 +150,31 @@ def _glossary_scan_files(root):
                 files.extend(_markdown_files(skill, {"node_modules"}))
     files.extend(root / name for name in ("AGENTS.md", "CLAUDE.md", "docs/README.md") if (root / name).is_file())
     agents_docs = root / "docs/agents"
-    if agents_docs.is_dir():
-        files.extend(p for p in _markdown_files(agents_docs, set()) if "skill-tuning" not in p.relative_to(agents_docs).parts[:1])
+    for entry in agents_docs.iterdir() if agents_docs.is_dir() else ():
+        if entry.is_dir() and entry.name != "skill-tuning":
+            files.extend(_markdown_files(entry, set()))
+        elif entry.is_file() and entry.name.endswith(".md"):
+            files.append(entry)
     return files
 
 
+def _glossary_is_blank(path):
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return True
+    return not text.replace("\ufeff", "").strip()
+
+
 def check_glossary(root):
-    """Return one message per glossary-convention violation (see epic 0001-glossary-rename)."""
+    """Return one message per glossary-convention violation.
+
+    Messages come in groups, each sorted: the GLOSSARY.md problem, forbidden old files,
+    unreadable scanned files, then stale tokens by path, line (counted on newlines) and token.
+    """
     messages = []
     glossary = root / "GLOSSARY.md"
-    if glossary.is_symlink() or not glossary.is_file() or not glossary.read_bytes().strip():
+    if glossary.is_symlink() or not glossary.is_file() or _glossary_is_blank(glossary):
         messages.append("GLOSSARY.md is missing, not a regular file, or blank")
     # Exact names from directory listings, so case-insensitive file systems give the same result.
     forbidden = [name for name in ("CONTEXT.md", "CONTEXT-MAP.md") if name in os.listdir(root)]
@@ -172,7 +192,7 @@ def check_glossary(root):
         except (UnicodeDecodeError, OSError):
             unreadable.append(rel)
             continue
-        for number, line in enumerate(text.splitlines(), start=1):
+        for number, line in enumerate(text.split("\n"), start=1):
             hits.extend((rel, number, token) for token in STALE_GLOSSARY_TOKENS if token in line)
     messages.extend(f"{rel}: cannot read as UTF-8" for rel in sorted(unreadable))
     messages.extend(f"{rel}:{number}: stale glossary token {token}" for rel, number, token in sorted(hits))
@@ -185,7 +205,7 @@ def main():
         print(f"FAIL: {error}", file=sys.stderr)
     if errors:
         return 1
-    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets and native role configs")
+    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets, native role configs and the glossary convention")
     print("Static/offline checks only; confirm discovery in fresh Claude Code and Codex sessions.")
     return 0
 
