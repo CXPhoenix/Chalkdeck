@@ -14,6 +14,17 @@ verify_project = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(verify_project)
 
 
+CANNOT_DENY_READ = not hasattr(os, "geteuid") or os.geteuid() == 0
+
+
+def make_symlink(test, target, link):
+    """Create a symlink, skipping the test where the platform does not allow it."""
+    try:
+        os.symlink(target, link)
+    except (OSError, NotImplementedError) as error:
+        test.skipTest(f"symlinks unavailable: {error}")
+
+
 class Fixture:
     """A minimal repository in a temporary directory, outside the real checkout."""
 
@@ -115,11 +126,32 @@ class NotScannedTest(unittest.TestCase):
                 fx.write(rel, "mentions CONTEXT.md\n")
                 self.assertEqual(fx.check(), [])
 
+    def test_symlinked_markdown_file_is_not_followed(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        target = Path(outside.name, "secret.md")
+        target.write_text("mentions CONTEXT.md\n", encoding="utf-8")
+        make_symlink(self, target, fx.root / "docs/agents/linked.md")
+        make_symlink(self, target, fx.root / ".claude/skills/domain-modeling/linked.md")
+        self.assertEqual(fx.check(), [])
+
+    def test_symlinked_directory_is_not_walked(self):
+        fx = Fixture()
+        self.addCleanup(fx.close)
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        Path(outside.name, "notes.md").write_text("mentions CONTEXT.md\n", encoding="utf-8")
+        make_symlink(self, outside.name, fx.root / "docs/agents/elsewhere")
+        make_symlink(self, outside.name, fx.root / ".agents/skills/domain-modeling/references")
+        self.assertEqual(fx.check(), [])
+
     def test_symlinked_shared_skill_is_not_scanned(self):
         fx = Fixture()
         self.addCleanup(fx.close)
         fx.write(".agents/skills/seaborn/SKILL.md", "---\nname: seaborn\n---\nmentions CONTEXT.md\n")
-        os.symlink("../../.agents/skills/seaborn", fx.root / ".claude/skills/seaborn")
+        make_symlink(self, "../../.agents/skills/seaborn", fx.root / ".claude/skills/seaborn")
         self.assertEqual(fx.check(), [])
 
 
@@ -163,7 +195,7 @@ class GlossaryFileTest(unittest.TestCase):
 
     def test_symlink(self):
         self.fx.write("docs/real-glossary.md", "# Glossary\n")
-        os.symlink("docs/real-glossary.md", self.fx.root / "GLOSSARY.md")
+        make_symlink(self, "docs/real-glossary.md", self.fx.root / "GLOSSARY.md")
         self.assertEqual(self.fx.check(), [self.MESSAGE])
 
     def test_whitespace_only(self):
@@ -178,7 +210,7 @@ class GlossaryFileTest(unittest.TestCase):
         self.fx.write("GLOSSARY.md", "")
         self.assertEqual(self.fx.check(), [self.MESSAGE])
 
-    @unittest.skipIf(os.geteuid() == 0, "root can read unreadable files")
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
     def test_unreadable(self):
         path = self.fx.write("GLOSSARY.md", "# Glossary\n")
         path.chmod(0)
@@ -230,7 +262,7 @@ class UnreadableFileTest(unittest.TestCase):
             "AGENTS.md:1: stale glossary token CONTEXT.md",
         ])
 
-    @unittest.skipIf(os.geteuid() == 0, "root can read unreadable files")
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
     def test_permission_denied_file_is_reported(self):
         fx = Fixture()
         self.addCleanup(fx.close)

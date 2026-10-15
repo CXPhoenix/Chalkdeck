@@ -129,31 +129,40 @@ def verify(root):
 
 
 # chalkdeck: glossary convention check (epic 0001-glossary-rename).
+def _is_real_dir(path):
+    return path.is_dir() and not path.is_symlink()
+
+
+def _is_real_file(path):
+    return path.is_file() and not path.is_symlink()
+
+
 def _markdown_files(top, skip):
-    """Regular *.md files under top, not descending into directories named in skip."""
+    """Regular, non-symlink *.md files under top; symlinked and skip-named directories are not entered."""
     found = []
     for directory, subdirs, names in os.walk(top):
-        subdirs[:] = [d for d in subdirs if d not in skip]
-        found.extend(Path(directory, n) for n in names if n.endswith(".md") and Path(directory, n).is_file())
+        subdirs[:] = [d for d in subdirs if d not in skip and not Path(directory, d).is_symlink()]
+        found.extend(Path(directory, n) for n in names if n.endswith(".md") and _is_real_file(Path(directory, n)))
     return found
 
 
 def _glossary_scan_files(root):
     """*.md files in every non-shared skill of both trees (minus node_modules/), AGENTS.md,
-    CLAUDE.md, docs/README.md, and docs/agents/ except its top-level skill-tuning/ reports."""
+    CLAUDE.md, docs/README.md, and docs/agents/ except its top-level skill-tuning/ reports.
+    Symlinks are never followed, so the scan stays inside the repository."""
     claude = root / ".claude/skills"
     shared = shared_skill_names(claude)
     files = []
     for tree in (claude, root / ".agents/skills"):
-        for skill in tree.iterdir() if tree.is_dir() else ():
-            if skill.name not in shared and skill.is_dir() and not skill.is_symlink():
+        for skill in tree.iterdir() if _is_real_dir(tree) else ():
+            if skill.name not in shared and _is_real_dir(skill):
                 files.extend(_markdown_files(skill, {"node_modules"}))
-    files.extend(root / name for name in ("AGENTS.md", "CLAUDE.md", "docs/README.md") if (root / name).is_file())
+    files.extend(root / name for name in ("AGENTS.md", "CLAUDE.md", "docs/README.md") if _is_real_file(root / name))
     agents_docs = root / "docs/agents"
-    for entry in agents_docs.iterdir() if agents_docs.is_dir() else ():
-        if entry.is_dir() and entry.name != "skill-tuning":
+    for entry in agents_docs.iterdir() if _is_real_dir(root / "docs") and _is_real_dir(agents_docs) else ():
+        if _is_real_dir(entry) and entry.name != "skill-tuning":
             files.extend(_markdown_files(entry, set()))
-        elif entry.is_file() and entry.name.endswith(".md"):
+        elif _is_real_file(entry) and entry.name.endswith(".md"):
             files.append(entry)
     return files
 
