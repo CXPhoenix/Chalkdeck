@@ -38,5 +38,6 @@ ADR 保存已採用的決策與理由，方便後續修改時判斷影響。
 - [ADR-0003](adr/0003-adversarial-review-fixed-axes-two-rounds.md)：規格審查使用固定四軸，最多兩輪。
 - [ADR-0004](adr/0004-two-track-delivery.md)：deck 內容工作走輕量流程，模板工作走完整 pipeline。
 - [ADR-0005](adr/0005-retire-template-branch.md)：退役長期存在的 `template` 分支。
+- [ADR-0006](adr/0006-characterization-tests-for-equivalence-rewrites.md)：不改行為的改寫，以 characterization 加突變檢查取代 red 步驟。
 
 [Archify 依賴處理與可執行測試](security/archify-dependencies.md)。
