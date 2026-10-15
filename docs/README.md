@@ -26,6 +26,7 @@
 | --- | --- |
 | deck 如何發佈成網站、嵌入 Google Sites | [部署與 Google Sites 嵌入指南](deploy-and-google-sites.md) |
 | `fhsh-isiphs-universal` 主題怎麼用 | [主題使用說明](fhsh-isiphs-universal.md) |
+| 專案名詞（deck、deck id、allowlist、兩種工作類型） | [CONTEXT.md](../CONTEXT.md) |
 | 改用 harness-agile 前的 Spectra 規格 | [Spectra／OpenSpec 封存區](legacy-openspec/README.md)（唯讀） |
 
 ## 設計決策
@@ -35,5 +36,7 @@ ADR 保存已採用的決策與理由，方便後續修改時判斷影響。
 - [ADR-0001](adr/0001-walking-skeleton-then-epic-loop.md)：先建立 walking skeleton，再以 epic 交付。
 - [ADR-0002](adr/0002-ticket-status-in-frontmatter.md)：ticket 狀態存於 frontmatter。
 - [ADR-0003](adr/0003-adversarial-review-fixed-axes-two-rounds.md)：規格審查使用固定四軸，最多兩輪。
+- [ADR-0004](adr/0004-two-track-delivery.md)：deck 內容工作走輕量流程，模板工作走完整 pipeline。
+- [ADR-0005](adr/0005-retire-template-branch.md)：退役長期存在的 `template` 分支。
 
 [Archify 依賴處理與可執行測試](security/archify-dependencies.md)。

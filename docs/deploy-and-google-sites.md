@@ -7,14 +7,18 @@ Chalkdeck 是建立在 **open-slide**（`@open-slide/core`）之上的教學投�
 
 ## 1. 分支與 Release 模型
 
-- **`main`** — 整合分支：所有 deck（`slides/<id>/`）＋ 模板（themes / scripts / skills / config）都在這裡累積。
-- **`template`** — 長壽的「模板」分支，搭配 **tag** `template-vX.Y.Z` 標記每個模板版本。
+- **`main`** — 唯一的整合分支：所有 deck（`slides/<id>/`）＋ 模板（themes / scripts / skills / config）都在這裡累積。
+- **工作分支**：
+  - deck 內容工作（只動 `slides/<deck-id>/`）→ `decks/<deck-id>` 分支，PR 合併進 `main`。
+  - 模板工作（themes、scripts、全域 assets、deploy、skills、設定）→ 走 `AGENTS.md` 的完整 pipeline，ticket 分支 `tickets/T-NNNN/<slug>` 從 `main` 切出、併回 `main`。
+- **模板版本**：直接在 `main` 上打 **tag** `template-vX.Y.Z`。
 - **deck 快照** — 要凍結「某個模板版本期間的 deck」時，用 **tag**（如 `decks-v1.0.0`），不要開會繼續長的 version 分支。
 
 規則：
-- 模板更新走 `template` 分支 → 打 `template-vX.Y.Z` tag → **`git merge template`** 進 `main`（路徑不重疊、零衝突、**不要 rebase 已公開的 main**）。
-- **路徑紀律**：`template` 不碰 `slides/`；deck 工作只碰 `slides/*`；全域 `assets/` 歸模板。破例就會讓兩條 lineage 分岔。
-- 既有 deck **不會**因 merge 新模板而自動升級（每個 slide 自包含、boilerplate 是 inline 的）。要遷移得另做 re-sync 工具。
+- 長壽的 `template` 分支已退役（[ADR-0005](adr/0005-retire-template-branch.md)），舊的 `template-v1.x` tag 保留為歷史，不再接新工作。**不要 rebase 已公開的 `main`**。
+- **路徑紀律**：deck 內容工作只碰 `slides/<deck-id>/`；碰到其他路徑就是模板工作，要拆開處理（[ADR-0004](adr/0004-two-track-delivery.md)）。全域 `assets/` 歸模板。
+- 既有 deck **不會**因新模板而自動升級（每個 slide 自包含、boilerplate 是 inline 的）。要遷移得另做 re-sync 工具。
+- **講過的 deck 凍結**：已經講過的 deck 只修錯字與壞掉的連結；大改或再講一次就開新的 deck id，舊網址保留為演講歷程。
 
 ---
 
