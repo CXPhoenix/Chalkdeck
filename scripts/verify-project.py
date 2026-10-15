@@ -7,6 +7,7 @@ This checks configuration structure, not model-backed workflow behavior.
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -37,6 +38,14 @@ def verify(root):
 
     # Each runtime owns an independent skill tree; contents may diverge.
     trees = {"Codex": root / ".agents/skills", "Claude": root / ".claude/skills"}
+    # chalkdeck: open-slide's `pnpm sync:skills` keeps its skills (and other packaged ones) in
+    # .agents/skills and links .claude/skills/<name> to them. Such shared skills are exempt from
+    # the independent-copy checks; their SKILL.md frontmatter is still checked.
+    shared = set()
+    for link in trees["Claude"].iterdir() if trees["Claude"].exists() else ():
+        if link.is_symlink() and Path(os.readlink(link)) == Path("..", "..", ".agents", "skills", link.name):
+            check((trees["Codex"] / link.name / "SKILL.md").is_file(), f"Broken shared skill link: {link.name}")
+            shared.add(link.name)
     policies = {}
     for runtime, skills_root in trees.items():
         check(not skills_root.is_symlink() and not skills_root.parent.is_symlink(), f"{runtime} skill root must be a real directory")
@@ -51,7 +60,8 @@ def verify(root):
             check((skills_root / name / "scripts" / helper).is_file(), f"Missing {runtime} sanitizer: {name}")
         policies[runtime] = {}
         for skill in skills:
-            check(not skill.is_symlink(), f"{runtime} skill must be a real directory: {skill.name}")
+            if skill.name not in shared:
+                check(not skill.is_symlink(), f"{runtime} skill must be a real directory: {skill.name}")
             entry = skill / "SKILL.md"
             check(entry.is_file(), f"Missing {runtime} SKILL.md: {skill.name}")
             if not entry.is_file():
@@ -63,6 +73,8 @@ def verify(root):
             check(bool(re.search(r"^description:\s*\S", header, re.M)), f"Missing {runtime} description: {skill.name}")
             claude_manual = bool(re.search(r"^disable-model-invocation:", header, re.M))
             metadata = skill / "agents/openai.yaml"
+            if skill.name in shared:
+                continue
             if runtime == "Codex":
                 check(not claude_manual, f"Codex skill carries Claude-only frontmatter: {skill.name}")
                 check(metadata.is_file(), f"Missing Codex metadata: {skill.name}")
@@ -72,12 +84,14 @@ def verify(root):
                 check(not metadata.exists(), f"Claude skill carries Codex-only metadata: {skill.name}")
                 policies[runtime][skill.name] = bool(re.search(r"^disable-model-invocation:\s*true\s*$", header, re.M))
         for path in skills_root.rglob("*") if skills_root.exists() else ():
+            if path.relative_to(skills_root).parts[0] in shared:
+                continue
             check(not path.is_symlink(), f"Skill trees must not contain links: {path.relative_to(root)}")
             check(path.name not in {".DS_Store", "__pycache__"} and not path.name.endswith((".pyc", ".bak")), f"Local cache/backup was bundled: {path.relative_to(root)}")
 
     for name in policies["Codex"].keys() & policies["Claude"].keys():
         check(policies["Codex"][name] == policies["Claude"][name], f"Claude/Codex invocation policy differs: {name}")
-    names = policies["Codex"].keys() | policies["Claude"].keys()
+    names = policies["Codex"].keys() | policies["Claude"].keys() | shared
 
     try:
         sources = json.loads((root / "docs/agents/skill-sources.json").read_text(encoding="utf-8"))

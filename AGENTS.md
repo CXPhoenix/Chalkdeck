@@ -128,7 +128,8 @@ review and every deferral. `.proj.handoffs/` is not: a handoff expires, so it st
 ## Build and test commands
 
 Portable structure check: `python3 scripts/verify-project.py` (Python 3.11+). It verifies
-harness plumbing, not slide behavior.
+harness plumbing, not slide behavior. Skills that open-slide manages — a `.claude/skills/<name>`
+symlink to `../../.agents/skills/<name>` — are exempt from its per-runtime copy checks.
 
 Slides use pnpm: `pnpm dev` (dev server with inspector), `pnpm build` (static build into `dist/`),
 `pnpm new:deck <id>` (scaffold a deck on the `fhsh-isiphs-universal` theme). There is no unit-test

@@ -20,6 +20,14 @@
 
 `agents/` 內的英文文件供開發助理執行流程，也可用來查核工作是否符合規範。面向使用者的說明採台灣繁體中文。
 
+## 專案文件
+
+| 主題 | 文件 |
+| --- | --- |
+| deck 如何發佈成網站、嵌入 Google Sites | [部署與 Google Sites 嵌入指南](deploy-and-google-sites.md) |
+| `fhsh-isiphs-universal` 主題怎麼用 | [主題使用說明](fhsh-isiphs-universal.md) |
+| 改用 harness-agile 前的 Spectra 規格 | [Spectra／OpenSpec 封存區](legacy-openspec/README.md)（唯讀） |
+
 ## 設計決策
 
 ADR 保存已採用的決策與理由，方便後續修改時判斷影響。
