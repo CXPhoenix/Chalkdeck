@@ -91,7 +91,9 @@
     },
     "tune-skills": {
       "source": "Written for this template on 2026-09-28. Each tree has its own version: Claude uses /claude-api prompt-audit; Codex audits against references/gpt-6.md, paraphrased from OpenAI's GPT-6 Astra article (read 2026-09-28).",
-      "adaptations": [],
+      "adaptations": [
+        "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' (epic 0001, T-0001)."
+      ],
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
