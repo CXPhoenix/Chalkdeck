@@ -2,7 +2,7 @@
 id: T-0001
 title: Rename the project glossary to GLOSSARY and guard it in the verifier
 epic: 0001-glossary-rename
-status: processing
+status: review
 blocked_by: []
 ---
 
@@ -130,3 +130,75 @@ Seam: `check_glossary(root) -> list[str]` in `scripts/verify-project.py`, loaded
 | `check_glossary` | unreadable files are reported and scanning continues | one non-UTF-8 `.md` plus a hit in another file | Row 15, ticket item 3 | both messages present |
 
 Not unit tests (results recorded here): new verifier exit 1 on B's tree and exit 0 at HEAD (AC10); line-equivalence check (AC3); manual E2E with `/domain-modeling`, test term reverted afterwards.
+
+### 2026-10-16 — Implementation (stage 5)
+
+Commits on the branch (oldest first): `0d33df6` stub + first test; `47fe68e` glossary check (TDD);
+`01af5f3` single rename commit; `db08bcb` provenance + test command; `7398c6e`, `265b27f`
+stage-6 fixes; `6716700` stage-7 hardening; `bf9792c` security report.
+
+**Red → green log.** Each cycle's red run failed on assertions or on the defect under test:
+cycle 2 (stale token in a Claude skill) list mismatch; cycle 3 (3 tokens × 6 roots) 17 of 18
+subtests failed; cycle 5 (ordering) token order mismatch; cycle 6 (not-scanned paths) 3 failures
+(`skill-tuning/`, shared skill's Codex copy, `node_modules/`); cycle 8 (glossary file) 3 failures;
+cycle 9 (forbidden paths) 4 failures; cycle 10 (non-UTF-8) `UnicodeDecodeError` raised.
+Cycles 4 (subdirectories) and 7 (look-alikes and substrings) passed on first run: `rglob` and the
+case-sensitive substring match already covered them; recorded as characterization.
+Stage-6 fixes added red tests first: Unicode-blank `GLOSSARY.md`, unreadable `GLOSSARY.md`
+(`PermissionError`), line numbers with `\x0c`/U+2028; stage-7 hardening: symlinked `.md` file and
+symlinked directory (2 failures).
+
+### 2026-10-16 — Acceptance evidence (HEAD `bf9792c`, base B `3b383c2`)
+
+- **AC1** — 0 hits for the R1–R5 old strings in `*.md` of non-shared skills, both trees.
+- **AC2** — `git diff -M --name-status B...HEAD`: `R070 .claude/skills/domain-modeling/CONTEXT-FORMAT.md → GLOSSARY-FORMAT.md`, same for `.agents/`.
+- **AC3** — line-equivalence check (pairs removed/added lines by position within each `-U0` hunk and
+  compares `rename(old) == new`) over `git diff -M -U0 B...HEAD -- .claude/skills .agents/skills AGENTS.md CLAUDE.md docs/README.md 'docs/agents/*.md'`
+  at `db08bcb`: 104 pairs checked; remaining items are exactly the exempt `AGENTS.md` edits below.
+  Exempt lines (final text):
+  - `docs/agents/domain.md`: "The root `GLOSSARY.md` holds project vocabulary only. The repository root is not a `/teach` workspace: `/teach` keeps its own `GLOSSARY.md` in a subdirectory."
+  - `AGENTS.md` (verifier sentence): "It verifies harness plumbing and the glossary convention, not slide behavior." (rewrapped)
+  - `AGENTS.md` (test sentence): "The only unit-test suite is the verifier's, `python3 -m unittest discover -s scripts -p 'test_*.py'`; decks have none, so verify a deck by rendering it in the dev server — that browser page is the real surface."
+  - `.claude/skills/teach/SKILL.md` and `.agents/skills/teach/SKILL.md`: "If the current directory is a repository root that has a project `GLOSSARY.md` (see `docs/agents/domain.md`), first create a subdirectory for the topic and treat it as the current directory below, so the teaching glossary never overwrites the project's."
+- **AC4** — all 8 shared skills still link to `../../.agents/skills/<name>`; `git diff --stat B...HEAD` over their 16 paths is empty.
+- **AC5** — 0 stale tokens in the row-5 docs; `AGENTS.md` links `(GLOSSARY.md)`, `docs/README.md` links `(../GLOSSARY.md)`; the file exists.
+- **AC6** — `docs/agents/domain.md` lines 7–8 (quoted above).
+- **AC7** — `git show B:CONTEXT.md | cmp - GLOSSARY.md`: identical; `CONTEXT.md` absent; `git log --follow` lists `01af5f3` and `3e6b0a5` (reachable from B).
+- **AC8** — `git log B..HEAD -- docs/adr docs/legacy-openspec docs/agents/skill-tuning` prints nothing. `.proj.specs/` has one added file, `review/security-T-0001.md`, placed there by the author's decision (2026-10-16, "照 skill 放 .proj.specs"); no existing spec file changed.
+- **AC9** — `python3 -m unittest discover -s scripts -p 'test_*.py'`: 22 tests, OK.
+- **AC10** — before: new verifier on the pre-rename tree (`47fe68e`, identical to B outside `scripts/`) exited 1 with 109 stale-token messages on 98 distinct lines, plus the missing-`GLOSSARY.md` and 3 forbidden-path messages; the (path, line) set equals `grep -nF` over the scanned set. After: exit 0 at HEAD.
+- **AC11** — `upstream_syncs[0]` = {mattpocock/skills, d80fa0f, 2026-10-16, [claude, codex], 7 skills in order}; `local_adaptations.teach` and `.tune-skills` begin "Both runtimes:"; `skills.tune-skills.adaptations` also records R5 (review F12).
+- **AC12** — `01af5f3` contains all 28 rename-set files; no other commit touches them.
+- **AC13** — `AGENTS.md` "Build and test commands" names the unittest command.
+
+### 2026-10-16 — Reviews
+
+- **Stage 6 code review** (two `harness-reviewer` passes, Standards and Spec): no high-impact findings.
+  Author approved the fix set (2026-10-16, 「全部套用」): status/evidence/coverage, shared-skill helper,
+  constant placement, docstrings and PASS text, `# chalkdeck:` marker, Unicode blank check, `OSError`
+  on `GLOSSARY.md`, newline-only line numbers, extra tests, AGENTS.md wording and wrap, tune-skills
+  adaptation. Not changed, with reasons: non-shared symlinked skills (already fail `verify()`),
+  `version` bump (unchecked), `OPEN-QUESTIONS.md`/`runtime.md` notes (would breach AC8/AC3),
+  "paragraph" vs "sentence" wording. Ordering kept as grouped-then-sorted (author, 「維持分組排序」).
+- **Stage 7 security review**: `.proj.specs/0001-glossary-rename/review/security-T-0001.md` — 9 candidates, 0 confirmed findings.
+  Hardening applied by the author's choice: symlinks not followed; Windows-safe test guards.
+  Deferred as P2: `os.walk` `onerror`, output escaping, fixed gitignored teach workspace, verifier guard for the teach sentence.
+
+### 2026-10-16 — End-to-end (stage 8)
+
+Surface: an AI agent following the worktree's skill files (subagent reading
+`.claude/skills/domain-modeling/SKILL.md`, its format file and `docs/agents/domain.md`), Claude tree only.
+A headless `claude -p` session was tried first and failed to authenticate (expired OAuth); the author
+chose the subagent route. Result: it added "Smoke test term" to `GLOSSARY.md` (git diff: 3 added lines),
+created no `CONTEXT.md`; the edit was reverted with `git checkout -- GLOSSARY.md` and `git status` was clean.
+
+### 2026-10-16 — Coverage report table
+
+Measured with the standard-library `trace` module while running the unittest suite.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_glossary` and its helpers | 22 tests in `scripts/test_verify_project.py` | 56/56 executable lines (100%) | AC9, rows 9–16, ticket items 1–6 | none |
+| `shared_skill_names` | via the not-scanned and shared-skill tests | 4/4 lines (100%) | row 11 | none |
+| `verify()` call site and refactored shared-link loop | real-repository runs (AC10) | not unit-tested | AC10 | exercised by the real verifier runs, not by the minimal fixtures |
+| Rename, docs, teach sentence | AC1–AC8, AC11–AC13 checks above | n/a (content) | AC1–AC8, AC11–AC13 | — |
