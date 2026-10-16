@@ -2,7 +2,7 @@
 id: T-0002
 title: Vendor the five presentation-style skills with provenance and Codex metadata
 epic: 0002-claude-style-skill-prompts
-status: todo
+status: processing
 blocked_by: [T-0001]
 ---
 
@@ -53,3 +53,9 @@ is V for every later ticket of this epic.
 做完之後 verifier 會通過，兩個工具都看得到這 5 個 skill。這個 commit 的 SHA 就是後面 3 張票的比較基準 V。
 
 ## Comments
+
+### 2026-10-16 — Branch and base
+
+Branch `tickets/T-0002/vendor-style-skills` created from `main` at `3cfa72b53ff23d5908b73db6800ea5aa35c957f1` (merge of PR #5, so T-0001 has landed), in a worktree outside the main checkout.
+
+This ticket writes no unit tests: its checks are the existing verifier and one-off hash and structure comparisons recorded below, so the hard-rule-2 test tables do not apply.

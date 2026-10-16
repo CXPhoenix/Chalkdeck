@@ -2,7 +2,7 @@
 id: T-0001
 title: Rename the project glossary to GLOSSARY and guard it in the verifier
 epic: 0001-glossary-rename
-status: review
+status: done
 blocked_by: []
 ---
 
@@ -202,3 +202,7 @@ Measured with the standard-library `trace` module while running the unittest sui
 | `shared_skill_names` | via the not-scanned and shared-skill tests | 4/4 lines (100%) | row 11 | none |
 | `verify()` call site and refactored shared-link loop | real-repository runs (AC10) | not unit-tested | AC10 | exercised by the real verifier runs, not by the minimal fixtures |
 | Rename, docs, teach sentence | AC1–AC8, AC11–AC13 checks above | n/a (content) | AC1–AC8, AC11–AC13 | — |
+
+### 2026-10-16 — Landed
+
+Merged to `main` through PR #5 (merge commit `3cfa72b53ff23d5908b73db6800ea5aa35c957f1`). Status set to `done`.
