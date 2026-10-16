@@ -186,6 +186,46 @@
         "Project threat model overrides unsafe blanket exclusions.",
         "Taiwan report and local evidence output."
       ]
+    },
+    "gates-style": {
+      "source": "https://github.com/CXPhoenix/slide-style-design",
+      "revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "license": "MIT",
+      "adaptations": [
+        "Codex: as vendored plus agents/openai.yaml."
+      ]
+    },
+    "jobs-style": {
+      "source": "https://github.com/CXPhoenix/slide-style-design",
+      "revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "license": "MIT",
+      "adaptations": [
+        "Codex: as vendored plus agents/openai.yaml."
+      ]
+    },
+    "presentation-style-route": {
+      "source": "https://github.com/CXPhoenix/slide-style-design",
+      "revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "license": "MIT",
+      "adaptations": [
+        "Codex: as vendored plus agents/openai.yaml."
+      ]
+    },
+    "takahashi-style": {
+      "source": "https://github.com/CXPhoenix/slide-style-design",
+      "revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "license": "MIT",
+      "adaptations": [
+        "Codex: as vendored plus agents/openai.yaml."
+      ]
+    },
+    "wangxing-style": {
+      "source": "https://github.com/CXPhoenix/slide-style-design",
+      "revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "license": "MIT",
+      "adaptations": [
+        "Codex: as vendored plus agents/openai.yaml."
+      ]
     }
   },
   "local_adaptations": {
@@ -241,6 +281,23 @@
           "writing-for-agents"
         ],
         "license_location": ".agents/skills/<skill>/LICENSE"
+      },
+      "slide-style-design": {
+        "repository": "https://github.com/CXPhoenix/slide-style-design",
+        "license_verification_revision": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+        "license_sha256": "c78dc1360729f89b00ab55d961e5a5917121bf297dfa3f2a785cd28d8c846bb8",
+        "verified_on": "2026-10-16",
+        "revision_scope": "Vendored byte-identical from this revision (epic 0002, T-0002); later local adaptations are recorded per skill.",
+        "license": "MIT",
+        "copyright": "Copyright (c) 2026 CXPhoenix",
+        "skills": [
+          "gates-style",
+          "jobs-style",
+          "presentation-style-route",
+          "takahashi-style",
+          "wangxing-style"
+        ],
+        "license_location": "Upstream repository root LICENSE; the skill directories ship no LICENSE file."
       }
     }
   },

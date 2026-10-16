@@ -1,0 +1,3 @@
+interface:
+  display_name: "Takahashi style"
+  short_description: "Provide Takahashi presentation-style guidance when this style is requested"

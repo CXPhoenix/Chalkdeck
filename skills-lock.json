@@ -31,6 +31,13 @@
       "skillPath": "skills/engineering/domain-modeling/SKILL.md",
       "computedHash": "a11713c0ff7870efa3c331b2e273f09116158485246edc89ae5088eefd1b0b48"
     },
+    "gates-style": {
+      "source": "CXPhoenix/slide-style-design",
+      "ref": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "sourceType": "github",
+      "skillPath": "skills/gates-style/SKILL.md",
+      "computedHash": "0b7a2e8b407c8f0268929de3b7f2044777c5a4dd19428b59d8e10dd7a9e52c6d"
+    },
     "grill-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -66,6 +73,20 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "2449db6ab1ded9581f69fcc56c1f64818112d05e271fd4c5da23c6523f9d3d9d"
+    },
+    "jobs-style": {
+      "source": "CXPhoenix/slide-style-design",
+      "ref": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "sourceType": "github",
+      "skillPath": "skills/jobs-style/SKILL.md",
+      "computedHash": "a6a31d1453676187956da4de12c30cfd817b8aba4d0a56636a05f4871b02aad5"
+    },
+    "presentation-style-route": {
+      "source": "CXPhoenix/slide-style-design",
+      "ref": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "sourceType": "github",
+      "skillPath": "skills/presentation-style-route/SKILL.md",
+      "computedHash": "5c4fefebbf2d1955c54a6c8b0d3559359a44632cbcf93f679615adb03be38780"
     },
     "prototype": {
       "source": "mattpocock/skills",
@@ -103,6 +124,13 @@
       "skillPath": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
       "computedHash": "552b0f48b9fe054aa93c5d432fefbd7bd9645e3f2d20b4e22432453a81800b21"
     },
+    "takahashi-style": {
+      "source": "CXPhoenix/slide-style-design",
+      "ref": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "sourceType": "github",
+      "skillPath": "skills/takahashi-style/SKILL.md",
+      "computedHash": "0ba8a9225e283e2aee55f8168584bc1849ede41a8ad6824df96bb0fdc7ab20c8"
+    },
     "tdd": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -138,6 +166,13 @@
       "sourceType": "github",
       "skillPath": "skills/productivity/wait-what/SKILL.md",
       "computedHash": "71a9a1f1773d4b1ff70a9d496db63855ef83a7fe906c72b70cdebf4815a2c4c1"
+    },
+    "wangxing-style": {
+      "source": "CXPhoenix/slide-style-design",
+      "ref": "80e5d06bddda8a4c5e02d7ece58b66038b543574",
+      "sourceType": "github",
+      "skillPath": "skills/wangxing-style/SKILL.md",
+      "computedHash": "0f2e4104d274632f52bbc4f07b3f75edeaced524c9993517e128764fa578d017"
     },
     "wayfinder": {
       "source": "mattpocock/skills",

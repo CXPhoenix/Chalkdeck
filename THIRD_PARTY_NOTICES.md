@@ -86,3 +86,14 @@ On 2026-09-13 the maintainer confirmed that tw-emoji-commit, tw-emoji-pr-note,
 tw-emoji-release-note, and init-template were authored by the maintainer using
 Claude Code. They are recorded as project-authored material under the root MIT
 LICENSE. This provenance record is based on the maintainer's explicit confirmation.
+
+## slide-style-design presentation-style skills — MIT
+
+presentation-style-route, takahashi-style, jobs-style, wangxing-style and gates-style
+are vendored from https://github.com/CXPhoenix/slide-style-design at revision
+80e5d06bddda8a4c5e02d7ece58b66038b543574. That repository is the maintainer's own
+project, licensed MIT (Copyright (c) 2026 CXPhoenix). Its skill directories ship no
+LICENSE file; the license text is the upstream repository's root LICENSE, whose SHA-256
+is recorded in docs/agents/skill-sources.json. The styles are project syntheses of public
+sources named in each skill's references, not quotations or official methods of the
+people they are named after.
