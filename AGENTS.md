@@ -35,7 +35,7 @@ safety, then visual consistency.
 teacher contributes. The audience is the students and workshop participants a deck is presented to.
 Public URLs exist for sharing and for the talk record, not for a general web audience.
 
-**Must hold.** Vocabulary is defined in [CONTEXT.md](CONTEXT.md).
+**Must hold.** Vocabulary is defined in [GLOSSARY.md](GLOSSARY.md).
 
 1. **Private by default.** Only decks listed in the allowlist (`deploy/public-decks.txt`) are built
    and deployed, and only when a GitHub Release is published. An agent edits the allowlist only on
@@ -148,12 +148,14 @@ review and every deferral. `.proj.handoffs/` is not: a handoff expires, so it st
 ## Build and test commands
 
 Portable structure check: `python3 scripts/verify-project.py` (Python 3.11+). It verifies
-harness plumbing, not slide behavior. Skills that open-slide manages — a `.claude/skills/<name>`
-symlink to `../../.agents/skills/<name>` — are exempt from its per-runtime copy checks.
+harness plumbing and the glossary convention, not slide behavior. Skills that open-slide
+manages — a `.claude/skills/<name>` symlink to `../../.agents/skills/<name>` — are exempt from
+its per-runtime copy checks.
 
 Slides use pnpm: `pnpm dev` (dev server with inspector), `pnpm build` (static build into `dist/`),
-`pnpm new:deck <id>` (scaffold a deck on the `fhsh-isiphs-universal` theme). There is no unit-test
-suite; verify a deck by rendering it in the dev server — that browser page is the real surface.
+`pnpm new:deck <id>` (scaffold a deck on the `fhsh-isiphs-universal` theme). The only unit-test
+suite is the verifier's, `python3 -m unittest discover -s scripts -p 'test_*.py'`; decks have
+none, so verify a deck by rendering it in the dev server — that browser page is the real surface.
 
 ## Reference
 
@@ -161,7 +163,7 @@ suite; verify a deck by rendering it in the dev server — that browser page is 
 - **[docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)** — where specs and tickets live, ticket frontmatter, the six status views, how blocking is derived.
 - **[docs/agents/review.md](docs/agents/review.md)** — the four adversarial-review axes, P0/P1/P2 grading, and the two-stage security review.
 - **[docs/agents/language.md](docs/agents/language.md)** — which documents are English, which are Traditional Chinese, and how the bilingual spec stays in sync.
-- **[docs/agents/domain.md](docs/agents/domain.md)** — how to consume `CONTEXT.md` and ADRs while exploring.
+- **[docs/agents/domain.md](docs/agents/domain.md)** — how to consume `GLOSSARY.md` and ADRs while exploring.
 
 ## open-slide
 

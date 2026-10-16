@@ -8,6 +8,8 @@ The user has asked you to teach them something. This is a stateful request - the
 
 ## Teaching Workspace
 
+If the current directory is a repository root that has a project `GLOSSARY.md` (see `docs/agents/domain.md`), first create a subdirectory for the topic and treat it as the current directory below, so the teaching glossary never overwrites the project's.
+
 Treat the current directory as a teaching workspace. The state of their learning is captured in this directory in several files:
 
 - `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).

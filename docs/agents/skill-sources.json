@@ -91,7 +91,9 @@
     },
     "tune-skills": {
       "source": "Written for this template on 2026-09-28. Each tree has its own version: Claude uses /claude-api prompt-audit; Codex audits against references/gpt-6.md, paraphrased from OpenAI's GPT-6 Astra article (read 2026-09-28).",
-      "adaptations": [],
+      "adaptations": [
+        "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' (epic 0001, T-0001)."
+      ],
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
@@ -196,7 +198,9 @@
     "tdd": "Reuse approved test plans and seams; load examples on demand.",
     "init-template": "Trigger on requested adoption, not placeholder presence alone.",
     "agent-browser": "Compact branch-specific discovery and permit evidence-equivalent native tools. Restore Apache-2.0 text and add a prominent modification notice without changing execution guidance.",
-    "writing-for-agents": "Codex tree: describe manual invocation as host policy rather than zero-cost metadata invisibility. Claude tree: disable-model-invocation keeps the description out of context (Claude Code skills docs, 2026-09-26)."
+    "writing-for-agents": "Codex tree: describe manual invocation as host policy rather than zero-cost metadata invisibility. Claude tree: disable-model-invocation keeps the description out of context (Claude Code skills docs, 2026-09-26).",
+    "teach": "Both runtimes: one added paragraph in SKILL.md under Teaching Workspace: when the current directory is a repository root with a project GLOSSARY.md, create a subdirectory and use it as the teaching workspace (epic 0001, T-0001). Reapply after upstream updates.",
+    "tune-skills": "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' with the glossary rename (epic 0001, T-0001)."
   },
   "licensing": {
     "verified_on": "2026-09-13",
@@ -239,5 +243,25 @@
         "license_location": ".agents/skills/<skill>/LICENSE"
       }
     }
-  }
+  },
+  "upstream_syncs": [
+    {
+      "upstream": "mattpocock/skills",
+      "commit": "d80fa0f",
+      "date": "2026-10-16",
+      "runtimes": [
+        "claude",
+        "codex"
+      ],
+      "skills": [
+        "codebase-design",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "improve-codebase-architecture",
+        "setup-matt-pocock-skills",
+        "tdd",
+        "wait-what"
+      ]
+    }
+  ]
 }

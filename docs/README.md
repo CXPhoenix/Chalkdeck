@@ -26,7 +26,7 @@
 | --- | --- |
 | deck 如何發佈成網站、嵌入 Google Sites | [部署與 Google Sites 嵌入指南](deploy-and-google-sites.md) |
 | `fhsh-isiphs-universal` 主題怎麼用 | [主題使用說明](fhsh-isiphs-universal.md) |
-| 專案名詞（deck、deck id、allowlist、兩種工作類型） | [CONTEXT.md](../CONTEXT.md) |
+| 專案名詞（deck、deck id、allowlist、兩種工作類型） | [GLOSSARY.md](../GLOSSARY.md) |
 | 改用 harness-agile 前的 Spectra 規格 | [Spectra／OpenSpec 封存區](legacy-openspec/README.md)（唯讀） |
 
 ## 設計決策
