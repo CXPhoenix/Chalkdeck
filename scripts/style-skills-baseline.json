@@ -291,7 +291,7 @@
       "sha256": "ca3542a00976743cd7170befa95eda589639e077943dd8270b574ecfc5620ef4"
     },
     ".claude/skills/gates-style/references/material-boundary.md": {
-      "check": "K12",
+      "check": "K6",
       "sha256": "ad84611f029cc9660edc1efd76e8b7b1031eef3c6ebb4295f2f7753e4c9b7048"
     },
     ".claude/skills/jobs-style/references/adjustments.md": {
@@ -323,7 +323,7 @@
       "sha256": "e578ed22ab9ed009848ef323fdfd529f68a83948c3015205acb8a6d7a0664727"
     },
     ".claude/skills/jobs-style/references/material-boundary.md": {
-      "check": "K12",
+      "check": "K6",
       "sha256": "ad84611f029cc9660edc1efd76e8b7b1031eef3c6ebb4295f2f7753e4c9b7048"
     },
     ".claude/skills/presentation-style-route/references/choice-examples.md": {
@@ -335,7 +335,7 @@
       "sha256": "78864ae95326519255b68784b2326f9113e5781f2df3bcb28252952d732606a0"
     },
     ".claude/skills/presentation-style-route/references/material-boundary.md": {
-      "check": "K12",
+      "check": "K6",
       "sha256": "ad84611f029cc9660edc1efd76e8b7b1031eef3c6ebb4295f2f7753e4c9b7048"
     },
     ".claude/skills/presentation-style-route/references/missing-context-example.md": {
@@ -379,7 +379,7 @@
       "sha256": "2d4f4f3616dbf86a7f825c89081d2160407ad24678ba56d40bd48a173e35e55a"
     },
     ".claude/skills/takahashi-style/references/material-boundary.md": {
-      "check": "K12",
+      "check": "K6",
       "sha256": "ad84611f029cc9660edc1efd76e8b7b1031eef3c6ebb4295f2f7753e4c9b7048"
     },
     ".claude/skills/wangxing-style/references/adjustments.md": {
@@ -411,7 +411,7 @@
       "sha256": "367402464b05a2004f0d0f1d7954695bdabb3b4bfee0a704f7da7efaa026bddb"
     },
     ".claude/skills/wangxing-style/references/material-boundary.md": {
-      "check": "K12",
+      "check": "K6",
       "sha256": "ad84611f029cc9660edc1efd76e8b7b1031eef3c6ebb4295f2f7753e4c9b7048"
     }
   },

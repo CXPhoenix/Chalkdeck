@@ -10,6 +10,7 @@ Run with: python3 -m unittest discover -s scripts -p 'test_*.py'
 import hashlib
 import io
 import json
+import os
 import re
 from pathlib import Path
 import shutil
@@ -24,6 +25,18 @@ REPO = SCRIPTS.parent
 CHECKER = SCRIPTS / "check_style_skills.py"
 V = "d1c8857b0d668ad565d26da4a8bbdbb27f89bdb4"
 SKILLS = ["presentation-style-route", "takahashi-style", "jobs-style", "wangxing-style", "gates-style"]
+TAKAHASHI = ".claude/skills/takahashi-style/SKILL.md"
+JOBS = ".claude/skills/jobs-style/SKILL.md"
+WANGXING = ".claude/skills/wangxing-style/SKILL.md"
+GATES = ".claude/skills/gates-style/SKILL.md"
+ROUTER = ".claude/skills/presentation-style-route/SKILL.md"
+FAIL_LINE = r"^FAIL: (K\d+|DESC|BODY|LINK|MODEL|BASELINE): [^:]+(:\d+)?: \S.*$"
+_TEMPLATE_TMP = []
+
+
+def tearDownModule():
+    for tmp in _TEMPLATE_TMP:
+        tmp.cleanup()
 
 
 def run_checker(*args):
@@ -32,14 +45,25 @@ def run_checker(*args):
 
 
 def extract_v(dest):
-    """Write the five Claude copies as committed at V under dest; return a skip reason or None."""
+    """Write the five Claude copies as committed at V under dest; return a skip reason or None.
+
+    Outside a Git checkout the fixture tests are skipped; inside one, an unreadable V is an error,
+    so a shallow clone cannot turn the mutation evidence into silent skips.
+    """
     try:
-        archive = subprocess.run(["git", "-C", str(REPO), "archive", V, *[f".claude/skills/{s}" for s in SKILLS]],
-                                 capture_output=True, check=True).stdout
-    except (OSError, subprocess.CalledProcessError) as error:
-        return f"cannot read V from git: {error}"
-    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
-        tar.extractall(dest, filter="data")
+        inside = subprocess.run(["git", "-C", str(REPO), "rev-parse", "--is-inside-work-tree"],
+                                capture_output=True, text=True)
+    except OSError as error:
+        return f"git unavailable: {error}"
+    if inside.returncode != 0:
+        return "not a Git checkout"
+    archive = subprocess.run(["git", "-C", str(REPO), "archive", V, *[f".claude/skills/{s}" for s in SKILLS]],
+                             capture_output=True)
+    if archive.returncode != 0:
+        raise RuntimeError(f"V {V} is not readable in this checkout: {archive.stderr.decode(errors='replace')}")
+    with tarfile.open(fileobj=io.BytesIO(archive.stdout)) as tar:
+        # The archive comes from this repository's own history; the data filter needs 3.11.4+.
+        tar.extractall(dest, **({"filter": "data"} if hasattr(tarfile, "data_filter") else {}))
     return None
 
 
@@ -50,8 +74,9 @@ class Fixture:
 
     @classmethod
     def build_template(cls):
-        cls._template_tmp = tempfile.TemporaryDirectory()
-        root = Path(cls._template_tmp.name)
+        tmp = tempfile.TemporaryDirectory()
+        _TEMPLATE_TMP.append(tmp)
+        root = Path(tmp.name)
         reason = extract_v(root)
         if reason:
             return reason
@@ -77,7 +102,8 @@ class Fixture:
 
     def replace(self, rel, old, new):
         text = self.read(rel)
-        assert text.count(old) >= 1, f"{old!r} not in {rel}"
+        if old not in text:
+            raise ValueError(f"{old!r} not in {rel}")
         self.write(rel, text.replace(old, new, 1))
 
     def check(self):
@@ -156,8 +182,8 @@ class OutputContractTest(FixtureTestCase):
     def test_one_line_per_violation(self):
         self.remove_core_id(TAKAHASHI, "takahashi.text_primary")
         self.remove_core_id(JOBS, "jobs.single_focus")
-        k1 = [line for line in self.fail_lines(self.fx.check()) if line.startswith("FAIL: K1: ")]
-        self.assertEqual(len(k1), 2, k1)
+        lines = self.fail_lines(self.fx.check())
+        self.assertEqual(len(lines), 2, lines)
 
     def test_paths_are_repo_relative(self):
         self.remove_core_id(TAKAHASHI, "takahashi.text_primary")
@@ -165,13 +191,6 @@ class OutputContractTest(FixtureTestCase):
         self.assertNotIn(str(self.fx.root), result.stderr)
         for line in self.fail_lines(result):
             self.assertTrue(line.split(": ")[2].startswith(".claude/skills/"), line)
-
-
-TAKAHASHI = ".claude/skills/takahashi-style/SKILL.md"
-JOBS = ".claude/skills/jobs-style/SKILL.md"
-WANGXING = ".claude/skills/wangxing-style/SKILL.md"
-GATES = ".claude/skills/gates-style/SKILL.md"
-ROUTER = ".claude/skills/presentation-style-route/SKILL.md"
 
 
 class RuleIdTest(FixtureTestCase):
@@ -462,6 +481,247 @@ class ApprovedChangeTest(FixtureTestCase):
         result = self.fx.check()
         self.assertFails("K4", result)
         self.assertIn("F-03", result.stderr)
+
+
+def make_symlink(test, target, link):
+    """Create a symlink, skipping the test where the platform does not allow it."""
+    try:
+        os.symlink(target, link)
+    except (OSError, NotImplementedError) as error:
+        test.skipTest(f"symlinks unavailable: {error}")
+
+
+class RobustnessTest(FixtureTestCase):
+    def assertOnlyFailLines(self, result):
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertTrue(result.stderr.strip(), "no FAIL lines")
+        for line in result.stderr.splitlines():
+            self.assertRegex(line, FAIL_LINE)
+
+    def baseline_path(self):
+        return self.fx.path("scripts/style-skills-baseline.json")
+
+    def test_missing_skill_md_is_reported_not_raised(self):
+        self.fx.path(GATES).unlink()
+        result = self.fx.check()
+        self.assertOnlyFailLines(result)
+        self.assertIn(f"{GATES}: file missing", result.stderr)
+
+    def test_non_utf8_file_is_reported_not_raised(self):
+        rel = ".claude/skills/takahashi-style/references/adjustments.md"
+        self.fx.path(rel).write_bytes(b"\xff\xfe broken")
+        result = self.fx.check()
+        self.assertOnlyFailLines(result)
+        self.assertIn(f"{rel}: cannot read as UTF-8", result.stderr)
+
+    def test_malformed_baseline_is_one_baseline_line(self):
+        self.baseline_path().write_text("{not json", encoding="utf-8")
+        result = self.fx.check()
+        self.assertOnlyFailLines(result)
+        self.assertEqual(len(result.stderr.splitlines()), 1)
+        self.assertTrue(result.stderr.startswith("FAIL: BASELINE: "))
+
+    def test_baseline_missing_section_is_one_baseline_line(self):
+        data = json.loads(self.baseline_path().read_text(encoding="utf-8"))
+        del data["protected"]
+        self.baseline_path().write_text(json.dumps(data), encoding="utf-8")
+        result = self.fx.check()
+        self.assertOnlyFailLines(result)
+        self.assertIn("protected", result.stderr)
+
+    def test_symlinked_file_is_reported_and_not_followed(self):
+        outside = Path(self.fx._tmp.name) / "outside.md"
+        outside.write_text("gates.secret_rule\n", encoding="utf-8")
+        link = self.fx.path(".claude/skills/gates-style/references/extra.md")
+        make_symlink(self, outside, link)
+        result = self.fx.check()
+        self.assertOnlyFailLines(result)
+        self.assertIn("symlink", result.stderr)
+        self.assertNotIn("gates.secret_rule", result.stderr)
+
+    def test_hidden_files_are_ignored(self):
+        self.fx.path(".claude/skills/jobs-style/references/.DS_Store").write_bytes(b"\x00\x01Bud1\xff")
+        self.assertPasses(self.fx.check())
+
+    def test_absolute_link_target_fails(self):
+        target = Path(self.fx._tmp.name) / "outside.md"
+        target.write_text("x\n", encoding="utf-8")
+        self.fx.replace(GATES, "(references/json-example.md)", f"({target.as_posix()})")
+        result = self.fx.check()
+        self.assertFails("LINK", result)
+        self.assertIn("absolute link target", result.stderr)
+
+    def test_link_leaving_the_root_fails(self):
+        (Path(self.fx._tmp.name) / "outside.md").write_text("x\n", encoding="utf-8")
+        self.fx.replace(GATES, "(references/json-example.md)", "(../../../../outside.md)")
+        result = self.fx.check()
+        self.assertFails("LINK", result)
+        self.assertIn("outside the repository", result.stderr)
+
+    def test_output_is_utf8_under_a_non_utf8_locale(self):
+        env = {"PATH": os.environ.get("PATH", ""), "LC_ALL": "en_US.ISO8859-1", "LANG": "en_US.ISO8859-1"}
+        probe = subprocess.run([sys.executable, "-I", "-X", "utf8=0", "-c", "import sys; print(sys.stderr.encoding)"],
+                               capture_output=True, text=True, env=env)
+        if probe.stdout.strip().lower().replace("-", "") in ("utf8", ""):
+            self.skipTest("cannot obtain a non-UTF-8 stream on this platform")
+        self.fx.replace(WANGXING, "This style refers to 張忘形, not 王興.", "This style refers to someone.")
+        result = subprocess.run([sys.executable, "-I", "-X", "utf8=0", str(CHECKER), "--root", str(self.fx.root)],
+                                capture_output=True, text=True, encoding="utf-8", env=env)
+        self.assertIn("This style refers to 張忘形, not 王興.", result.stderr)
+
+
+class ApprovalScopeTest(FixtureTestCase):
+    def approve(self, entry):
+        path = self.fx.path("scripts/style-skills-baseline.json")
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["approved_changes"].append(entry)
+        path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    def test_sentence_moved_to_an_approved_heading_passes(self):
+        self.fx.replace(GATES, "Use YAML by default. ", "")
+        self.fx.replace(GATES, "## Language consistency\n", "## Language consistency\n\nUse YAML by default.\n")
+        self.approve({"finding": "F-04", "check": "K4", "path": GATES, "heading": "Serialization selection",
+                      "text": "Use YAML by default.", "approved_text": "Use YAML by default.",
+                      "approved_heading": "Language consistency"})
+        self.assertPasses(self.fx.check())
+
+    def core_rule_url_change(self):
+        rel = ".claude/skills/takahashi-style/references/core-rule.md"
+        self.fx.replace(rel, "https://www.sbcr.jp/product/4797332530/", "https://www.sbcr.jp/product/4797332530")
+        entry = {"finding": "F-05", "check": "K9", "path": rel,
+                 "sha256": hashlib.sha256(self.fx.path(rel).read_bytes()).hexdigest()}
+        return rel, entry
+
+    def test_approved_core_rule_with_approved_urls_passes(self):
+        rel, entry = self.core_rule_url_change()
+        urls = json.loads(self.fx.read("scripts/style-skills-baseline.json"))["urls"][rel]
+        entry["approved_urls"] = [u if u != "https://www.sbcr.jp/product/4797332530/"
+                                  else "https://www.sbcr.jp/product/4797332530" for u in urls]
+        self.approve(entry)
+        self.assertPasses(self.fx.check())
+
+    def test_approved_core_rule_without_approved_urls_still_pins_urls(self):
+        rel, entry = self.core_rule_url_change()
+        self.approve(entry)
+        self.assertFails("K9", self.fx.check())
+
+    def test_material_boundary_file_is_k6(self):
+        rel = ".claude/skills/takahashi-style/references/material-boundary.md"
+        self.fx.write(rel, self.fx.read(rel) + " ")
+        result = self.fx.check()
+        self.assertFails("K6", result)
+        self.assertNotIn(f"K12: {rel}", result.stderr)
+
+    def test_incomplete_approval_is_reported(self):
+        self.approve({"check": "K4", "path": GATES})
+        result = self.fx.check()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertNotIn("None", result.stderr)
+        self.assertIn("approved change", result.stderr)
+
+
+class MatchingTest(FixtureTestCase):
+    def test_negated_protected_sentence_fails(self):
+        self.fx.replace(GATES, "Markdown accompanies either.", "No Markdown accompanies either.")
+        self.assertFails("K4", self.fx.check())
+
+    def test_headings_inside_code_fences_are_ignored(self):
+        self.fx.replace(GATES, "## Serialization selection\n\n",
+                        "## Serialization selection\n\n```yaml\n# comment\n## not a heading\n```\n\n")
+        self.assertPasses(self.fx.check())
+
+    def test_repeated_heading_keeps_both_sections(self):
+        self.fx.write(GATES, self.fx.read(GATES) + "\n## Serialization selection\n\nExtra note.\n")
+        self.assertPasses(self.fx.check())
+
+    def description_line(self, text):
+        lines = self.fx.read(GATES).split("\n")
+        index = next(i for i, line in enumerate(lines) if line.startswith("description: "))
+        lines[index] = "description: " + text
+        self.fx.write(GATES, "\n".join(lines))
+
+    def test_plain_description_with_colon_space_fails(self):
+        self.description_line(GATES_REWRITE.replace("Use when this", "Use when: this"))
+        self.assertFails("K13", self.fx.check())
+
+    def test_plain_description_with_comment_marker_fails(self):
+        self.description_line(GATES_REWRITE + " #styles")
+        self.assertFails("K13", self.fx.check())
+
+
+class GenerationGuardTest(unittest.TestCase):
+    def test_generation_refuses_a_tree_that_is_not_at_the_sha(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "b.json"
+            result = run_checker("--generate-baseline", "--sha", "3cfa72b53ff23d5908b73db6800ea5aa35c957f1",
+                                 "--baseline", str(out))
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertIn("FAIL: BASELINE: ", result.stderr)
+            self.assertFalse(out.exists())
+
+    def test_generation_refuses_to_overwrite_without_force(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reason = extract_v(root)
+            if reason:
+                self.skipTest(reason)
+            out = root / "b.json"
+            out.write_text("{}", encoding="utf-8")
+            result = run_checker("--generate-baseline", "--sha", V, "--root", str(root), "--baseline", str(out))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("--force", result.stderr)
+            result = run_checker("--generate-baseline", "--sha", V, "--root", str(root), "--baseline", str(out),
+                                 "--force")
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_committed_baseline_equals_generation_from_v(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reason = extract_v(root)
+            if reason:
+                self.skipTest(reason)
+            out = root / "regenerated.json"
+            result = run_checker("--generate-baseline", "--sha", V, "--root", str(root), "--baseline", str(out))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            regenerated = json.loads(out.read_text(encoding="utf-8"))
+            committed = json.loads((REPO / "scripts/style-skills-baseline.json").read_text(encoding="utf-8"))
+            regenerated.pop("approved_changes")
+            committed.pop("approved_changes")
+            self.assertEqual(committed, regenerated)
+
+
+class StrengthenedRuleTest(FixtureTestCase):
+    def set_description(self, text):
+        lines = self.fx.read(GATES).split("\n")
+        index = next(i for i, line in enumerate(lines) if line.startswith("description: "))
+        lines[index] = "description: " + text
+        self.fx.write(GATES, "\n".join(lines))
+
+    def test_capitalised_you_fails(self):
+        self.set_description(GATES_REWRITE.replace("Use when this style", "Use when You want this style"))
+        self.assertFails("DESC", self.fx.check())
+
+    def test_lowercase_i_is_not_a_pronoun(self):
+        self.set_description(GATES_REWRITE.replace("to a stated point", "to a stated point (i.e. a claim)"))
+        self.assertPasses(self.fx.check())
+
+    def test_first_word_is_stripped_of_punctuation(self):
+        self.set_description(GATES_REWRITE.replace("Provides ", "Provides, ", 1))
+        self.assertPasses(self.fx.check())
+
+    def test_field_name_only_as_part_of_a_longer_word_fails(self):
+        self.fx.write(TAKAHASHI, re.sub(r"\bconstraint\b", "constraints", self.fx.read(TAKAHASHI)))
+        self.assertFails("K3", self.fx.check())
+
+    def test_model_name_present_at_v_is_allowed(self):
+        path = self.fx.path("scripts/style-skills-baseline.json")
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["model_names"][TAKAHASHI] = ["Opus"]
+        path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        self.fx.replace(TAKAHASHI, "## Language consistency\n", "## Language consistency\n\nTuned for Opus.\n")
+        self.assertPasses(self.fx.check())
 
 
 class RepositoryTest(unittest.TestCase):

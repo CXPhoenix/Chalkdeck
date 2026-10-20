@@ -34,7 +34,7 @@ project's unittest command, and `AGENTS.md` and `tune-skills` point at it so lat
      even if references still contain it.
    - **Classification (K2)**: core = IDs on lines of `references/core-rule.md` matching
      `(?i)\brule id:`; adjustable = IDs on lines of `references/adjustments.md` matching
-     `^\s*-\s*ID:`. Both sets compared per skill. The test plan confirms neither set is empty for any
+     `^\s*-\s*ID:` (amended by author ruling 2026-10-21 to `^\s*(?:-\s*)?ID:`; see Comments). Both sets compared per skill. The test plan confirms neither set is empty for any
      of the four style skills at V.
    - **Field names (K3)**: per file presence of each of `style_id`, `core_rules`,
      `adjustable_rules`, `rule_id`, `constraint`, for all five skills including the router.

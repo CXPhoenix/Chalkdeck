@@ -43,7 +43,8 @@ glossary and provenance record the result.
 6. **Grep check (spec AC17)**: for each removed or reworded sentence, the search key is the
    sentence with whitespace runs collapsed, matched whitespace-insensitively across the repository,
    excluding: the Codex twin of the same skill, `.proj.specs/`, `.proj.tickets/`,
-   `docs/agents/skill-tuning/`, `scripts/style-skills-baseline.json`, `scripts/test_*.py`,
+   `docs/agents/skill-tuning/`, `scripts/style-skills-baseline.json`, `scripts/check_style_skills.py`
+   (its `PROTECTED` list records V's text for baseline generation), `scripts/test_*.py`,
    `node_modules/`, `dist/`, `.proj.handoffs/`, `.worktrees/`, `.claude/worktrees/`, `.git/`.
    A hit in another Claude style copy is resolved by applying the same approved finding there (listed
    in the report) or by reverting. Command and output in Comments, repo-relative paths only.
