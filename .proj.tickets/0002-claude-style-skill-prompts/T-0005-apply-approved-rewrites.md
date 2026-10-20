@@ -63,6 +63,9 @@ glossary and provenance record the result.
    equivalence-tuned per docs/agents/skill-tuning/2026-10-16-claude-opus-5-5-style-skills.md";
    `runtime_trees.claude_prompt_audit` gains one sentence naming the five skills and that report;
    `runtime_trees.claude_tuned_for` is byte-identical to its value at V.
+   `licensing.groups.slide-style-design` also gains a maintenance note: do not update these five
+   skills with the skill installer; re-vendor from upstream and reapply the Claude tuning
+   (author ruling 2026-10-21 in T-0002; documentation only, no behaviour change).
 10. **Spec AC4, AC6, AC7, AC12, AC13, AC16** hold as checked by the checker and the report.
 11. Coverage report table in Comments at close; epic close-out steps from `docs/agents/workflow.md`
     follow this ticket.
@@ -74,6 +77,6 @@ glossary and provenance record the result.
 - 用你核准的等效審查 prompt 請 reviewer 審查整份 diff，最多兩輪，每項發現都由你裁決，沒解決的就回退。
 - 開一個新的 session 手動測 3 個請求：指定高橋流、依情境選風格、資訊不足時反問。
 
-最後在 GLOSSARY.md 加上「Presentation style（簡報風格）」這個詞，並在 skill-sources.json 記下這次調校。Codex 版完全不動。
+最後在 GLOSSARY.md 加上「Presentation style（簡報風格）」這個詞，並在 skill-sources.json 記下這次調校，並註明這 5 個 skill 不要用 installer 更新，要重新 vendor 再套用 Claude 調校。Codex 版完全不動。
 
 ## Comments

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Presentation style route"
+  short_description: "Select one presentation style and route to its actual guidance"
