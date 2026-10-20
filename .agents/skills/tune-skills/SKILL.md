@@ -48,7 +48,10 @@ source URL and date, and have the user confirm it before auditing.
    - exact scripts and contracts, including every sentence a skill's own tests
      assert (find them with `grep -rn` in its `test/` or `tests/` folder);
    - commit, PR, release, spec, ticket, ADR and GLOSSARY templates;
-   - license and modification notices of vendored skills.
+   - license and modification notices of vendored skills;
+   - the style-skill baseline and checker (`scripts/style-skills-baseline.json`,
+     `scripts/check_style_skills.py`): run the checker before and after any
+     re-tune of the five presentation-style skills.
 4. **Approval.** Save the report and combined patch to
    `docs/agents/skill-tuning/<YYYY-MM-DD>-<model>.md` (patch beside it) and let the
    user approve per skill.

@@ -53,6 +53,9 @@ pass to the audit as its keep list:
   edit to that skill.
 - Commit, PR, release, spec, ticket, ADR and GLOSSARY templates.
 - License and modification notices of vendored skills.
+- The style-skill baseline and checker (`scripts/style-skills-baseline.json`,
+  `scripts/check_style_skills.py`): run the checker before and after any
+  re-tune of the five presentation-style skills.
 
 Model names stay out of skill text; model-specific guidance goes in
 `claude-orchestration.md`. The audit is complete when every file under the

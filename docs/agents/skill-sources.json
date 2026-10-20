@@ -240,7 +240,7 @@
     "agent-browser": "Compact branch-specific discovery and permit evidence-equivalent native tools. Restore Apache-2.0 text and add a prominent modification notice without changing execution guidance.",
     "writing-for-agents": "Codex tree: describe manual invocation as host policy rather than zero-cost metadata invisibility. Claude tree: disable-model-invocation keeps the description out of context (Claude Code skills docs, 2026-09-26).",
     "teach": "Both runtimes: one added paragraph in SKILL.md under Teaching Workspace: when the current directory is a repository root with a project GLOSSARY.md, create a subdirectory and use it as the teaching workspace (epic 0001, T-0001). Reapply after upstream updates.",
-    "tune-skills": "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' with the glossary rename (epic 0001, T-0001)."
+    "tune-skills": "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' with the glossary rename (epic 0001, T-0001). Both runtimes: keep list gains the style-skill baseline and checker; run the checker before and after any re-tune (epic 0002, T-0003)."
   },
   "licensing": {
     "verified_on": "2026-09-13",
