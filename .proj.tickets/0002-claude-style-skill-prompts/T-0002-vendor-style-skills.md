@@ -2,7 +2,7 @@
 id: T-0002
 title: Vendor the five presentation-style skills with provenance and Codex metadata
 epic: 0002-claude-style-skill-prompts
-status: review
+status: done
 blocked_by: [T-0001]
 ---
 
