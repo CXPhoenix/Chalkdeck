@@ -47,9 +47,10 @@ Public URLs exist for sharing and for the talk record, not for a general web aud
 5. **A delivered deck is frozen.** After a deck has been presented, fix only typos and broken
    links; a reworked or repeated talk gets a new deck id.
 
-**Two tracks.** Deck content work (only `slides/<deck id>/`) takes the light track; template work
-takes the full pipeline below. See [docs/agents/workflow.md](docs/agents/workflow.md#deck-content-track)
-and [ADR-0004](docs/adr/0004-two-track-delivery.md).
+**Two tracks.** Deck content work (only `slides/<deck id>/`, plus the two shared edits the workflow
+doc names) takes the light track; template work takes the full pipeline below. See
+[docs/agents/workflow.md](docs/agents/workflow.md#deck-content-track) and
+[ADR-0004](docs/adr/0004-two-track-delivery.md).
 
 ## Delivery model
 
@@ -181,6 +182,7 @@ You are authoring **slides** in this repo. Every slide is arbitrary React code t
 - Put slide-specific images/videos/fonts under `slides/<id>/assets/`. For assets reused across decks or themes (logos, avatars), use the global `assets/` folder and import via `@assets/...`.
 - Do **not** touch `package.json`, `open-slide.config.ts`, or other slides.
 - Do not add dependencies. Use only `react` and standard web APIs.
+- When a deck adds, removes or renames a file under its own `slides/<id>/assets/` that is someone else's work, update that file's row in the Assets table of `THIRD_PARTY_NOTICES.md` in the same change. Name the holder as the file's license requires, and no one else, such as people shown in it. ADR-0007 lets this one edit ride on the deck track; any other change to the notices, or a third-party file in the global `assets/`, is template work.
 
 ### Which slide skill to use
 
@@ -203,3 +205,5 @@ pnpm sync:skills
 ```
 
 `pnpm dev` will also detect drift on startup and offer to sync. `pnpm sync:skills --dry-run` (via `pnpm exec open-slide sync:skills --dry-run`) previews changes without writing.
+
+After `pnpm up`, `pnpm sync:skills`, or a sync accepted when `pnpm dev` starts, check that `node_modules/@open-slide/core/LICENSE` still has the license and copyright line the open-slide entry in `THIRD_PARTY_NOTICES.md` names, and that the skills listed there are still the ones open-slide writes.
