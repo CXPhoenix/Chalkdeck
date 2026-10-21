@@ -29,10 +29,13 @@ glossary and provenance record the result.
    revised during review carries a new approval row in the report quoting the author.
 2. **Descriptions (spec AC5)** are checked only where the author approved a rewrite; a rejected or
    reverted description is byte-equal to V and its finding is marked `deferred` in the report.
+   An approved description stays on one plain `description:` line, because K13 accepts only V's
+   frontmatter shape (T-0003, author ruling 2026-10-21).
 3. **Codex untouched (spec AC3)**: `git diff V...HEAD --stat -- .agents/skills/<the five>` is empty.
 4. **Checks**: `python3 scripts/check_style_skills.py`, `python3 scripts/verify-project.py` and
    `python3 -m unittest discover -s scripts -p 'test_*.py'` exit 0. The baseline differs from its
-   T-0003 commit only by `approved_changes` entries, each naming a keep-list-approved finding.
+   baseline of record (the version on `main` when T-0003 merged) only by `approved_changes`
+   entries, each naming a keep-list-approved finding.
 5. **Equivalence review (spec AC11)**: `harness-reviewer` runs the approved
    `equivalence-prompt.md` over the full `git diff V...HEAD` of the five Claude copies. Every finding
    goes to the author unfiltered; the author rules on each (`accept as equivalent`, `fix`, `revert`).
@@ -43,9 +46,11 @@ glossary and provenance record the result.
 6. **Grep check (spec AC17)**: for each removed or reworded sentence, the search key is the
    sentence with whitespace runs collapsed, matched whitespace-insensitively across the repository,
    excluding: the Codex twin of the same skill, `.proj.specs/`, `.proj.tickets/`,
-   `docs/agents/skill-tuning/`, `scripts/style-skills-baseline.json`, `scripts/test_*.py`,
+   `docs/agents/skill-tuning/`, `scripts/style-skills-baseline.json`, `scripts/check_style_skills.py`
+   (its `PROTECTED` list records V's text for baseline generation), `scripts/test_*.py`,
    `node_modules/`, `dist/`, `.proj.handoffs/`, `.worktrees/`, `.claude/worktrees/`, `.git/`.
-   A hit in another Claude style copy is resolved by applying the same approved finding there (listed
+   This exclusion list refines spec AC17 (its checker, test and baseline entries hold V's text by
+   design; T-0003 stage 6). A hit in another Claude style copy is resolved by applying the same approved finding there (listed
    in the report) or by reverting. Command and output in Comments, repo-relative paths only.
 7. **Smoke test (stage 8, adjudicated)**: a fresh interactive Claude Code session in the worktree,
    default permission mode, writes denied outside the session scratchpad. Three requests, once each:

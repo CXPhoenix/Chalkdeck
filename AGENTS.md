@@ -153,9 +153,14 @@ manages — a `.claude/skills/<name>` symlink to `../../.agents/skills/<name>` �
 its per-runtime copy checks.
 
 Slides use pnpm: `pnpm dev` (dev server with inspector), `pnpm build` (static build into `dist/`),
-`pnpm new:deck <id>` (scaffold a deck on the `fhsh-isiphs-universal` theme). The only unit-test
-suite is the verifier's, `python3 -m unittest discover -s scripts -p 'test_*.py'`; decks have
-none, so verify a deck by rendering it in the dev server — that browser page is the real surface.
+`pnpm new:deck <id>` (scaffold a deck on the `fhsh-isiphs-universal` theme). The unit tests under
+`scripts/` (the verifier's and the style-skill checker's) run with
+`python3 -m unittest discover -s scripts -p 'test_*.py'`; decks have none, so verify a deck by
+rendering it in the dev server — that browser page is the real surface.
+
+Style-skill check: `python3 scripts/check_style_skills.py` compares the Claude copies of the five
+presentation-style skills with their pinned content in `scripts/style-skills-baseline.json`
+(epic 0002). Run it before and after any change to those skills.
 
 ## Reference
 
