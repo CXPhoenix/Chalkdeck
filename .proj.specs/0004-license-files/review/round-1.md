@@ -141,3 +141,34 @@ ADR-0001/0002/0003/0005；ADR-0006 不適用（判斷正確）；Charter 2、4�
 - **E-6** notices 公開後即無法收回。
 - **E-7** private deck 一併授權。
 - **E-8** OQ-3、字型、README 語言、第 96 行維持原樣。
+
+## Rulings (repository owner, 2026-10-21 and 2026-10-22)
+
+All rulings are quoted in `../grill.md`.
+
+- **3-1, 1-4, 4-4 — T10 vs ADR-0004:** "列為輕量軌例外". ADR-0007 (T13) amends ADR-0004, and the
+  exception is written into workflow.md (T14), the AGENTS.md slide hard rules (T10) and the
+  glossary (T15). All four land together.
+- **4-3 — `slides/getting-started/`:** "列為 open-slide 作品". Before this ruling, the parent
+  confirmed with `git log` that the deck and `open-slide.config.ts` came from scaffold commit
+  05d62cd.
+- **4-1, 4-2 — the owner's changes to third-party skills:** "你的改動屬 MIT". T1 now says changes
+  CXPhoenix made to third-party material follow the table.
+- **All other round-1 findings:** "照建議處置". Revision 2 applies them:
+  - **2-1:** the ADR's full text is now T13.
+  - **Drift:** S0 blob ids and the drift stop rule.
+  - **Dates:** the ADR date also sets `verified_on`.
+  - **E2E:** E1 / AC12, run with `/agent-browser` before the merge.
+  - **Wording:** the glossary Avoid words are gone, and T9 keeps "in the project root".
+  - **`project_license`:** now an SPDX expression.
+  - **Screenshot and archives:** the mixed screenshot's scope covers the other participants' names,
+    avatars and the LINE interface; the archive check publishes no member names.
+- **4-18 — `LICENSE` source (new fact found while revising):** the 0x1dea copy differs from the
+  creativecommons.org `legalcode.txt` in whitespace, one underscore and one misplaced blank line.
+  Owner: "CC 官方 legalcode.txt". The Source LICENSE is now that file (blob 2d58298e).
+
+Self-check before round 2:
+
+- The glossary edit was first made on the spec branch, then reverted and moved into the ticket as
+  T15, so the deck-track exception is never stated before ADR-0007 exists.
+- OQ-3 now names epic 0004 and also covers the MIT notices of bundled npm packages.
