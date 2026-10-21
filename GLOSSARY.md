@@ -10,6 +10,16 @@ The repository owner, together with the AI agents working on their behalf. There
 authors; no other teacher contributes decks.
 _Avoid_: user, contributor, teacher (when meaning the author role)
 
+**Repository owner** (repo 擁有者):
+CXPhoenix in person, without the agents. Only the repository owner holds the rights the
+repository licenses, and only their answer can settle who owns a piece of material.
+_Avoid_: author (when agents must be excluded), licensor, maintainer
+
+**Reuser** (再利用者):
+Anyone who copies or adapts material from the repository under its licenses. Not someone the
+repository is built for; a reuser follows from the decks being public.
+_Avoid_: reader, user, audience (when meaning someone reusing material)
+
 **Audience** (觀眾):
 The students and workshop participants a deck is presented to.
 _Avoid_: reader, visitor, public

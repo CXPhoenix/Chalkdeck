@@ -2,7 +2,7 @@
 id: T-0003
 title: Pin the style skills' protected content in a checker
 epic: 0002-claude-style-skill-prompts
-status: review
+status: done
 blocked_by: [T-0002]
 ---
 
@@ -356,3 +356,8 @@ Surface: the checker CLI, run locally on macOS. No browser is involved.
   from `jobs-style/SKILL.md`. The run printed
   `FAIL: K4: .claude/skills/jobs-style/SKILL.md: missing under Serialization selection: Use YAML by default.`
   and exited 1.
+
+### 2026-10-21 — Landed
+
+Merged to `main` by PR #7 as merge commit `f1a29c7` (two parents). The baseline of record is
+`scripts/style-skills-baseline.json` at `f1a29c7`.
