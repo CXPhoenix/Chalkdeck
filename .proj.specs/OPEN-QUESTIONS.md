@@ -26,3 +26,15 @@ is open, what it blocks, and what would settle it.
 - **Blocks:** nothing now; the next template sync.
 - **Settles it:** the template adopting the rename, or a recorded local adaptation reapplied on sync
   (the verifier lists every spot).
+
+## OQ-3 — License notices on deployed decks
+
+- **Question:** How do deployed decks carry the notices their bundled third-party material needs?
+  For example, the license URI that CC BY-ND 3.0 TW §4(a) requires with each copy of the MOE Kai
+  font, and attribution for logos.
+- **Why open:** Epic 0003 marks licenses in the repository only. A built site ships the font and
+  logos with no notice. Adding one means changing the theme or decks, which Charter 3 forbids for
+  template work.
+- **Blocks:** nothing in the repository; publishing compliance of public decks.
+- **Settles it:** a decision on where a deployed notice lives. Candidates: a page generated at
+  build time; a theme change applied only to new decks; a footer convention for new decks.
