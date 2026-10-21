@@ -166,7 +166,7 @@ Material the owner does not hold is mixed in and unmarked:
   - `git rev-parse` and `git ls-tree` (AC1, AC2)
   - `diff` against the tdd LICENSE (AC2)
   - the exact-comparison script for AC3 and AC6–AC9
-  - the JSON and text diff of the provenance file (AC5)
+  - the provenance comparison script (AC5)
   - the inventory and archive checks (AC4)
   - the scoped `git grep`, `git diff --name-only` and the three check commands (AC11)
 - **End to end.** The surface is the GitHub file view of the pushed ticket branch. It is driven
