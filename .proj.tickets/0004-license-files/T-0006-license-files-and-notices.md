@@ -416,3 +416,75 @@ Report: [`review/security-T-0006.md`](../../.proj.specs/0004-license-files/revie
 scope B `746378f` to HEAD `5aff4fd`. One candidate pass and an independent false-positive pass per
 candidate (`harness-reviewer`). 11 candidates, 0 confirmed: each lacked a path across a real trust
 boundary, predated this diff, or is already tracked as a stage-6 spec-level point. Nothing to fix.
+
+### 2026-10-22 — Stage 8 end-to-end: GitHub file view (AC12, E1)
+
+Surface: the GitHub file view (github.com) of the pushed branch
+`tickets/T-0006/license-files-and-notices` at `3fe3721`, opened with the Claude desktop app's
+built-in browser, a native browser tool that `docs/agents/workflow.md` (stage 8) accepts as giving
+equivalent evidence. Page text and DOM facts were read with the page's own DOM; no screenshots. This
+covers GitHub's rendering only, not any deployed site.
+
+At `3fe3721` the four comparison scripts, the provenance comparison and the scope script were
+re-run before the push: all PASS, X1 lists 15 paths, C1 0 matches, X2 3/3 exit 0, AC4 0 member
+paths in the 15 X1 files and in the commit messages `746378f..3fe3721`.
+
+| Page | Title / 404 | Rendered content |
+|---|---|---|
+| `blob/<branch>/THIRD_PARTY_NOTICES.md` | "Chalkdeck/THIRD_PARTY_NOTICES.md at tickets/T-0006/license-files-and-notices", not 404 | `article.markdown-body` present; first h2 `Licensing`, then the existing sections, `Assets`, `open-slide — MIT`, `K-Dense scientific skills — MIT`, `MIT license text`; two `<table>` elements: T1 header `Paths | License`, 3 rows × 2 columns; T4 header `File | Holder | Terms`, 18 rows × 3 columns |
+| `blob/<branch>/README.md` | not 404 | last h2 is `License` |
+| `blob/<branch>/LICENSE` | not 404 | 427 lines shown; starts "Attribution-ShareAlike 4.0 International"; contains "Section 1 -- Definitions."; ends "Creative Commons may be contacted at creativecommons.org." |
+| `blob/<branch>/LICENSE-CODE` | not 404 | 21 lines; "MIT License", "Copyright (c) 2026 CXPhoenix", ends "SOFTWARE." |
+
+Relative links, as rendered (`href`) and opened:
+
+| Source | Link text | `href` | Target page |
+|---|---|---|---|
+| T1 table | CC BY-SA 4.0 | `/CXPhoenix/Chalkdeck/blob/tickets/T-0006/license-files-and-notices/LICENSE` | LICENSE page above, not 404 |
+| T1 table | MIT | `/CXPhoenix/Chalkdeck/blob/tickets/T-0006/license-files-and-notices/LICENSE-CODE` | LICENSE-CODE page above, not 404 |
+| T8 | CC BY-SA 4.0 | `/CXPhoenix/Chalkdeck/blob/tickets/T-0006/license-files-and-notices/LICENSE` | not 404 |
+| T8 | MIT | `/CXPhoenix/Chalkdeck/blob/tickets/T-0006/license-files-and-notices/LICENSE-CODE` | not 404 |
+| T8 | THIRD_PARTY_NOTICES.md | `/CXPhoenix/Chalkdeck/blob/tickets/T-0006/license-files-and-notices/THIRD_PARTY_NOTICES.md` | notices page above, not 404 |
+
+T1 and T8 have no other relative links; `https://github.com/CXPhoenix` and the legalcode URL are
+absolute. The LICENSE page text has 20,132 characters against 20,138 bytes: the file holds two
+3-byte UTF-8 characters and the viewer drops the final two newlines; the bytes were verified by
+blob id.
+
+Page text of the T1 section, as rendered:
+
+```text
+Licensing
+
+Except where otherwise noted in this file, the material in this repository is licensed by CXPhoenix (https://github.com/CXPhoenix) as follows:
+
+Paths	License
+slides/, themes/, assets/, docs/ except docs/agents/, README.md, GLOSSARY.md, .proj.specs/, .proj.tickets/	CC BY-SA 4.0
+Every other path, including scripts/, .agents/, .claude/, .codex/, .github/, deploy/, AGENTS.md, CLAUDE.md, docs/agents/ and root configuration files	MIT
+
+Code inside a CC BY-SA path, such as a deck's index.tsx, is CC BY-SA. A path added later that the table does not list is MIT. LICENSE, LICENSE-CODE and this file are license texts and notices, not covered by the table; LICENSE is the Creative Commons legal code.
+
+Material this file attributes to someone other than CXPhoenix, and any file or directory that carries its own license naming another holder, keeps that holder's terms wherever it sits; changes CXPhoenix made to such material follow the table above. Third-party works not listed in this file, including logos, trademarks, photographs, screenshots, illustrations, quotations and code, are not covered by either license. Neither license grants rights of publicity or privacy in people shown. Preserve applicable notices when copying a skill.
+
+LICENSE is the CC BY-SA 4.0 legal code from https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt (SHA-256 28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5).
+```
+
+Page text of the T4 table, first and last rows, and of T8, as rendered:
+
+```text
+File	Holder	Terms
+assets/fhsh-isiphs/fhsh/logo.png	臺北市立復興高級中學	unknown
+assets/fhsh-isiphs/isip-hs/logo.png	ISIP.hs	unknown
+assets/fhsh-isiphs/fhsh/section-img.png	unknown	unknown
+...
+slides/getting-started/assets/zeabur.svg	Zeabur	unknown
+
+For the mixed file, only the named parts are third-party; the rest follows the table above.
+
+License
+
+Except where otherwise noted, the decks, themes, assets and project documentation in this repository are licensed by CXPhoenix under CC BY-SA 4.0, and the code, agent tooling and agent instructions under MIT. Third-party material, including the open-slide scaffold, keeps its own terms; see THIRD_PARTY_NOTICES.md for the exact boundary and attributions.
+```
+
+AC12 passes. Coverage update: AC11 re-run at `3fe3721` (pass); AC12 run at `3fe3721` (pass). The
+remaining open item is the member-path scan of the PR description at stage 9.
