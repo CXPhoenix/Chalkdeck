@@ -1,7 +1,7 @@
 ---
 epic: 0004-license-files
 status: draft
-revision: 2
+revision: 3
 split_from: 0003-license-split
 ---
 
@@ -11,14 +11,20 @@ split_from: 0003-license-split
 
 - **Definitions:** S0, B, drift, Source LICENSE, MIT body, asset inventory and classes, archive
   check, ADR date, exact comparison, stale init-template entries.
-- **Target texts T1–T15:** the exact text each file holds at HEAD.
+- **Target texts T1–T18:** the exact text each file holds at HEAD.
 
 `grill.md` quotes every answer the repository owner gave. Epic 0004 is the documentation half of
 epic 0003, which was split after its second review round. The verifier's license-reference check is
 epic 0005, which depends on this one.
 
-Revision 2 applies the owner's round-1 rulings of 2026-10-21 and 2026-10-22 (`review/round-1.md`,
+Revision 2 applied the owner's round-1 rulings of 2026-10-21 and 2026-10-22 (`review/round-1.md`,
 `grill.md`).
+
+Revision 3 is a post-review patch. Round 2 found no P0. Several P1 fixes needed changes to target
+texts that the ACs compare verbatim, so the owner chose to patch the spec before tickets ("審查後修補再開票").
+
+- Only the dispositions listed in `review/round-2.md` were applied.
+- They were self-checked, and no third review round was run.
 
 ## Problem Statement
 
@@ -76,8 +82,10 @@ Material the owner does not hold is mixed in and unmarked:
 - **Ticket.**
   - The work is expected to fit one ticket; stage 4 decides.
   - The branch starts from `main` after this spec lands.
-  - First Comment: B's full SHA and the drift check. On drift, the ticket stops and the spec is
-    revised before any target file is edited.
+  - First Comment: B's full SHA and the drift check. Every later B gets the check again.
+  - On drift, the ticket stops. The repository owner rules on each difference: *proceed* with
+    approved text, or *split* into a new epic. No commit touching a target file comes before the
+    ruling. This replaces revising the spec after review.
   - The ticket is documentation only:
     - its test plan table lists the acceptance checks;
     - its coverage report table maps each AC to the recorded check output;
@@ -105,13 +113,17 @@ Material the owner does not hold is mixed in and unmarked:
   - The owner classified the 19 inventory files (`grill.md` Q12); T4 lists the third-party and
     mixed ones.
   - The chat screenshot's third-party parts are the other participants' messages, names, avatars
-    and the LINE interface. No person is named in the notices.
-  - The two challenge archives are the owner's. The archive check reads only their member list and
-    publishes no member name.
+    and the LINE interface. Nobody shown in it is named.
+  - A row names a holder only as that material's license requires.
+  - The two challenge archives are the owner's. The archive check reads only their central
+    directory and the `license` field of any `package.json`, and publishes no member path. Its S0
+    result is in traceability.
 - **open-slide.** These are attributed to Yiwei Ho under MIT, with no version number:
   - the five open-slide skills;
-  - the scaffold deck `slides/getting-started/` and `open-slide.config.ts`;
-  - the scaffold text of `README.md` and of `AGENTS.md`'s `## open-slide` section.
+  - the scaffold deck `slides/getting-started/`, which is unchanged since the scaffold commit;
+  - the scaffold text that `open-slide.config.ts`, `README.md` and `AGENTS.md`'s `## open-slide`
+    section started from. Later changes follow the table: `open-slide.config.ts` was changed by
+    7e95064 and ced6d13.
 
   The getting-started deck's vendor logos are listed as third-party marks. After each upgrade, an
   agent checks that the package license, the copyright line and the skill list still match (T11).
@@ -120,16 +132,20 @@ Material the owner does not hold is mixed in and unmarked:
 - **MOE font.** It is attributed and not changed or investigated (owner ruling in 0003).
 - **Provenance file.** Exactly the changes S1–S6:
   - `project_license` becomes the SPDX expression `CC-BY-SA-4.0 AND MIT`;
-  - `verified_on` equals the ADR date;
+  - `verified_on` equals the date written in ADR-0007's front matter;
   - the `claude_prompt_audit` record stays as written.
 - **agent-browser.** Both trees' `SKILL.md` name the skill's own Apache-2.0 `LICENSE`. They keep
   "in the project root" for the provenance file's path.
 - **Deck track.**
-  - ADR-0007 amends ADR-0004: a deck change may add, update or remove its own rows in the notices'
-    Assets table.
-  - The rule appears in four places: `docs/agents/workflow.md` (T14), the `AGENTS.md` slide hard
-    rules (T10), ADR-0007 (T13), and the glossary entry for Deck content work (T15).
-  - These four land together on the ticket branch, so the exception is never stated before
+  - ADR-0007 amends ADR-0004. A deck change may add, update or remove the Assets-table rows for
+    third-party files under its own `slides/<deck-id>/assets/`. Inline quotations and code stay
+    under the catch-all, and a third-party file in the global `assets/` is template work.
+  - The rule is stated in ADR-0007 (T13), `docs/agents/workflow.md` (T14), the `AGENTS.md` slide
+    hard rules (T10) and the glossary (T15).
+  - The absolute sentences it qualifies are amended too: workflow.md's "Classify before starting"
+    (T16), the Charter's "Two tracks" paragraph in `AGENTS.md` (T17), and an "Amended by" line in
+    ADR-0004 (T18).
+  - All of these land together on the ticket branch, so the exception is never stated before
     ADR-0007 exists.
 - **Documentation.** `docs/README.md` indexes ADR-0007. The verifier and its descriptions belong to
   epic 0005.
@@ -153,9 +169,10 @@ Material the owner does not hold is mixed in and unmarked:
   - the JSON and text diff of the provenance file (AC5)
   - the inventory and archive checks (AC4)
   - the scoped `git grep`, `git diff --name-only` and the three check commands (AC11)
-- **End to end.** The surface is the GitHub file view of the pushed ticket branch, driven by
-  `/agent-browser` before the merge (E1, AC12). GitHub's license detection on the default branch is
-  noted after the merge, at epic close-out.
+- **End to end.** The surface is the GitHub file view of the pushed ticket branch. It is driven
+  before the merge by `/agent-browser`, or by a native browser tool that the workflow accepts as
+  giving equivalent evidence (E1, AC12). Page text, not screenshots, is recorded. GitHub's license
+  detection on the default branch is noted after the merge, in the epic close-out retrospective.
 
 ## Acceptance Criteria
 
@@ -168,32 +185,36 @@ Material the owner does not hold is mixed in and unmarked:
   - B line 76 replaced by T2 (N2);
   - B lines 85–88 replaced by T3 (N3);
   - T4–T7 appended (N5).
-- **AC4.** Comments record the inventory and archive checks (N6, N7):
-  - the inventory at B equals S0's 19 files by path and blob;
-  - no archive member name is published.
-- **AC5.** The provenance file differs from B exactly by S1–S6, in both the JSON and the text
-  comparison of S7.
+- **AC4.** For every recorded B, Comments record the inventory and archive checks (N6, N7):
+  - the inventory at B equals the S0 table of 19 paths and blobs;
+  - the archive check equals S0's result;
+  - no archive member path appears in any X1 file, commit message or the PR description.
+- **AC5.** The provenance file at HEAD equals, byte for byte, the expected file the provenance
+  comparison builds from B by applying S1–S6, and parses as JSON (S7).
 - **AC6.** By exact comparison, both trees' `agent-browser/SKILL.md` differ from B only by T9 on
   lines 12–13 (A1).
-- **AC7.** By exact comparison, `AGENTS.md` differs from B only by T10 and T11, at the places G1
-  and G2 name (G3).
+- **AC7.** By exact comparison, `AGENTS.md` differs from B only by T10, T11 and T17, at the places
+  G1, G2 and G4 name (G3).
 - **AC8.** By exact comparison, `README.md` differs from B only by T8, appended as its last section
   (R1).
-- **AC9.** By exact comparison, all three hold:
+- **AC9.** By exact comparison, all five hold:
   - `docs/adr/0007-license-split.md` equals T13 with the ADR date (D1);
   - `docs/README.md` differs from B only by T12 (D2);
-  - `docs/agents/workflow.md` differs from B only by T14 (W1);
+  - `docs/adr/0004-two-track-delivery.md` differs from B only by T18 (D3);
+  - `docs/agents/workflow.md` differs from B only by T16 and T14 (W1);
   - `GLOSSARY.md` differs from B only by T15 (W2).
-- **AC10.** The first Comment after B records B's SHA, each target file's blob at B and the
-  `.claude/skills/` symlink set, and shows they equal S0. On drift, no target file was edited
-  before the spec was revised (N8).
+- **AC10.** Each Comment that records a B gives everything N8 lists and states whether it equals
+  S0. On drift, `git log --reverse <B SHA>..HEAD` shows the commit adding the owner's ruling Comment
+  before every commit that touches a target file (N8).
 - **AC11.** At HEAD, all three hold:
   - the scoped `git grep` of C1 returns nothing;
   - `git diff --name-only <B SHA>...HEAD` lists only the paths in X1;
   - the three commands of X2, run from the repository root, exit 0.
-- **AC12.** Before the merge, `/agent-browser` on the pushed branch shows each of the four files
-  rendering, and each relative link in T1 and T8 opening a page that is not GitHub's 404 page.
-  Screenshots or page text are recorded in Comments (E1).
+- **AC12.** Before the merge, a browser check of the pushed branch, as E1 defines it, shows:
+  - each of the four files rendering, with the T1 and T4 tables shown as tables;
+  - each relative link in T1 and T8 opening a page that is not GitHub's 404 page.
+
+  The page text is recorded in Comments (E1).
 
 ## Out of Scope
 

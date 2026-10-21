@@ -27,7 +27,18 @@ it. The target files and their blob ids at S0:
 | `.claude/skills/agent-browser/SKILL.md` | `366b05ec9b0b7bfc74eeab86cb0659ed2aacf76f` |
 | `docs/README.md` | `487ec8c7bb8d82e2eefbf71e29b1bfd7c964e86a` |
 | `docs/agents/workflow.md` | `2ed80934921294627b2202a30a113a99b03e9c6f` |
-| `GLOSSARY.md` | the blob it holds once this spec lands on `main`, recorded in the first ticket Comment; its `**Deck content work**` entry must read as at S0 |
+| `docs/adr/0004-two-track-delivery.md` | `77483f64291f8dc7ffda88d530bfc3a67ddb9d70` |
+| `package.json` | `224f7bfd142b146544c13771247a2e167dc4eaf3` |
+| `pnpm-lock.yaml` | `82841f794e501e888af0e0e8634ca73a103d38b8` |
+| `GLOSSARY.md` | see below |
+
+`GLOSSARY.md` changes on the spec branch, so its reference is the blob at the commit that merges
+this spec into `main` (the *spec merge*); the first ticket Comment records that commit's SHA. Its
+`**Deck content work**` entry (the heading line, the definition line and the `_Avoid_` line) must
+read exactly as at S0.
+
+At S0 the installed `node_modules/@open-slide/core` is 2.2.0, and line 3 of its `LICENSE` reads
+`Copyright (c) 2026 Yiwei Ho`.
 
 At S0 the symlinks in `.claude/skills/` are exactly: apply-comments, create-slide, create-theme,
 current-slide, new-deck, scientific-visualization, seaborn, slide-authoring.
@@ -38,19 +49,28 @@ entry in the ticket's Comments.
 - The ticket branch does not merge `main`. If it has to be updated, it is rebased onto `main`, and
   the new B is recorded in a later Comment with the reason.
 - `<B SHA>` in a check means the most recently recorded B.
+- Each time a B is recorded, the drift check runs again and its result goes into the same Comment.
 - Every diff below is `git diff <B SHA>...HEAD`.
 
 **Drift.** B drifts from S0 when any of these holds:
 
 - a target file's blob at B differs from its S0 blob;
 - the set of `.claude/skills/` symlinks at B differs from S0's;
-- the asset inventory at B differs from S0's, by path or by blob.
+- the asset inventory at B differs from S0's, by path or by blob;
+- line 3 of the installed `node_modules/@open-slide/core/LICENSE` differs from S0's;
+- the archive check at B differs from S0's result.
 
-On drift, the ticket stops before any target file is edited:
+On drift, the ticket stops before any commit on the ticket branch touches a target file:
 
-- The agent reports the differences to the repository owner.
-- The spec is revised at stage 2, because the target texts would no longer apply.
+- The agent reports each difference to the repository owner.
+- The owner rules on each difference:
+  - *proceed*: the affected T-block or T4 row is amended to text the owner approves. That text is
+    quoted in a Comment and replaces the T-block for every AC.
+  - *split*: the affected work moves to a new epic.
+- No commit touching a target file may precede the commit that adds the ruling Comment;
+  `git log --reverse <B SHA>..HEAD` shows the order.
 - The ticket status stays `processing` unless the owner sets `pending`.
+- This rule replaces revising the spec after review (round-2 ruling).
 
 **Source LICENSE.** The Creative Commons Attribution-ShareAlike 4.0 International legal code, plain
 text, from `https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt`. It was retrieved on
@@ -77,22 +97,61 @@ The owner chose it over the 0x1dea copy, which differs from it in whitespace, on
 | Owner-owned | `slides/ctf-competition-practice/assets/bluechall-master.zip`, `slides/ctf-competition-practice/assets/webchall-master.zip` |
 
 The owner classified each file in `grill.md` Q12. "Third-party, holder unknown" are the files the
-owner gave no source for. The inventory command is
-`git ls-files -- ':(glob)assets/**' ':(glob)slides/*/assets/**'`, with `assets/.gitkeep` removed.
+owner gave no source for.
+
+**Inventory command.** `git ls-tree -r <commit> -- assets slides`, keeping only paths under
+`assets/` or `slides/<one segment>/assets/`, and dropping `assets/.gitkeep`. Run at S0 it prints
+these 19 paths and blobs:
+
+| Path | Blob at S0 |
+|---|---|
+| `assets/fhsh-isiphs/fhsh/logo.png` | `fc7433a30abd783fb5961a03495d68037626aa1d` |
+| `assets/fhsh-isiphs/fhsh/section-img.png` | `f3f262f2632ae32a0ec48128fbf7755e3bb50425` |
+| `assets/fhsh-isiphs/fhsh/slogon.svg` | `45b6858feab850690fb63473ce514197b12b4354` |
+| `assets/fhsh-isiphs/fonts/edukai-fixed.woff2` | `fddc197bd229919da195b4806cf5b0d9e0b3b0a9` |
+| `assets/fhsh-isiphs/isip-hs/logo.png` | `e36225b4db25d73545c0af1b6a1acc0c7eeb22ca` |
+| `assets/fhsh-isiphs/isip-hs/section-img.png` | `29d48e8bc36364e2649e946265133300c0770705` |
+| `assets/fhsh-isiphs/isip-hs/slogon.svg` | `c29275969f9d76d4c94dd2f75692bc9a285acb4a` |
+| `slides/ctf-competition-practice/assets/788abeb3-37ac-4f36-9018-dae67dffe210.png` | `be8f21a5a368803d49655fd1582c5c76cf7c8477` |
+| `slides/ctf-competition-practice/assets/bluechall-master.zip` | `6b64f7bd52f0174aec8ec035df4edb00ba1ef4d2` |
+| `slides/ctf-competition-practice/assets/cyberrange-2026.png` | `084fab25fd333db63bd13ed47ec62ac2cb4e7922` |
+| `slides/ctf-competition-practice/assets/shot-1-dc-verify.jpeg` | `503769c9871d8bca7a86abe6be628b9013a838a8` |
+| `slides/ctf-competition-practice/assets/webchall-master.zip` | `e0f5b88ed3834797b10e2fd84da8a7cfb1d5f5be` |
+| `slides/getting-started/assets/claude.svg` | `d3007012b79a7a0217ea442cb1a7666fb7e5b47e` |
+| `slides/getting-started/assets/cloudflare.svg` | `0d601bff1f0a1ed704785d61fbab560b3d590501` |
+| `slides/getting-started/assets/gemini.svg` | `659155f29be36332cd8432687240c47e2ce5ac76` |
+| `slides/getting-started/assets/openai.svg` | `b6d542d09904bba8d6d2d817d6b56dc74eaf9bb5` |
+| `slides/getting-started/assets/opencode.svg` | `157edc4d7522f38d3d34aff1317d304cb7958752` |
+| `slides/getting-started/assets/vercel.svg` | `75968916c4b9d1b6736ebcb36998fa2fa656f99f` |
+| `slides/getting-started/assets/zeabur.svg` | `b0ad02e9cec67c2d2ed69897b6c40501a98f03c1` |
 
 **Archive check.** For each `.zip` in the inventory, read with `zipfile.ZipFile(path).namelist()`
 and never extracted, ticket Comments record two things and no member names:
 
 - the member count;
-- whether any member's base name, case-insensitively, starts with `LICENSE`, `COPYING` or
-  `NOTICE`.
+- whether any member's base name, case-insensitively, starts with `LICENCE`, `LICENSE`,
+  `UNLICENSE`, `COPYING`, `COPYRIGHT` or `NOTICE`;
+- whether any member is itself a `.zip`;
+- the `license` field of every member named `package.json`, read in memory with
+  `ZipFile.read`.
 
-If one does, the ticket stops and asks the owner how to classify the archive.
+S0's result:
 
-**ADR date.** The author date, in UTC+08:00 and written `YYYY-MM-DD`, of the commit that adds
-`docs/adr/0007-license-split.md`:
-`git log --diff-filter=A --format=%ad --date=format-local:%Y-%m-%d -- docs/adr/0007-license-split.md`,
-run with `TZ=Asia/Taipei`.
+| Archive | Members | License-like names | Nested `.zip` | `package.json` `license` |
+|---|---|---|---|---|
+| `bluechall-master.zip` | 200 | none | none | no `package.json` |
+| `webchall-master.zip` | 236 | none | none | one `package.json`, no `license` field, `"private": true` |
+
+**No member path is published.** No full member path from `namelist()` appears, as an exact
+substring, in any of these:
+
+- any file listed in X1 at HEAD;
+- any commit message on the ticket branch;
+- the PR description.
+
+**ADR date.** The `YYYY-MM-DD` date written in the `date:` line of
+`docs/adr/0007-license-split.md`, chosen when the file is written. It is a stated date, not one
+derived from Git, so a squash or rebase cannot change it. `/licensing/verified_on` must equal it.
 
 **Exact comparison.** A target region matches its target text when a script finds them
 byte-identical. It compares:
@@ -102,6 +161,14 @@ byte-identical. It compares:
 
 Every edited file ends with exactly one `\n`, except `LICENSE`, which is the Source LICENSE as
 fetched. Reading the diff by eye does not count.
+
+**Provenance comparison.** A script builds the expected provenance file from B's text and compares
+it byte for byte with HEAD. The result must also parse as JSON. The script:
+
+- replaces each S1–S4 and S6 value in place, inside its existing quotes, keeping the line and its
+  indentation;
+- for each S5 removal, deletes the lines from the member's key line through its closing `}` line,
+  including that line's trailing comma.
 
 **Stale init-template entries.** `skills.init-template` and `local_adaptations.init-template` in
 the provenance file describe a skill that exists in neither tree. `claude_prompt_audit` also names
@@ -201,7 +268,7 @@ For the mixed file, only the named parts are third-party; the rest follows the t
 Copyright (c) 2026 Yiwei Ho. From `@open-slide/core` as installed through `package.json`; MIT
 license text below. Covered: the skills apply-comments, create-slide, create-theme, current-slide
 and slide-authoring, which `pnpm sync:skills` writes into `.agents/skills/`; the deck
-`slides/getting-started/` and `open-slide.config.ts`; and the text of `README.md` and of the
+`slides/getting-started/`; and the text of `open-slide.config.ts`, of `README.md` and of the
 `## open-slide` section of `AGENTS.md` that comes from the open-slide project scaffold (commit
 05d62cd). Changes made in this repository after that commit follow the licensing table above. The
 vendor logos in `slides/getting-started/assets/` are third-party marks listed under Assets.
@@ -245,13 +312,13 @@ docs/agents/skill-sources.json in the project root. License restoration: 2026-09
 `- Do not add dependencies.` under `### Slide hard rules`.
 
 ```text
-- When a deck adds, removes or renames someone else's material (an image, font, quotation or code), update its row in the Assets table of `THIRD_PARTY_NOTICES.md` in the same change, and name no person in it; ADR-0007 lets this one edit ride on the deck track.
+- When a deck adds, removes or renames a file under its own `slides/<id>/assets/` that is someone else's work, update that file's row in the Assets table of `THIRD_PARTY_NOTICES.md` in the same change. Name the holder as the file's license requires, and no one else, such as people shown in it. ADR-0007 lets this one edit ride on the deck track; any other change to the notices, or a third-party file in the global `assets/`, is template work.
 ```
 
 **T11** is appended to `AGENTS.md` after its last line, preceded by one blank line.
 
 ```text
-After `pnpm up` and `pnpm sync:skills`, check that `node_modules/@open-slide/core/LICENSE` still has the license and copyright line the open-slide entry in `THIRD_PARTY_NOTICES.md` names, and that the skills listed there are still the ones open-slide writes.
+After `pnpm up`, `pnpm sync:skills`, or a sync accepted when `pnpm dev` starts, check that `node_modules/@open-slide/core/LICENSE` still has the license and copyright line the open-slide entry in `THIRD_PARTY_NOTICES.md` names, and that the skills listed there are still the ones open-slide writes.
 ```
 
 **T12** is added to `docs/README.md` as the line after the ADR-0006 bullet.
@@ -288,9 +355,9 @@ MIT harness-agile template, next to the skills. The other agent-facing records (
 ## Decisions recorded here (repository owner, 2026-10-21 and 2026-10-22)
 
 - The repository owner holds the economic rights in the decks, themes and documents. The exception
-  is `slides/getting-started/` and `open-slide.config.ts`, which come unchanged from the open-slide
-  scaffold and stay MIT under Yiwei Ho's copyright, like the scaffold text in `README.md` and in
-  the `## open-slide` section of `AGENTS.md`.
+  is `slides/getting-started/`, which comes unchanged from the open-slide scaffold, and the scaffold
+  text that `open-slide.config.ts`, `README.md` and the `## open-slide` section of `AGENTS.md`
+  started from; these stay MIT under Yiwei Ho's copyright, and later changes follow the table.
 - The theme `fhsh-isiphs-universal`, its Slidev original and its copies in decks and in
   `scripts/new-deck.mjs` are the owner's work. The same boilerplate is therefore available under CC
   BY-SA in decks and themes and under MIT in the generator script; this is intended.
@@ -309,9 +376,11 @@ MIT harness-agile template, next to the skills. The other agent-facing records (
 
 ## Amends ADR-0004
 
-A deck change may add, update or remove the rows for its own assets in the Assets table of
-`THIRD_PARTY_NOTICES.md` and stay on the deck content track. After the allowlist, it is the second
-shared file the track may touch. Any other change to the notices is template work.
+A deck change may add, update or remove the Assets-table rows of `THIRD_PARTY_NOTICES.md` for
+third-party files under its own `slides/<deck-id>/assets/`, naming each holder as the file's license
+requires and no one else, and stay on the deck content track. After the allowlist, it is the second
+shared file the track may touch. Any other change to the notices, and any third-party file in the
+global `assets/`, is template work.
 
 ## Consequences
 
@@ -326,7 +395,7 @@ shared file the track may touch. Any other change to the notices is template wor
 in `## Deck content track`, with one blank line before and after it.
 
 ```text
-**The notices** (`THIRD_PARTY_NOTICES.md`) are the other shared file this track may edit: a deck change adds, updates or removes the rows for its own assets in the Assets table, naming no person ([ADR-0007](../adr/0007-license-split.md)). Any other change to the notices is template work.
+**The notices** (`THIRD_PARTY_NOTICES.md`) are the other shared file this track may edit: a deck change adds, updates or removes the Assets-table rows for third-party files under its own `slides/<deck-id>/assets/`, naming each holder as the file's license requires and no one else ([ADR-0007](../adr/0007-license-split.md)). Any other change to the notices is template work.
 ```
 
 **T15** replaces the one-line definition under `**Deck content work** (deck 內容工作):` in
@@ -336,6 +405,31 @@ in `## Deck content track`, with one blank line before and after it.
 A change confined to one deck's `slides/<deck id>/` folder, including its own assets. Two shared
 edits ride along: the deck's line in the allowlist, and the deck's own rows in the Assets table of
 `THIRD_PARTY_NOTICES.md` (ADR-0004, ADR-0007).
+```
+
+**T16** replaces lines 36–37 of `docs/agents/workflow.md` at B (the two lines starting
+`**Classify before starting.**`).
+
+```text
+**Classify before starting.** If a change touches anything outside `slides/<deck-id>/`, other than
+the two shared edits below (the allowlist and the deck's rows in the notices), it is template work,
+even when it began as a deck edit; split the shared part into its own epic or ticket.
+```
+
+**T17** replaces lines 50–52 of `AGENTS.md` at B (the paragraph starting `**Two tracks.**`).
+
+```text
+**Two tracks.** Deck content work (only `slides/<deck id>/`, plus the two shared edits the workflow
+doc names) takes the light track; template work takes the full pipeline below. See
+[docs/agents/workflow.md](docs/agents/workflow.md#deck-content-track) and
+[ADR-0004](docs/adr/0004-two-track-delivery.md).
+```
+
+**T18** is inserted in `docs/adr/0004-two-track-delivery.md` after line 7 at B, the blank line
+after the H1, and is followed by one blank line.
+
+```text
+_Amended by [ADR-0007](0007-license-split.md): a deck change may also edit the notices' Assets-table rows for third-party files under its own `assets/` folder._
 ```
 
 ## Matrix
@@ -349,26 +443,28 @@ edits ride along: the deck's line in the allowlist, and the deck's own rows in t
 | N3 | notices × B lines 85–88 | replaced by T3 | AC3 |
 | N4 | notices × every other B line | unchanged | AC3 |
 | N5 | notices × appended content | T4, T5, T6, T7 in that order | AC3 |
-| N6 | asset inventory × B | Comments record the inventory command, its output and the drift result; the output equals S0's 19 files by path and blob | AC4 |
-| N7 | asset × `.zip` archives | Comments record the archive check for both archives; no member name appears in Comments or notices | AC4 |
-| N8 | target files and symlinks × B | Comments record each target file's blob at B and the `.claude/skills/` symlink set, and that they equal S0; on drift the ticket stops as defined | AC10 |
+| N6 | asset inventory × each recorded B | Comments record the inventory command, its output and the drift result; the output equals the S0 table of 19 paths and blobs | AC4 |
+| N7 | asset × `.zip` archives | Comments record the archive check for both archives and that it equals S0's result; no member path is published, as defined | AC4 |
+| N8 | target files, symlinks, open-slide license × each recorded B | the Comment recording each B gives every target file's blob, the `.claude/skills/` symlink set, the spec merge SHA with the glossary entry check, and line 3 of the installed open-slide `LICENSE`, and states whether they equal S0; on drift, the ruling Comment's commit precedes every commit touching a target file | AC10 |
 | S1 | `/skills/{tune-skills,tw-emoji-commit,tw-emoji-pr-note,tw-emoji-release-note}/licensing/license_location` | `"LICENSE"` becomes `"LICENSE-CODE"` | AC5 |
 | S2 | the `evidence` beside each of those four | the substring `root MIT license` becomes `MIT license in LICENSE-CODE`; nothing else in the string changes | AC5 |
 | S3 | `/licensing/project_license` | `"CC-BY-SA-4.0 AND MIT"` | AC5 |
 | S4 | `/licensing/verified_on` | equals the ADR date | AC5 |
 | S5 | `/skills/init-template`, `/local_adaptations/init-template` | both removed | AC5 |
 | S6 | `/local_adaptations/agent-browser` | gains the suffix ` Both runtimes: the SKILL.md license pointer names this skill's LICENSE instead of the project root (epic 0004).` | AC5 |
-| S7 | provenance × everything else | JSON comparison of B and HEAD shows nothing beyond S1–S6; the text diff touches only the lines holding those values and the removed entries, with indentation and key order unchanged | AC5 |
+| S7 | provenance × everything else | HEAD equals the expected file of the provenance comparison byte for byte and parses as JSON | AC5 |
 | A1 | agent-browser `SKILL.md` × lines 12–13 × both trees | replaced by T9; no other line changes | AC6 |
 | G1 | `AGENTS.md` × slide hard rules | T10 added at its place | AC7 |
+| G4 | `AGENTS.md` × lines 50–52 | replaced by T17 | AC7 |
 | G2 | `AGENTS.md` × end of file | T11 appended | AC7 |
 | G3 | `AGENTS.md` × everything else | unchanged | AC7 |
 | R1 | `README.md` | T8 appended as the last section; nothing else changes | AC8 |
 | D1 | `docs/adr/0007-license-split.md` | equals T13 with the ADR date | AC9 |
 | D2 | `docs/README.md` | T12 added; nothing else changes | AC9 |
-| W1 | `docs/agents/workflow.md` | T14 added; nothing else changes | AC9 |
+| W1 | `docs/agents/workflow.md` | lines 36–37 replaced by T16 and T14 added; nothing else changes | AC9 |
+| D3 | `docs/adr/0004-two-track-delivery.md` | T18 inserted; nothing else changes | AC9 |
 | W2 | `GLOSSARY.md` × Deck content work | its definition replaced by T15; nothing else changes | AC9 |
 | C1 | repository × root-MIT claims | `git grep -n -i "root MIT" -- THIRD_PARTY_NOTICES.md README.md AGENTS.md docs/agents/skill-sources.json .agents/skills/agent-browser .claude/skills/agent-browser` returns nothing at HEAD | AC11 |
-| X1 | repository × diff scope | `git diff --name-only <B SHA>...HEAD` lists only `LICENSE`, `LICENSE-CODE`, `THIRD_PARTY_NOTICES.md`, `README.md`, `AGENTS.md`, `docs/agents/skill-sources.json`, `.agents/skills/agent-browser/SKILL.md`, `.claude/skills/agent-browser/SKILL.md`, `docs/adr/0007-license-split.md`, `docs/README.md`, `docs/agents/workflow.md`, `GLOSSARY.md`, `.proj.specs/0004-license-files/review/security-T-*.md` and files under `.proj.tickets/0004-license-files/` | AC11 |
+| X1 | repository × diff scope | `git diff --name-only <B SHA>...HEAD` lists only `LICENSE`, `LICENSE-CODE`, `THIRD_PARTY_NOTICES.md`, `README.md`, `AGENTS.md`, `docs/agents/skill-sources.json`, `.agents/skills/agent-browser/SKILL.md`, `.claude/skills/agent-browser/SKILL.md`, `docs/adr/0007-license-split.md`, `docs/adr/0004-two-track-delivery.md`, `docs/README.md`, `docs/agents/workflow.md`, `GLOSSARY.md`, `.proj.specs/0004-license-files/review/security-T-*.md` and files under `.proj.tickets/0004-license-files/` | AC11 |
 | X2 | checks | run from the repository root: `python3 scripts/verify-project.py`, `python3 scripts/check_style_skills.py`, `python3 -m unittest discover -s scripts -p 'test_*.py'`; each exits 0 | AC11 |
-| E1 | GitHub file view of the pushed ticket branch × `LICENSE`, `LICENSE-CODE`, `THIRD_PARTY_NOTICES.md`, `README.md` | before merging, `/agent-browser` opens each file's page on the branch: each renders without an error page, and each relative link in T1 and T8 opens a page that is not GitHub's 404 page. Screenshots or page text go in Comments. GitHub's license detection on the default branch is observed after the merge as a close-out note, not as this gate. | AC12 |
+| E1 | GitHub file view of the pushed ticket branch × `LICENSE`, `LICENSE-CODE`, `THIRD_PARTY_NOTICES.md`, `README.md` | before merging, `/agent-browser`, or a native browser tool `docs/agents/workflow.md` accepts as giving equivalent evidence, opens each file's page on the branch: each shows the file's rendered content, not an error page, with the T1 and T4 tables rendered as tables; each relative link in T1 and T8 opens a page that is not GitHub's 404 page. Page text, not screenshots, goes in Comments. GitHub's license detection on the default branch is noted after the merge in the epic close-out retrospective, not as this gate. | AC12 |

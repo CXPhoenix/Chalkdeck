@@ -128,3 +128,42 @@ Parent checks after the reports:
 
 ### 預期後果
 ShareAlike、允許商業使用與 GPLv3、授權無法撤回、新路徑預設 MIT、GitHub 顯示兩個授權、notices 公開、private deck 也一併授權、boilerplate 同時採 CC 與 MIT、README 用英文、部署網站沒有 notices、字型不調查、CTF 壓縮檔歸 owner 並採 CC。
+
+## Rulings (repository owner, 2026-10-22)
+
+The stage-3 gate is met: zero P0. Several P1 fixes need target texts that the ACs compare verbatim,
+so they cannot be made inside a ticket. Asked how to handle them, the owner answered
+"審查後修補再開票":
+
+- patch the spec once (revision 3) with only the dispositions below;
+- self-check it, with no third round;
+- record here that this is an owner-approved exception.
+
+Dispositions applied in revision 3:
+
+| # | Findings | Change |
+|---|---|---|
+| 1 | 3-1, 4-9, 2-5 | Drift no longer sends the spec back to stage 2. The ticket stops, and the owner rules per difference: *proceed* with quoted text, or *split*. `git log` order shows that the ruling came before any commit to a target file. |
+| 2 | 1-1, 2-4 | Every recorded B gets the drift check again. |
+| 3 | 1-2 | Drift also covers `package.json`, `pnpm-lock.yaml` and line 3 of the installed open-slide `LICENSE`. |
+| 4 | 1-3, 1-4 | The archive check is widened to more license-like names, nested zips and the `license` field of `package.json`. Its S0 result is recorded and is clean. |
+| 5 | 2-1, 1-17 | The inventory uses `git ls-tree -r`, and the 19 S0 blobs are listed. |
+| 6 | 2-2, 1-16 | The rule for not publishing member paths is defined as an exact-substring check over X1 files, commit messages and the PR description. |
+| 7 | 2-3, 1-8 | The glossary reference is the spec merge commit; the entry is its heading, definition and `_Avoid_` lines. |
+| 8 | 3-2, 4-3 | T10, T13 and T14 are limited to third-party files under the deck's own `assets/`. |
+| 9 | 3-3, 4-17, 1-9, 3-9 | New T16 (workflow.md "Classify before starting"), T17 (AGENTS.md "Two tracks") and T18 (ADR-0004 "Amended by ADR-0007"). |
+| 10 | 3-4, 4-8 | T5 and T13 no longer call `open-slide.config.ts` unchanged; it was changed by 7e95064 and ced6d13. |
+| 11 | 3-5, 4-1 | "name no person" becomes: name the holder as the material's license requires, and no one else. |
+| 12 | 2-6, 1-12, 2-7, 2-9, 4-7, 2-8, 3-13, 4-13, 3-17, 4-16 | AC9 counts its items. S7 becomes a byte comparison with an expected file. The ADR date is the stated front-matter date. AC12 accepts an equivalent browser tool and records page text only. T11 also covers a sync accepted when `pnpm dev` starts. |
+
+All other P2 findings are recorded and not changed.
+
+Self-check of the new surface:
+
+- **Scope.** X1 gains `docs/adr/0004-two-track-delivery.md`. The S0 table gains that file,
+  `package.json` and `pnpm-lock.yaml`. The last two are drift inputs only; they are not edited.
+- **Anchors at S0.** T16 replaces `docs/agents/workflow.md` lines 36–37. T17 replaces `AGENTS.md`
+  lines 50–52. T18 follows `docs/adr/0004-two-track-delivery.md` line 7, a blank line after the H1.
+- **Naming.** T4 names nobody for the screenshot. T5 names Yiwei Ho as MIT requires. The new
+  naming rule leaves both as they are.
+- **Checks.** `scripts/verify-project.py` passes at the spec branch HEAD.
