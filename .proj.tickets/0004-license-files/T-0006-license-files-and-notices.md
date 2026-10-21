@@ -2,7 +2,7 @@
 id: T-0006
 title: License content under CC BY-SA 4.0 and code under MIT, with notices and pointers
 epic: 0004-license-files
-status: processing
+status: review
 blocked_by: []
 ---
 
@@ -205,7 +205,7 @@ Inventory vs S0 table of 19 paths and blobs: equal
 
 **Drift result:** no drift; B equals S0 on every item
 
-### 2026-10-22 — Test plan table (approved)
+### 2026-10-22 — Test plan table (approved in advance)
 
 Documentation only: each seam is an acceptance check, run as a script against B and HEAD, never by
 reading the diff by eye. The comparison scripts are kept outside the repository (X1); their output
@@ -226,4 +226,186 @@ is recorded in later Comments.
 | Member-path scan | no full member path from either archive appears as an exact substring | X1 files at HEAD, branch commit messages, PR description | AC4 (N7) | names compared in memory, never printed |
 | GitHub file view | four files render, T1/T4 tables render, relative links in T1 and T8 are not 404 | pushed branch on github.com | AC12 (E1) | page text recorded, not screenshots |
 
-Approval: the repository owner approved the breakdown and the implementation in advance ("票開完後接受你的建議，直接開始 /implement 到整個 epic 完成"; "ultracode /implement T-0006 做到完成", 2026-10-22). This table is shown to the owner in the session report.
+Approval: the repository owner approved the breakdown and the implementation in advance, before this table was written ("票開完後接受你的建議，直接開始 /implement 到整個 epic 完成"; "ultracode /implement T-0006 做到完成", 2026-10-22). The table itself was not shown to the owner before the first commit touching a target file; it is shown in the session report for confirmation, and any change the owner asks for is applied before landing (stage-6 findings STD-08, SPEC-04).
+
+### 2026-10-22 — Acceptance checks at HEAD `5a9846a`
+
+The target files landed in three commits after the B record (`ba31ea3`): `8bef110` (`LICENSE`,
+`LICENSE-CODE`, notices, README), `3cb8124` (provenance file, both agent-browser `SKILL.md`) and
+`5a9846a` (ADR-0007, ADR-0004, `workflow.md`, `GLOSSARY.md`, `docs/README.md`, `AGENTS.md`). No
+drift was found, so no ruling Comment was needed (AC10).
+
+The comparison scripts were written independently from `traceability.md` by separate verifiers that
+did not see the script used to apply the texts, and were run from the worktree root with
+`git status --short` empty, so the working tree equals HEAD. Verbatim output:
+
+```text
+HEAD 5a9846a65679f1e354c395bfeb0c97c341704ccd; git status --short lines: 0
+## AC1
+2d58298e6eda10e7204abb52722efbc840db2390
+100644 blob 2d58298e6eda10e7204abb52722efbc840db2390	LICENSE
+## AC2
+3c3
+< Copyright (c) 2026 Matt Pocock
+---
+> Copyright (c) 2026 CXPhoenix
+100644 blob bb55dea4365ef040c27b63b395ffe79044b07529	LICENSE-CODE
+## licenses-notices/verify.py
+PASS T5 block nonempty, ends with single LF
+PASS T6 block nonempty, ends with single LF
+PASS L1 git hash-object LICENSE
+PASS L1 SHA-256
+PASS L1 size 20138
+PASS L1 no CR
+PASS L1 ends with one empty line (\n\n, not \n\n\n)
+PASS L1 regular file mode 0644
+PASS tdd LICENSE unchanged vs B
+PASS L2 diff hunks only 3c3
+PASS L2 same line count
+PASS L2 differing lines exactly [3] (python)
+PASS L2 line 3 text
+PASS L2 no CR
+PASS L2 ends with exactly one LF
+PASS L2 regular file mode 0644
+PASS notices at B equals S0 blob (no drift)
+PASS B notices ends with single LF
+B notices line count: 99
+PASS B line 2 blank and line 7 blank
+PASS MIT body starts 'Permission is hereby granted' ends 'SOFTWARE.'
+PASS AC3 notices byte-identical to expected
+PASS notices ends with exactly one LF
+PASS notices no CR
+ALL PASS
+exit=0
+## provenance/check_provenance.py
+B blob: 5d16c6006848c3c59e324b710b0f6a4f524ae082 (S0 blob 5d16c60...: True )
+ADR date: 2026-10-22
+S5 /skills/init-template: B lines 105-119, closing line '    },'
+S5 /local_adaptations/init-template: B line 239
+S7 byte-identical: True (16328 bytes)
+HEAD ends with exactly one \n: True
+HEAD parses as JSON: True
+semantic S1-S6 checks: True
+other verified_on: B 5 / HEAD 5, equal: True
+claude_prompt_audit pointers ['/runtime_trees/claude_prompt_audit']; unchanged: True; still names init-template: True
+RESULT: PASS
+exit=0
+## agents-readme-browser/verify.py
+T9 lines: 2
+  B .agents/skills/agent-browser/SKILL.md lines 12-13: [b'Upstream source and Apache-2.0 license: see LICENSE and docs/agents/skill-sources.json', b'in the project root. License restoration: 2026-09-13.']
+AC6/A1: .agents/skills/agent-browser/SKILL.md: exact=PASS one_trailing_newline=PASS sizeB=3164 sizeHEAD=3177 
+  B .claude/skills/agent-browser/SKILL.md lines 12-13: [b'Upstream source and Apache-2.0 license: see LICENSE and docs/agents/skill-sources.json', b'in the project root. License restoration: 2026-09-13.']
+AC6/A1: .claude/skills/agent-browser/SKILL.md: exact=PASS one_trailing_newline=PASS sizeB=2718 sizeHEAD=2731 
+  B AGENTS.md lines 50-52 start: b'**Two tracks.** Deck' | line 53: b'' | line 49: b''
+  slide hard rules section B lines 177-184; dependency bullet at B line 183; next B line b''
+AC7/G1-G4: AGENTS.md: exact=PASS one_trailing_newline=PASS sizeB=13288 sizeHEAD=14083 
+  B README ends with single newline: True
+AC8/R1: README.md: exact=PASS one_trailing_newline=PASS sizeB=2729 sizeHEAD=3182 
+  README last heading: b'## License'
+ALL PASS
+exit=0
+## adr-docs/verify_ac9.py
+D1 ADR date: b'2026-10-22'
+D1: PASS docs/adr/0007-license-split.md len exp=3658 act=3658 single-trailing-LF=True :: identical
+D2 ADR-0006 bullet B lines: [41]
+D2: PASS docs/README.md len exp=2795 act=2795 single-trailing-LF=True :: identical
+D3 B line 6/7: b'# Two tracks: deck content work skips the pipeline, template' b'\n'
+D3: PASS docs/adr/0004-two-track-delivery.md len exp=1691 act=1691 single-trailing-LF=True :: identical
+W1 B line 36: b'**Classify before starting.** If a change touches '
+W1 section idx [28] allowlist idx [55]
+W1 allowlist paragraph lines (post-T16 numbering): 56 - 58 ; next line after blank: b'## Stage 1 \xe2\x80\x94 Converge the requirement\n'
+W1: PASS docs/agents/workflow.md len exp=11195 act=11195 single-trailing-LF=True :: identical
+W2 heading B lines [62]
+W2 def B lines [63] line after def: b'_Avoid_: slide edit, content change\n'
+W2: PASS GLOSSARY.md len exp=2822 act=2822 single-trailing-LF=True :: identical
+OVERALL: PASS
+exit=0
+## C1
+git grep exit=1 (1 = no match)
+## X1
+.agents/skills/agent-browser/SKILL.md
+.claude/skills/agent-browser/SKILL.md
+.proj.tickets/0004-license-files/T-0006-license-files-and-notices.md
+AGENTS.md
+GLOSSARY.md
+LICENSE
+LICENSE-CODE
+README.md
+THIRD_PARTY_NOTICES.md
+docs/README.md
+docs/adr/0004-two-track-delivery.md
+docs/adr/0007-license-split.md
+docs/agents/skill-sources.json
+docs/agents/workflow.md
+## X2
+verify-project exit=0
+check_style_skills exit=0
+unittest exit=0
+```
+
+AC4 member-path scan at HEAD (names compared in memory, never printed): `bluechall-master.zip` 200
+members, `webchall-master.zip` 236 members; 0 found in the 14 X1 files and 0 in the 4 commit
+messages `746378f..HEAD`. The PR description is scanned at stage 9.
+
+The symlink set in the B record was read from B's git tree (`git ls-tree <B> .claude/skills/`, mode
+`120000`), not from the working directory. "`main`" in that record is `origin/main` after fetching;
+the main checkout's local `refs/heads/main` was stale at `faef941` and was not used.
+
+### 2026-10-22 — Stage 6 code review (pending work, before commit)
+
+Scope: B `746378f`, HEAD `ba31ea3` plus the unstaged and untracked layers (the 13 target files), the
+same snapshot that was then committed unchanged. Two `harness-reviewer` passes (Standards, Spec),
+each finding challenged by a `harness-challenger`. 37 findings, none high severity. The challenge of
+SPEC-11 failed (structured-output error); it duplicates STD-02 and takes the same disposition.
+
+**Fixed within scope**
+
+- SPEC-01: check outputs recorded at the committed HEAD (Comment above).
+- STD-08, SPEC-04: the test plan heading and approval note now state that approval was given in
+  advance and that the table is confirmed in the session report.
+- SPEC-07, SPEC-08: the symlink source and the meaning of `main` are stated above.
+- SPEC-03: timing. Checks were recorded at `5a9846a`; they are re-run and re-recorded at the final
+  HEAD after the stage-7 report is committed, the member-path scan covers the PR description at
+  stage 9, and AC12 is recorded at stage 8 on the pushed branch.
+
+**Raised to the repository owner (spec-level; the implementation is verbatim and cannot change
+without a ruling).** None blocks this ticket; each is a candidate for a later epic.
+
+| ID | Where | Point |
+|---|---|---|
+| STD-01 | T10, T14 | the rules do not repeat that only the owner decides a holder and that "unknown" is the default; ADR-0007 and the T4 table header say it |
+| STD-02, SPEC-11 | T10 vs T13/T14 | T10 triggers on add/remove/rename of a file; T13/T14 on add/update/remove of rows; replacing a file in place is only covered by T13/T14 |
+| STD-04, SMELL-02 | T8, T12 | the README and index summaries say code is MIT without noting that code inside deck and theme paths is CC BY-SA |
+| STD-05 | `language.md` | still requires Traditional Chinese READMEs; ADR-0007 records the exception but `language.md` has no pointer (Out of Scope by spec) |
+| STD-06 | S2, notices lines 90/114 | "maintainer" remains where T3 now says CXPhoenix |
+| STD-07 | T1, T3–T6, T8, T14, T18 | line wrapping differs from the surrounding text in four files |
+| STD-16 | T15 | the glossary definition now carries a process rule and ADR references |
+| SMELL-01 | T10, T13–T18 | one exception stated in seven places |
+| SPEC-12 | T18 | says "its own `assets/` folder" rather than `slides/<deck-id>/assets/` |
+| SPEC-13 | `workflow.md` 33–34, ADR-0004 29–30 | other absolute sentences remain, qualified only by the ADR-0004 banner |
+| SPEC-14 | T1 | dropped B's "or distributing a generated project" from the preserve-notices sentence |
+
+**Dropped after challenge** (each was a misreading, a style preference no documented rule
+supports, or a point the spec settled deliberately): STD-03 (the spec chose T16–T18 as the
+sentences to amend), STD-09, STD-10, STD-11, STD-12, STD-13, STD-14, STD-15 (the spec keeps
+`claude_prompt_audit`), STD-17, SMELL-03, SPEC-02 (coverage table written next), SPEC-05, SPEC-06,
+SPEC-09, SPEC-10 (status moves to `review` with this Comment), SPEC-15, SPEC-16, SPEC-17.
+
+### 2026-10-22 — Coverage report table
+
+Documentation only, so "measured coverage" is the share of each AC's required checks that ran and
+passed at HEAD `5a9846a`.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `git rev-parse` / `git ls-tree` | blob, mode, SHA-256, size, CR, final line | 6/6 pass | AC1 (L1) | none |
+| `diff` against the tdd LICENSE | hunks, line 3, mode, final LF | 5/5 pass | AC2 (L2) | none |
+| Exact comparison, notices | full-file rebuild from B + T1–T7 | byte-identical | AC3 (N1–N5) | none |
+| Drift check, inventory, archives | B #1 record | 5/5 items equal S0 | AC4 (N6, N7), AC10 (N8) | member-path scan of the PR description: stage 9 |
+| Provenance comparison | expected file from B by S1–S6; JSON parse | byte-identical, parses | AC5 (S1–S7) | none |
+| Exact comparison, agent-browser | both trees | 2/2 identical | AC6 (A1) | none |
+| Exact comparison, `AGENTS.md` | T10, T17, T11 | identical | AC7 (G1–G4) | none |
+| Exact comparison, README | T8 | identical | AC8 (R1) | none |
+| Exact comparison, ADRs and docs | D1, D2, D3, W1, W2 | 5/5 identical | AC9 | none |
+| `git grep`, `git diff --name-only`, X2 | C1, X1, X2 | 0 matches; 14 paths in X1; 3/3 exit 0 | AC11 | re-run at the final HEAD after stage 7 |
+| GitHub file view | four files, tables, relative links | not yet run | AC12 (E1) | stage 8, on the pushed branch |
