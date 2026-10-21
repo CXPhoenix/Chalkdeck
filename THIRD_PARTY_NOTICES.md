@@ -1,9 +1,29 @@
 # Third-party notices
 
-The harness-agile project materials are licensed under the root MIT LICENSE.
-That grant covers rights held by CXPhoenix; it does not replace third-party
-copyright, font, artwork, or trademark terms. Preserve applicable notices when
-copying a skill or distributing a generated project.
+## Licensing
+
+Except where otherwise noted in this file, the material in this repository is licensed by
+CXPhoenix (https://github.com/CXPhoenix) as follows:
+
+| Paths | License |
+|---|---|
+| `slides/`, `themes/`, `assets/`, `docs/` except `docs/agents/`, `README.md`, `GLOSSARY.md`, `.proj.specs/`, `.proj.tickets/` | [CC BY-SA 4.0](LICENSE) |
+| Every other path, including `scripts/`, `.agents/`, `.claude/`, `.codex/`, `.github/`, `deploy/`, `AGENTS.md`, `CLAUDE.md`, `docs/agents/` and root configuration files | [MIT](LICENSE-CODE) |
+
+Code inside a CC BY-SA path, such as a deck's `index.tsx`, is CC BY-SA. A path added later that the
+table does not list is MIT. `LICENSE`, `LICENSE-CODE` and this file are license texts and notices,
+not covered by the table; `LICENSE` is the Creative Commons legal code.
+
+Material this file attributes to someone other than CXPhoenix, and any file or directory that
+carries its own license naming another holder, keeps that holder's terms wherever it sits; changes
+CXPhoenix made to such material follow the table above. Third-party works not listed in this file,
+including logos, trademarks, photographs, screenshots, illustrations, quotations and code, are not
+covered by either license. Neither license grants rights of publicity or privacy in people shown.
+Preserve applicable notices when copying a skill.
+
+`LICENSE` is the CC BY-SA 4.0 legal code from
+https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt (SHA-256
+28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5).
 
 ## Matt Pocock skills — MIT
 
@@ -73,7 +93,7 @@ principles from local phoenix-design, which identifies
 [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) as its source.
 Design-source attribution: Copyright (c) 2026 alchaincyf (花叔 · 花生).
 The complete upstream [MIT notice](.agents/skills/evidence-report/LICENSE) is
-preserved with the skill. Project-authored additions are covered by the root MIT.
+preserved with the skill. Project-authored additions are covered by the MIT license in LICENSE-CODE.
 
 The session also invoked artifact-design; invocation alone is not recorded as
 proof of copying an independently identified external package. No unrelated
@@ -82,10 +102,10 @@ revisions identify the license checked, not the original local installation.
 
 ## Project-authored skills — MIT
 
-On 2026-09-13 the maintainer confirmed that tw-emoji-commit, tw-emoji-pr-note,
-tw-emoji-release-note, and init-template were authored by the maintainer using
-Claude Code. They are recorded as project-authored material under the root MIT
-LICENSE. This provenance record is based on the maintainer's explicit confirmation.
+On 2026-09-13 CXPhoenix confirmed that tw-emoji-commit, tw-emoji-pr-note and tw-emoji-release-note
+were authored by CXPhoenix using Claude Code; tune-skills is recorded the same way in
+docs/agents/skill-sources.json. They are project-authored material under the MIT license in
+LICENSE-CODE. This provenance record is based on that explicit confirmation.
 
 ## slide-style-design presentation-style skills — MIT
 
@@ -97,3 +117,67 @@ LICENSE file; the license text is the upstream repository's root LICENSE, whose 
 is recorded in docs/agents/skill-sources.json. The styles are project syntheses of public
 sources named in each skill's references, not quotations or official methods of the
 people they are named after.
+
+## Assets
+
+Third-party and mixed files under `assets/` and `slides/*/assets/`. "unknown" means the holder or
+terms were not established; such a file is still excluded from both licenses.
+
+| File | Holder | Terms |
+|---|---|---|
+| `assets/fhsh-isiphs/fhsh/logo.png` | 臺北市立復興高級中學 | unknown |
+| `assets/fhsh-isiphs/isip-hs/logo.png` | ISIP.hs | unknown |
+| `assets/fhsh-isiphs/fhsh/section-img.png` | unknown | unknown |
+| `assets/fhsh-isiphs/isip-hs/section-img.png` | unknown | unknown |
+| `assets/fhsh-isiphs/fhsh/slogon.svg` | unknown | unknown |
+| `assets/fhsh-isiphs/isip-hs/slogon.svg` | unknown | unknown |
+| `assets/fhsh-isiphs/fonts/edukai-fixed.woff2` | 中華民國教育部 (教育部標準楷書) | CC BY-ND 3.0 TW, https://creativecommons.org/licenses/by-nd/3.0/tw/legalcode |
+| `slides/ctf-competition-practice/assets/788abeb3-37ac-4f36-9018-dae67dffe210.png` | unknown | unknown |
+| `slides/ctf-competition-practice/assets/cyberrange-2026.png` | HITCON (CyberRange 2026 key visual) | unknown |
+| `slides/ctf-competition-practice/assets/shot-1-dc-verify.jpeg` | mixed: other participants' messages, names and avatars, and the LINE interface | unknown |
+| `slides/getting-started/assets/claude.svg` | Anthropic | unknown |
+| `slides/getting-started/assets/cloudflare.svg` | Cloudflare | unknown |
+| `slides/getting-started/assets/gemini.svg` | Google | unknown |
+| `slides/getting-started/assets/openai.svg` | OpenAI | unknown |
+| `slides/getting-started/assets/opencode.svg` | opencode | unknown |
+| `slides/getting-started/assets/vercel.svg` | Vercel | unknown |
+| `slides/getting-started/assets/zeabur.svg` | Zeabur | unknown |
+
+For the mixed file, only the named parts are third-party; the rest follows the table above.
+
+## open-slide — MIT
+
+Copyright (c) 2026 Yiwei Ho. From `@open-slide/core` as installed through `package.json`; MIT
+license text below. Covered: the skills apply-comments, create-slide, create-theme, current-slide
+and slide-authoring, which `pnpm sync:skills` writes into `.agents/skills/`; the deck
+`slides/getting-started/`; and the text of `open-slide.config.ts`, of `README.md` and of the
+`## open-slide` section of `AGENTS.md` that comes from the open-slide project scaffold (commit
+05d62cd). Changes made in this repository after that commit follow the licensing table above. The
+vendor logos in `slides/getting-started/assets/` are third-party marks listed under Assets.
+
+## K-Dense scientific skills — MIT
+
+Copyright (c) 2025 K-Dense Inc. Source: https://github.com/K-Dense-AI/claude-scientific-skills ;
+MIT license text below. Covered skills: seaborn and scientific-visualization. The `license` field
+in seaborn's SKILL.md (BSD-3-Clause) is the license of the seaborn library the skill teaches; any
+text the skill quotes from the seaborn documentation keeps that license.
+
+## MIT license text
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
