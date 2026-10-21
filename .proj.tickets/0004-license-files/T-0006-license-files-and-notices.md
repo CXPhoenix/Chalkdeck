@@ -409,3 +409,10 @@ passed at HEAD `5a9846a`.
 | Exact comparison, ADRs and docs | D1, D2, D3, W1, W2 | 5/5 identical | AC9 | none |
 | `git grep`, `git diff --name-only`, X2 | C1, X1, X2 | 0 matches; 14 paths in X1; 3/3 exit 0 | AC11 | re-run at the final HEAD after stage 7 |
 | GitHub file view | four files, tables, relative links | not yet run | AC12 (E1) | stage 8, on the pushed branch |
+
+### 2026-10-22 — Stage 7 security review
+
+Report: [`review/security-T-0006.md`](../../.proj.specs/0004-license-files/review/security-T-0006.md),
+scope B `746378f` to HEAD `5aff4fd`. One candidate pass and an independent false-positive pass per
+candidate (`harness-reviewer`). 11 candidates, 0 confirmed: each lacked a path across a real trust
+boundary, predated this diff, or is already tracked as a stage-6 spec-level point. Nothing to fix.
