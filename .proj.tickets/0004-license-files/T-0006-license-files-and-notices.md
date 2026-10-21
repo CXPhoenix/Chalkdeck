@@ -488,3 +488,12 @@ Except where otherwise noted, the decks, themes, assets and project documentatio
 
 AC12 passes. Coverage update: AC11 re-run at `3fe3721` (pass); AC12 run at `3fe3721` (pass). The
 remaining open item is the member-path scan of the PR description at stage 9.
+
+### 2026-10-22 — Stage 9: PR and the last AC4 check
+
+PR: https://github.com/CXPhoenix/Chalkdeck/pull/9 (head `9b37f1d` when opened; description generated
+and sanitized with the project `tw-emoji-pr-note`). Before `gh pr create`, the sanitized description
+was scanned in memory against both archives' `namelist()`: `bluechall-master.zip` 200 members, 0
+found; `webchall-master.zip` 236 members, 0 found. With the X1-file and commit-message scans above,
+AC4's "no member path is published" holds for every place it names. Status moves to `done` after the
+merge.
