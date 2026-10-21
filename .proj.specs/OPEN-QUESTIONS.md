@@ -33,8 +33,9 @@ is open, what it blocks, and what would settle it.
   For example, the license URI that CC BY-ND 3.0 TW §4(a) requires with each copy of the MOE Kai
   font, and attribution for logos.
 - **Why open:** Epic 0003 marks licenses in the repository only. A built site ships the font and
-  logos with no notice. Adding one means changing the theme or decks, which Charter 3 forbids for
-  template work.
+  logos with no notice. Charter 3 forbids changing existing decks, so a fix has to come from the
+  build or from a theme change that only new decks pick up, which is deck-surface work outside
+  epic 0003.
 - **Blocks:** nothing in the repository; publishing compliance of public decks.
 - **Settles it:** a decision on where a deployed notice lives. Candidates: a page generated at
   build time; a theme change applied only to new decks; a footer convention for new decks.

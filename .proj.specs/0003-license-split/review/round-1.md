@@ -148,3 +148,20 @@ ADR-0001/0002/0003/0005、ADR-0004 的 template work 分類、ADR-0006 不適用
 - **4-18** AC1 的 `cmp` 是拿 LICENSE 和實作者自己抓的檔案比對；spec 沒有事先寫出預期的 blob 或 SHA-256。（信心中）
 - **4-19** E2E 複製樹時如果跟隨 symlink，會產生無關的 FAIL 雜訊。（信心低）
 - **4-20** 字型調查若結論是 adaptation 或 unknown，紀錄會永久公開在 public repo，同時已部署的網站仍在散布這個字型。（信心低）
+
+## Rulings (repository owner, 2026-10-21)
+
+Proposed dispositions grouped the 91 findings into themes A–O. The owner answered:
+
+- **A — font ruling vs. AC10 (1-1, 2-1, 3-1, 4-3):** "不處理，字型的部分就這樣". Clarified in a
+  follow-up question: "保留標示，不調查". AC5 attribution stays; the "fixed" investigation and its
+  ruling (old AC6, F1, F2) are removed; the font file is not touched.
+- **E — ported theme (1-3, 1-4, 3-6, 4-4):** asked who wrote the original Slidev theme: "我自己寫的".
+  Old N6 is resolved; the theme and its inlined copies are licensor-owned.
+- **N — README language (3-13):** "英文，配合本文".
+- **All other themes (B, C, D, F, G, H, I, J, K, L, M, O):** "照建議處置". B lapses with A.
+
+Revision 2 of the spec applies these. One addition was self-checked before round 2: reference
+(d) / row V14 checks that a provenance entry's `license` matches the root file it names. It
+closes 1-6, and it holds for every provenance entry at B, because the other `license_location`
+values are skipped descriptions or placeholders.
