@@ -1,7 +1,8 @@
 ---
 epic: 0003-license-split
-status: draft
+status: split
 revision: 2
+superseded_by: [0004, 0005]
 ---
 
 # Spec 0003 — License content under CC BY-SA 4.0 and code under MIT

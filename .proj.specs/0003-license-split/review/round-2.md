@@ -160,3 +160,16 @@ The defect behind the P0 dates from revision 1 (which also named line 87) and wa
 - **I-4** notices 落地後就是公開資料。
 - **I-5** private deck 一併授權，而且不可撤回。
 - **I-6** BY-SA 允許商業使用；對 GPLv3 有單向相容。
+
+## Rulings (repository owner, 2026-10-21)
+
+- **Gate:** P0 findings survived round 2, so under AGENTS.md hard rule 3 the epic is split and
+  restarted at stage 1. Owner's answer: "照規則拆 epic". The successors are:
+  - **0004** — license files, notices, provenance records, README section and ADR. Documentation
+    only.
+  - **0005** — the verifier's license-reference check. It depends on 0004 landing.
+
+  Decisions settled in 0003's grill and round-1 rulings carry forward unless a successor's grill
+  reopens them. Every round-2 finding is input to the successor it concerns.
+- **4-2, ownership of economic rights:** asked whether the copyright in the decks, themes and
+  documents belongs to the owner, given Copyright Act articles 11 and 12. Answer: "屬於我".
