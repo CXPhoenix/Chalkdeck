@@ -47,8 +47,9 @@ is open, what it blocks, and what would settle it.
   the provenance file points at a committed file, not one that exists only in the local checkout?
 - **Why open:** Epic 0005 keeps the verifier a file-system check that needs no Git (grill Q2'). A
   file that was renamed or added without `git add` passes it locally. The epic verifies committed
-  state once, by running the verifier in a detached worktree of HEAD at stage 8; no workflow rule
-  repeats that run, and deck content work does not run the verifier at all (round-1 Ruling R1).
+  state once, by running the verifier in a detached worktree of HEAD at stage 8 (round-1 Ruling R1).
+  No workflow rule repeats that run. Deck content work that edits the notices' Assets rows runs the
+  verifier on its work tree (round-2 Ruling S3), which does not check committed state either.
 - **Blocks:** nothing now; the guarantee that a landed notices or provenance change has no
   uncommitted target.
 - **Settles it:** a decision among, for example, a workflow rule to run the verifier in a fresh

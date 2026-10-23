@@ -33,6 +33,9 @@ A file that exists but was never committed is still caught: stage 8 runs the ver
 `git worktree` checkout of HEAD, which holds committed files only, and every later ticket starts
 from a fresh worktree of `main`.
 
+Note added in revision 3: no workflow rule makes every later ticket start from a fresh worktree;
+round-1 Ruling R1 drops that claim, and OQ-4 tracks a standing check.
+
 | Q | Question (short) | Recommended | Owner's answer |
 |---|---|---|---|
 | Q2' | reopen 0003's "tracked by Git" rule | (b) drop it: the check is file-system only and runs no git; tracking is guaranteed by the stage-8 worktree run, written as an acceptance criterion. Round-1 Q2 and Q5 and round-2 Q7 (no-Git reasons) fall away | "都按照建議" |

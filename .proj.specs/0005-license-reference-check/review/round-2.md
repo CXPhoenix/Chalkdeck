@@ -134,6 +134,29 @@ Subagent tokens: about 0.56M (axis 1 0.13M, axis 2 0.14M, axis 3 0.15M, axis 4 0
 - **I-6** Claude 樹的 skill LICENSE 副本沒有 reference 指到，所以不檢查。
 - **I-7** deck 軌碰到文法以外的寫法（例如 `Name <email>`）就 FAIL，放寬要同時改 ADR-0008 與 verifier。
 
-## Rulings
+## Rulings (repository owner, 2026-10-23)
 
-Pending: the repository owner adjudicates the P1 findings and how they are carried (a post-review patch or ticket findings). Under `docs/agents/review.md`, round 2 is the ceiling and no P0 survived, so the stage-3 gate is met.
+Owner's answer: "S1–S4 都照建議，做 revision 3 後自審就進 stage 4。"
+
+- **Gate:** round 2 is the ceiling under `docs/agents/review.md`, and no P0 survived. Stage 3 is
+  passed.
+- **S1** (4-1), table pipes: on a table row (a line whose first non-space character is `|`), a `|`
+  inside a code span, link text or title fails as `pipe inside a table cell element`.
+- **S2** (4-2), list containers: two rules.
+  - A fence opener must start in column 1. A fence opener indented 1–3 spaces fails as
+    `indented fence`.
+  - A list marker followed by a fence run, `[x]:`, `>` or 4 or more spaces fails as
+    `block inside a list item`.
+- **S3** (3-1, 3-2), deck-track rule placement: X1 gains two files.
+  - `docs/agents/workflow.md`: its deck-track list gains T8. After adding, updating or removing an
+    Assets row, run the verifier; a FAIL blocks the merge.
+  - `docs/adr/0007-license-split.md`: it gains an `_Amended by ADR-0008_` line.
+- **S4**, carrying the findings: (a) revision 3 applies S1–S3 and the parent fixes and is
+  self-checked. No third round runs. Stage 4 follows.
+- **Parent fixes without a ruling**, as listed for the owner on 2026-10-23:
+  - rows for 1-1, 1-2/2-3, 1-3 and 1-4;
+  - W3 by identifier (2-1), and W4 allows new top-level imports (2-2);
+  - T7 without escaped backticks (2-4), and O3's characters at the string ends (2-5);
+  - left-to-right, non-overlapping link scanning with a G row (4-3);
+  - the OQ-4 wording (3-3, 4-9);
+  - the cheap P2 items.
