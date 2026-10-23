@@ -4,6 +4,7 @@ Run with: python3 -m unittest discover -s scripts -p 'test_*.py'
 """
 
 import importlib.util
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -274,3 +275,125 @@ class UnreadableFileTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# chalkdeck: license-reference check, provenance side (epic 0005-license-reference-check, T-0007).
+PROVENANCE = "docs/agents/skill-sources.json"
+DEFAULT_NOTICES = "[CC BY-SA 4.0](LICENSE)\n[MIT](LICENSE-CODE)\n"
+
+
+class LicenseFixture:
+    """Matrix defaults: LICENSE, LICENSE-CODE and the two required notices links, in a realpath root."""
+
+    def __init__(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(os.path.realpath(self._tmp.name))
+        self.write("LICENSE", "CC BY-SA 4.0\n")
+        self.write("LICENSE-CODE", "MIT\n")
+        self.write("THIRD_PARTY_NOTICES.md", DEFAULT_NOTICES)
+        self.write(PROVENANCE, "{}")
+
+    def write(self, rel, text):
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def provenance(self, value):
+        self.write(PROVENANCE, json.dumps(value, ensure_ascii=False))
+
+    def check(self):
+        return verify_project.check_license_references(self.root)
+
+    def close(self):
+        self._tmp.cleanup()
+
+
+def ref(value, pointer, reason):
+    """The provenance-reference message, with value and pointer already rendered."""
+    return f"{PROVENANCE}: license reference {value} at {pointer} {reason}"
+
+
+class ProvenanceReferenceTest(unittest.TestCase):
+    def setUp(self):
+        self.fx = LicenseFixture()
+        self.addCleanup(self.fx.close)
+
+    def expect(self, value, messages):
+        self.fx.provenance(value)
+        self.assertEqual(self.fx.check(), messages)
+
+    def test_p7_missing_file(self):
+        self.expect({"license_location": "missing.md"}, [ref('"missing.md"', '"/license_location"', "does not exist")])
+
+    def test_p1_valid_top_level(self):
+        self.expect({"license_location": "LICENSE"}, [])
+
+    def test_p8_pointer_through_array(self):
+        self.expect({"x": [{"license_location": "missing"}]}, [ref('"missing"', '"/x/0/license_location"', "does not exist")])
+
+    def test_p9_document_order(self):
+        value = {"b": {"license_location": "missing-b"}, "a": [{"license_location": "missing-1"}, {"license_location": "missing-0"}]}
+        self.expect(value, [
+            ref('"missing-b"', '"/b/license_location"', "does not exist"),
+            ref('"missing-1"', '"/a/0/license_location"', "does not exist"),
+            ref('"missing-0"', '"/a/1/license_location"', "does not exist"),
+        ])
+
+    def test_p1_valid_nested(self):
+        self.expect({"a": {"b": {"c": {"license_location": "LICENSE-CODE"}}}}, [])
+
+    def test_p1_valid_in_array(self):
+        self.expect({"x": [{"license_location": "LICENSE"}]}, [])
+
+    def loc(self, value, rendered, reason):
+        """Expect exactly one message for a one-key object {"license_location": value}."""
+        self.expect({"license_location": value}, [ref(rendered, '"/license_location"', reason)])
+
+    def test_p4_empty(self):
+        self.loc("", '""', "is empty")
+
+    def test_p3_number(self):
+        self.loc(5, "5", "is not a string")
+
+    def test_p3_null(self):
+        self.loc(None, "null", "is not a string")
+
+    def test_p3_true(self):
+        self.loc(True, "true", "is not a string")
+
+    def test_p3_array(self):
+        self.loc(["x"], '["x"]', "is not a string")
+
+    def test_p3_object_with_nested_location(self):
+        self.expect({"license_location": {"license_location": "missing"}}, [
+            ref('{"license_location": "missing"}', '"/license_location"', "is not a string"),
+            ref('"missing"', '"/license_location/license_location"', "does not exist"),
+        ])
+
+    def test_p2_placeholder(self):
+        self.expect({"license_location": ".agents/skills/<skill>/LICENSE"}, [])
+
+    def test_p2_sentence(self):
+        self.expect({"license_location": "Upstream repository root LICENSE; the skill directories ship no LICENSE file."}, [])
+
+    def test_p5_trailing_space(self):
+        self.loc("LICENSE-CODE ", '"LICENSE-CODE "', "has leading or trailing whitespace")
+
+    def test_p2_leading_space_with_placeholder(self):
+        self.expect({"license_location": " <x>"}, [])
+
+    def test_p2_leading_space_with_inner_space(self):
+        self.expect({"license_location": " a b"}, [])
+
+    def test_p5_leading_space(self):
+        self.loc(" LICENSE-CODE", '" LICENSE-CODE"', "has leading or trailing whitespace")
+
+    def test_p5_trailing_newline(self):
+        self.loc("LICENSE-CODE\n", '"LICENSE-CODE\\n"', "has leading or trailing whitespace")
+
+    def test_p5_whitespace_only(self):
+        self.loc("  ", '"  "', "has leading or trailing whitespace")
+
+    def test_p5_trailing_ideographic_space(self):
+        self.loc("LICENSE-CODE　", '"LICENSE-CODE\\u3000"', "has leading or trailing whitespace")

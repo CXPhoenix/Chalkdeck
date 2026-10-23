@@ -208,6 +208,67 @@ def check_glossary(root):
     return messages
 
 
+# chalkdeck: license-reference check (epic 0005-license-reference-check).
+PROVENANCE = "docs/agents/skill-sources.json"
+PLACEHOLDER = re.compile(r"<[^<>\s]+>")
+
+
+def _quoted(value):
+    """Q(x): JSON text with every non-printable character escaped, so a value cannot forge output."""
+    text = json.dumps(value, ensure_ascii=False)
+    return "".join(char if char.isprintable() else char.encode("unicode_escape").decode("ascii") for char in text)
+
+
+def _resolve(root, target):
+    """The reason a repository path does not resolve to a regular file, or None."""
+    current = root
+    for segment in target.split("/"):
+        if segment not in os.listdir(current):
+            return "does not exist"
+        current = current / segment
+    return None
+
+
+def _location_reason(root, value):
+    """Steps (a)1-7 for one license_location value: a reason, or None when it is valid or skipped."""
+    if not isinstance(value, str):
+        return "is not a string"
+    if value == "":
+        return "is empty"
+    if PLACEHOLDER.search(value) or any(char.isspace() for char in value.strip()):
+        return None
+    if value != value.strip():
+        return "has leading or trailing whitespace"
+    return _resolve(root, value)
+
+
+def _locations(document):
+    """(JSON Pointer, value) for every license_location key, in document order, without recursion."""
+    stack = [(None, document, "")]
+    while stack:
+        key, node, pointer = stack.pop()
+        if key == "license_location":
+            yield pointer, node
+        if isinstance(node, dict):
+            children = [(name, value, f"{pointer}/{name.replace('~', '~0').replace('/', '~1')}") for name, value in node.items()]
+        elif isinstance(node, list):
+            children = [(None, value, f"{pointer}/{index}") for index, value in enumerate(node)]
+        else:
+            continue
+        stack.extend(reversed(children))
+
+
+def check_license_references(root):
+    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
+    messages = []
+    sources = json.loads((root / PROVENANCE).read_text(encoding="utf-8"))
+    for pointer, value in _locations(sources):
+        reason = _location_reason(root, value)
+        if reason:
+            messages.append(f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)} {reason}")
+    return messages
+
+
 def main():
     names, errors = verify(ROOT)
     for error in errors:
