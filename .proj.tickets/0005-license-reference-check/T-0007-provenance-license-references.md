@@ -2,7 +2,7 @@
 id: T-0007
 title: The verifier reports bad license references in the provenance file
 epic: 0005-license-reference-check
-status: todo
+status: processing
 blocked_by: []
 ---
 
@@ -72,3 +72,14 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
 開工前我會先請你核准 test plan 表格（列出每個子案例與預計使用的 mutation）。
 
 ## Comments
+
+### 2026-10-23 — Base and drift check (item 1)
+
+- B: `46cfe0331d2edb69bdbb62fa72f162b794b05bac`, the branch's starting commit.
+- Spec merge: `46cfe0331d2edb69bdbb62fa72f162b794b05bac` (PR #11, merged 2026-10-23T14:52:41Z,
+  confirmed with `gh pr view 11`). B is the spec merge itself.
+- Drift: `git diff --name-only 2577b504fa5f22fcef047a95f6d9c2afc9a2daf4 46cfe0331d2edb69bdbb62fa72f162b794b05bac -- scripts/ AGENTS.md docs/agents/skill-sources.json THIRD_PARTY_NOTICES.md`
+  printed nothing: the verifier, its tests, `AGENTS.md` and both inputs equal B0.
+- Baseline at B: `python3 scripts/verify-project.py` exits 0 (PASS, 45 skills);
+  `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 138 tests, OK.
+- Worktree: `.worktrees/T-0007`, branch `tickets/T-0007/provenance-license-references`.
