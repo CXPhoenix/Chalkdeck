@@ -1355,3 +1355,76 @@ Ran 1 test in 0.003s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Stage 6 fixes: corrections, C3, C4 and checks at HEAD
+
+**Record corrections** (S6, S7, S9, F7, F8, F9, F13):
+
+- S6: in the W4 entry above, the `verify()` call is its own hunk (`@@ -125,6 +126,7 @@`); only the T1
+  line shares the new block's hunk. Every changed line still falls in W4's allowed kinds.
+- S7: every run recorded above used `python3 -I`. The mutation re-runs and every run from #45 on
+  also used `-B` after removing `scripts/__pycache__`. The command lines show the unittest part
+  only.
+- S9: #42's failing output was cut after the first differing line. #6's record keeps only the
+  summary line. Both runs exited 1, as their command lines say.
+- F7 (= S8): #42's mutation as run collected the (d) messages and appended them after all others.
+  In #42's fixture this has the same effect as the table's "at the end of the object". It is a
+  deviation in wording and is noted here.
+- F8: #39's mutated guard let a missing `license` key through. The message line then read
+  `holder['license']` and raised `KeyError`, which counts as red. The table's intended effect, an
+  appended mismatch, would need that line changed too.
+- F9: #15 and #16 used one mutation blob, because the implementation joins steps 3 and 4 in one
+  condition. Each input still exercises only its own step, and each went red.
+- F13: the deviation note should read "so that the walk existed for the rows the latter guard". In
+  the earlier runs no sub-case skipped; see the coverage run below for the current count.
+
+**Seam** (C3, S2): every row of the test plan, #1–#62, tests the one seam
+`check_license_references(root)`, called on a `LicenseFixture` root.
+
+**W3 by identifier** (C4, F5): an AST walk of `scripts/verify-project.py` finds:
+
+- imports `hashlib`, `json`, `os`, `pathlib`, `re`, `stat`, `sys`, `tomllib`, `unicodedata`, none
+  outside the W allow-list;
+- no forbidden `os.*` call, no `__import__` and no built-in `open(`;
+- three `replace` method calls, at lines 178 (`text.replace`, present at B) and 282
+  (`name.replace` twice, the JSON Pointer escapes). All three are on `str`, which Ruling C4 allows.
+
+**Checks at HEAD `e3f75f3`** (X3, W2):
+
+- `python3 scripts/verify-project.py` exits 0 with the T1 PASS line.
+- `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 200 tests, OK: 138 at B plus 62 new.
+- A direct `python3 scripts/test_verify_project.py` ran 84 tests, OK: 22 glossary plus 62 new.
+- `python3 scripts/check_style_skills.py` passes.
+- `git diff --name-only 46cfe03...HEAD` lists only X1 paths.
+- CLI demonstrations on `git archive` copies outside the repository, both removed afterwards:
+  - a provenance value `LICENSE/x` prints
+    `FAIL: docs/agents/skill-sources.json: license reference "LICENSE/x" at "/skills/x/licensing/license_location" does not exist`.
+    It also prints the existing `Skill provenance cannot be checked` line, because that copy's
+    provenance lacks the entries the old check reads.
+  - a missing provenance file prints the existing message and then
+    `FAIL: docs/agents/skill-sources.json: cannot read license references (missing)`, with no
+    traceback.
+
+### 2026-10-24 — Coverage report table, revised (item 8, C3)
+
+Measured with the standard library's `trace`: the three license test classes ran under a line
+counter, and the executable lines (from `co_lines`) of the six new functions were compared with
+the lines hit. 62 tests ran, with 0 failures, 0 errors and 0 skipped on macOS as a non-root user.
+This is line coverage, not branch coverage.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_license_references(root)`: `_locations`, `_location_reason`, `_quoted` | #1–#30 (`ProvenanceReferenceTest`) | 11/11, 13/13 and 2/2 lines | AC1 (P1–P9) | none |
+| same: `_resolve` | #1–#30 and #45–#49 | 23/23 lines | AC1 (P7); R2, R3 and R7 behaviour pulled forward by C1 | the `>`, `?`, `%` and whitespace branches are one expression; whitespace cannot be reached from (a) and is exercised by T-0008's R2 |
+| same: (d) in `check_license_references` | #31–#44 (`LicenseAgreementTest`) | 19/19 lines of the function (with #50–#62) | AC1 (D1–D3, D5, D6) | D4 is in T-0008 |
+| same: `_read_input` | #50–#62 (`ProvenanceInputTest`) | 18/18 lines | AC3 in part (I1, provenance side, pulled forward by C2) | permission errors (I3) and a Q `RecursionError` are unmapped; T-0008 |
+| total, new block | 62 | 86/86 lines (100.0%) | — | — |
+
+| Spec AC | Status for this ticket |
+|---|---|
+| AC1 | met for P1–P9, D1–D3, D5, D6; D4 in T-0008 |
+| AC2, AC6 | T-0008 |
+| AC3 | provenance side of I1 met here; the rest in T-0008 |
+| AC4 | W2 on the worktree, W3 (above), W4 met; W1 in T-0008 |
+| AC5 | T1, T2, T3, T6 met; T4, T5, T7–T9 in T-0008 |
+| AC7 | X1, X2, X3 met for this ticket |
