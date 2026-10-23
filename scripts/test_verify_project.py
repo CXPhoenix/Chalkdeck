@@ -1,4 +1,5 @@
-"""Tests for the glossary check in verify-project.py (epic 0001-glossary-rename).
+"""Tests for the glossary check and the license-reference check in verify-project.py
+(epics 0001-glossary-rename and 0005-license-reference-check).
 
 Run with: python3 -m unittest discover -s scripts -p 'test_*.py'
 """

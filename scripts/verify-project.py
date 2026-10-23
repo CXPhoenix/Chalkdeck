@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Check portable project instructions, per-runtime skill trees, native role configs
-and the project glossary convention.
+"""Check portable project instructions, per-runtime skill trees, native role configs,
+the project glossary convention and license references.
 
 Python 3.11+. Read-only and offline; run from any working directory.
 This checks configuration structure, not model-backed workflow behavior.
@@ -126,6 +126,7 @@ def verify(root):
         errors.append(f"Runtime configuration cannot be checked: {error}")
 
     errors.extend(check_glossary(root))
+    errors.extend(check_license_references(root))
     return names, errors
 
 
@@ -299,7 +300,7 @@ def main():
         print(f"FAIL: {error}", file=sys.stderr)
     if errors:
         return 1
-    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets, native role configs and the glossary convention")
+    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets, native role configs, the glossary convention and license references")
     print("Static/offline checks only; confirm discovery in fresh Claude Code and Codex sessions.")
     return 0
 
