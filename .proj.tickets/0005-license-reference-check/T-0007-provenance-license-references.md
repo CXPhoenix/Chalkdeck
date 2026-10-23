@@ -964,3 +964,79 @@ FAILED (failures=1)
 | AC7 | X1, X2, X3 for this ticket | first Comment (B, drift), Scope and Checks entries above | met for this ticket |
 
 Stage 5 is done; `status` moves to `review` for stages 6–8.
+
+### 2026-10-24 — Stage 6 code review
+
+Scope: committed changes only, B `46cfe03` to HEAD `7096b5f`; the staged, unstaged and untracked
+layers were empty. Two `harness-reviewer` passes ran in parallel on the same captured packet, one
+for Standards and one for Spec (about 0.26M subagent tokens). HEAD and status were unchanged when
+both reports came back. Findings are recorded per axis as returned, condensed; none is dropped.
+Parent reproductions:
+
+- S1/F11: `python3 scripts/test_verify_project.py` printed OK without defining the new classes.
+- S5/F1: a provenance value of `LICENSE/x` raised `NotADirectoryError` from
+  `check_license_references`.
+- S11: line 405 holds a literal U+3000 (the same tool fault that once wrote U+2028 into the spec).
+
+**Standards** (11 breaches of documented rules or local conventions, 7 smells):
+
+- S1 (high conf., medium): the new tests sit after `if __name__ == "__main__": unittest.main()`, so
+  a direct run skips them.
+- S2 (medium, low): the test plan table's columns differ from `docs/agents/workflow.md:117-121`
+  (no Seam, Scope or AC column).
+- S3 (medium-high, medium): the coverage report table's columns differ from
+  `workflow.md:128-131`, and it has no measured coverage.
+- S4 (high, medium): reading the provenance file has no error handling, so `verify()` raises
+  instead of returning errors (the recorded interim gap).
+- S5 (high, medium): `_resolve` raises `NotADirectoryError` or `PermissionError` for a path through
+  a regular file or an unreadable directory.
+- S6 (medium, low): the W4 record says the `verify()` call shares the new block's hunk; it is its
+  own hunk (`@@ -125,6 +126,7 @@`).
+- S7 (high, low): the red records' command lines omit the `-I` flag that every run used.
+- S8 (medium, low): #42's mutation as recorded ("after every other message") is worded differently
+  from the approved one ("at the end of the object") without a deviation note.
+- S9 (high, low): #42's recorded output is cut before `Ran`/`FAILED`; #6's body is short.
+- S10 (high, low): the new test classes have no docstrings naming their rows; there is a double
+  blank line inside a class.
+- S11 (high, low): the U+3000 input is a literal invisible character, not an escape.
+- Smells, judged against the baseline:
+  - M1: `LicenseFixture` duplicates `Fixture`.
+  - M2: the provenance path is written three times, and the file is read twice per `verify()`.
+  - M3: the spec symbols Q and (a), and the bare `== 2` drive test, need the spec to read.
+  - M4: the SPDX map duplicates ADR-0007 knowledge.
+  - M5: the same object is called `parent` and `holder`.
+  - M6: the default notices are written though unread here.
+  - M7: implementations ran ahead of their tests, so 29 of 44 reds came by mutation.
+
+**Spec** (13 findings):
+
+- F1 (high, high): resolution has no `OSError` handling; traceability:129-131 requires
+  `does not exist`. A provenance value such as `LICENSE/x` crashes the verifier.
+- F2 (high, medium): path rule 2 checks only `<`; `%`, `?`, `>` and whitespace are missing. For
+  example, `a%20b.md` with that file present passes when it should fail.
+- F3 (medium, low-medium): resolution uses `Path.is_symlink()` and `Path.is_file()`, not
+  `os.lstat`. `is_file()` follows links and swallows `OSError`.
+- F4 (high, medium): when this ticket lands alone, the existing `Skill provenance cannot be checked`
+  message is replaced by a traceback for a missing, invalid or non-UTF-8 provenance file. A symlinked
+  or array-topped file is read silently. The interim-gap note lists only part of this.
+- F5 (medium, low-medium): the W3 evidence used a substring grep, which W3 forbids, so the recorded
+  "printed nothing" cannot be the pattern as listed (`pty` matches `is empty`). The new
+  `name.replace(...)` is literally a `replace` method call; the rule's intent is presumably
+  `Path.replace`.
+- F6 (medium, low-medium): the red records reached Git in the last commit, after the code that
+  turned them green. Order is shown only by the recorded HEAD and blobs.
+- F7 (high, low): as S8.
+- F8 (medium, low): #39's mutation produced `KeyError: 'license'`. The mutated guard let the message
+  line read the missing key; the red is valid, but the effect differs from the table's wording.
+- F9 (high, low): #15 and #16 ran the same mutation blob, because steps 3 and 4 share one condition;
+  each still went red for its own input.
+- F10 (medium, low): the `git hash-object -w` blobs are unreachable loose objects, so `git gc` can
+  prune them after `gc.pruneExpire` (two weeks by default).
+- F11 (high, low): as S1.
+- F12 (low, low): the 15 natural reds ran without `-B`; that they were unaffected is argued, not
+  shown.
+- F13 (low, low): one garbled sentence in the deviation note; "182 tests, OK" is quoted without the
+  skip count.
+
+Worst per axis: Standards S1 (new tests silently skipped by a direct run); Spec F1 (a provenance
+value can crash the verifier).
