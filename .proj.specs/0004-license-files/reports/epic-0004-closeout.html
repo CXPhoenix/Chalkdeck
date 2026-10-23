@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epic 0004 結案報告</title>
+<style>
+:root {
+  --bg: #eef4f5;
+  --surface: #ffffff;
+  --text: #1c2226;
+  --muted: #56646d;
+  --rule: #cfdadd;
+  --accent: #0e5c6b;
+  --accent-soft: #dcebee;
+  --ok: #2f6b3a;
+  --warn: #8a5a12;
+  --code-bg: #e6eef0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12191b;
+    --surface: #1a2326;
+    --text: #e3e8eb;
+    --muted: #9aa7b0;
+    --rule: #2d3a3f;
+    --accent: #6cc3d1;
+    --accent-soft: #163136;
+    --ok: #8fcf98;
+    --warn: #e0b46a;
+    --code-bg: #223035;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  line-height: 1.7;
+  font-size: 16px;
+}
+main { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
+h1 { font-size: 1.9rem; line-height: 1.3; margin: 0 0 6px; letter-spacing: 0.01em; }
+.meta { color: var(--muted); font-size: 0.92rem; margin-bottom: 36px; }
+h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; margin: 28px 0 8px; }
+p, li { margin: 0 0 10px; }
+ul, ol { padding-left: 1.4em; }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+.answer { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 18px 22px; margin: 0 0 8px; }
+.answer p:last-child { margin-bottom: 0; }
+.answer strong { color: var(--accent); }
+.scroll { overflow-x: auto; margin: 12px 0 18px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; background: var(--surface); }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.tier { white-space: nowrap; font-weight: 600; }
+.t-v { color: var(--ok); }
+.t-i { color: var(--warn); }
+.t-e { color: var(--accent); }
+.chain { counter-reset: step; list-style: none; padding-left: 0; }
+.chain li { counter-increment: step; position: relative; padding-left: 2.2em; }
+.chain li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 1.6em; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.decision { border: 1px solid var(--rule); background: var(--surface); padding: 16px 20px; }
+.note { color: var(--muted); font-size: 0.92rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Epic 0004 結案報告：授權檔與 notices</h1>
+<div class="meta">2026-10-23 · 範圍：從 spec 合併（<code>746378f</code>）到 T-0006 合併（<code>ef78392</code>）· 只看已合併進 <code>main</code> 的內容</div>
+
+<div class="answer">
+<p><strong>Epic 0004 已完成，可以結案。</strong>唯一的票 T-0006 已合併進 <code>main</code>，狀態為 <code>done</code>（證據 #1、#2）。spec 的 12 條驗收標準（AC1–AC12）都有記錄下來的腳本輸出或頁面文字作為證據（#5–#13）。安全審查確認 0 個問題（#15），chain 分析也沒有任何 chain 越過信任邊界（#16）。GitHub 的 repo 首頁側欄列出 CC BY-SA 4.0 與 MIT 兩個授權，但 REST API 只回報 CC-BY-SA-4.0（#17、#18）。</p>
+<p>這份報告只需要你決定一件事：是否結案並開始 epic 0005。另外三件不影響結案的事列在 <code>retrospective.md</code> 的「交給 owner 的決定」：11 項 spec 措辭問題、事前授權算不算核准、純文件票的流程。</p>
+</div>
+
+<h2>要回答的問題</h2>
+<p>epic 0004 是否真的交付了 spec 要求的東西？證據夠不夠讓你放心結案、進入 epic 0005？如果不夠，缺口在哪裡？</p>
+
+<h2>交付了什麼</h2>
+<ul>
+<li>根目錄：<code>LICENSE</code> 是 creativecommons.org 官方的 CC BY-SA 4.0 legal code；<code>LICENSE-CODE</code> 是署名 CXPhoenix 的 MIT（#5、#6）。</li>
+<li><code>THIRD_PARTY_NOTICES.md</code>：第一節改成 Licensing，說明路徑與授權的對照；後段有 17 列資料的 Assets 表，再往後是 open-slide、K-Dense 的 MIT 標示與一份 MIT 全文（#7、#23）。</li>
+<li>README 新增 License 一節；provenance 檔與 agent-browser skill 不再指向「根目錄 MIT」，init-template 的殘留紀錄已移除（#7、#9）。</li>
+<li>ADR-0007 及它對 ADR-0004 的修訂：deck 輕量軌可以順手更新自己素材的 notices 列。相關規則已同步寫進 <code>AGENTS.md</code>、<code>workflow.md</code>、<code>GLOSSARY.md</code>（#7）。</li>
+</ul>
+
+<h3>各道關卡的結果</h3>
+<div class="scroll">
+<table>
+<thead><tr><th>Stage</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>3 對抗式審查</td><td>第 2 輪 P0 為 0；之後 owner 核准了審查後修補（revision 3）（#3）</td></tr>
+<tr><td>4 拆票</td><td>只有一張票（T-0006），由 3 個 agent 審過（#4）</td></tr>
+<tr><td>5 實作</td><td>drift 0 項；目標檔分 3 個實作 commit 合入，另有 5 個紀錄 commit；比對腳本 0 項失敗（#4、#8、#24）</td></tr>
+<tr><td>6 code review</td><td>37 項 finding，沒有 high：6 項票面紀錄問題已修正，13 個 ID（共 11 列）屬 spec 措辭並上報 owner，18 項撤回（#14）</td></tr>
+<tr><td>7 安全審查</td><td>11 個候選，確認 0 個（#15）</td></tr>
+<tr><td>8 端到端</td><td>GitHub 檔案頁面：四個檔案都正常顯示、兩張表格正常、5 個相對連結都不是 404（#13）</td></tr>
+<tr><td>9 合併</td><td>PR #9 以 merge commit <code>ef78392</code> 合併（#1）</td></tr>
+<tr><td>結案：chain 分析</td><td>13 條候選 chain 全部不成立，不需要開票（#16）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>為什麼可以下這個結論</h2>
+<ol class="chain">
+<li>起點 B（<code>746378f</code>）和 spec 基準 S0 逐項一致，沒有 drift，所以 spec 寫的行號與 T-block 可以直接套用（#8）。</li>
+<li>兩個授權檔都和各自的來源一致：<code>LICENSE</code> 等於 CC 官方 legal code，<code>LICENSE-CODE</code> 和 tdd 的 LICENSE 只差第 3 行的署名（#5、#6）。其餘目標檔在 <code>5a9846a</code> 都和「B 加上 T-block」逐位元組相同，這是獨立寫成的比對腳本驗證的（#7）。</li>
+<li>這些比對在 <code>3fe3721</code> 重跑過，仍然全部通過。之後到 PR head <code>310a82a</code> 為止只改了票檔，所以合併進 <code>main</code> 的目標檔就是當時比對過的版本（#24）。</li>
+<li>既然實作等於 spec，stage 6 剩下的 finding 只可能出在 spec 本身的措辭，或是票面紀錄（#25）。</li>
+<li>範圍：合併後的 diff 只有 X1 列出的 15 個路徑，<code>slides/</code>、<code>themes/</code>、<code>assets/</code>、<code>package.json</code>、<code>pnpm-lock.yaml</code> 都沒變；三項專案檢查都 exit 0（#9、#10）。</li>
+<li>「不公開 member path」的規則：X1 檔案、分支上全部 9 個 commit message、PR 描述，三處都掃過，命中 0 筆（#11、#12）。</li>
+<li>GitHub 的判讀和 ADR-0007 Consequences 寫的「may detect both license files and show two licenses」一致（#17、#18、#19）。</li>
+</ol>
+
+<h2>代價：這個結論放掉了什麼</h2>
+<ul>
+<li><strong>11 項 spec 層級的措辭問題留在 <code>main</code> 上</strong>（#14、#20）。例如：
+  <ul>
+  <li>T10 的觸發條件只列新增、刪除、改名檔案，T13／T14 寫的卻是新增、更新、刪除列（STD-02）；</li>
+  <li>T10／T14 沒有重申「holder 只由 owner 決定」（STD-01）；</li>
+  <li>README 摘要沒說 deck 裡的程式碼是 CC BY-SA（STD-04）。</li>
+  </ul>
+  chain 分析判定這些都沒有越過信任邊界（#16），但它們是 deck 軌在 notices 上唯一的文字守門。</li>
+<li><strong>test plan table 是「事前核准」。</strong>你寫下「做到完成」時，表格還不存在。票上已照實記錄，但嚴格來說和 hard rule 2 的原意不同（#21）。</li>
+<li><strong>只看 GitHub API <code>license</code> 欄位的工具，會把整個 repo 當成 CC BY-SA</strong>（#19）。</li>
+<li><strong>成本。</strong>retrospective 記錄各 workflow 合計約 4.40M subagent tokens，其中 stage 6 加上 chain 分析約占 67%。stage 6 的 37 項中只有 13 個 ID 是 spec 措辭問題；chain 分析 13 條全部不成立（#26）。</li>
+<li><strong>部署出去的網站仍然沒有附 notices。</strong>OQ-3 仍然開著（#22）。</li>
+</ul>
+
+<h2>證據表</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>#</th><th>主張</th><th>來源</th><th>分級</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>PR #9 以 merge commit <code>ef78392</code> 合併，parent 是 <code>746378f</code> 與 <code>310a82a</code></td><td><code>gh pr view 9</code>；<code>git log -1 origin/main</code>（2026-10-23）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>2</td><td>T-0006 狀態為 <code>done</code></td><td>T-0006 票 <code>:5</code>、<code>:503-504</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>3</td><td>stage 3 第 2 輪 P0 為 0；revision 3 是 owner 核准的審查後修補</td><td><code>.proj.specs/0004-license-files/review/round-2.md:6</code>、<code>:132-140</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>4</td><td>只有一張票；拆票由 3 個 agent 審過；目標檔分 3 個實作 commit 合入，分支共 8 個 commit</td><td>T-0006 票 <code>:15-22</code>、<code>:233-235</code>；<code>retrospective.md</code> 成本表；<code>git log --oneline 746378f..310a82a</code>（2026-10-23）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>5</td><td><code>LICENSE</code> 的 blob 是 <code>2d58298e</code>，mode 100644</td><td>T-0006 票 <code>:245-246</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>6</td><td><code>LICENSE-CODE</code> 和 tdd LICENSE 只差第 3 行，內容是 <code>Copyright (c) 2026 CXPhoenix</code></td><td>T-0006 票 <code>:248-251</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>7</td><td>其餘目標檔（notices、README、AGENTS.md、兩個 agent-browser、provenance、ADR、workflow、glossary、docs 索引）在 <code>5a9846a</code> 都和「B 加上 T-block」逐位元組相同</td><td>T-0006 票 <code>:238-321</code>（四支比對腳本的輸出：<code>:278</code>、<code>:291</code>、<code>:305</code>、<code>:321</code>）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>8</td><td>B 與 S0 沒有 drift</td><td>T-0006 票 <code>:206</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>9</td><td>合併後的 diff 是 15 個路徑；<code>slides</code>、<code>themes</code>、<code>assets</code>、<code>package.json</code>、<code>pnpm-lock.yaml</code> 沒有任何變動</td><td><code>git diff --name-only 746378f ef78392</code>，以及加上這五個路徑限制後輸出為空（2026-10-23）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>10</td><td>C1 沒有命中；X2 三項檢查 exit 0</td><td>T-0006 票 <code>:324</code>、<code>:341-343</code>；在 <code>3fe3721</code> 重跑的結果見 <code>:428-430</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>11</td><td>X1 檔案與 PR 描述都沒有出現任何 archive member path</td><td>T-0006 票 <code>:346-348</code>、<code>:428-430</code>、<code>:495-498</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>12</td><td><code>746378f..ef78392</code> 全部 9 個 commit message 都沒有出現 member path（兩個 archive 各 0 筆）</td><td><code>git log --format=%B 746378f..ef78392</code> 與兩個 archive 的 <code>namelist()</code> 在記憶體內比對（2026-10-23）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>13</td><td>AC12：四個檔案正常顯示、兩張表格正常、5 個相對連結都不是 404</td><td>T-0006 票 <code>:420-489</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>14</td><td>stage 6 有 37 項 finding，沒有 high；分成 6 項修正、13 個 ID 上報、18 項撤回</td><td>T-0006 票 <code>:358</code>、<code>:361-392</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>15</td><td>安全審查確認 0 個</td><td><code>.proj.specs/0004-license-files/review/security-T-0006.md:32</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>16</td><td>13 條 chain 全部不成立，不需開票</td><td><code>.proj.specs/0004-license-files/review/chain-analysis.md</code>「結論」一節</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>17</td><td>GitHub REST API 只回報 <code>CC-BY-SA-4.0</code>，來源是 <code>LICENSE</code>（<code>2d58298e</code>）</td><td><code>gh api repos/CXPhoenix/Chalkdeck/license</code>（2026-10-23）；紀錄在 <code>retrospective.md</code>「結果」一節</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>18</td><td>repo 首頁側欄顯示「CC-BY-SA-4.0, MIT licenses found」</td><td>內建瀏覽器讀取 github.com/CXPhoenix/Chalkdeck 的頁面文字（2026-10-23）；紀錄在 <code>retrospective.md</code>「結果」一節；無法用指令重跑</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>19</td><td>GitHub 的判讀符合 ADR-0007 的預期；只看 API <code>license</code> 欄位的工具會把整個 repo 當成 CC BY-SA</td><td>由 #17、#18 與 <code>docs/adr/0007-license-split.md:57</code> 推得；沒有實際測試任何工具</td><td class="tier t-i">推論</td></tr>
+<tr><td>20</td><td>STD-01、STD-02、STD-04 的內容如本文所述</td><td>T-0006 票 <code>:376-378</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>21</td><td>test plan table 是事前核准，表格寫好前沒有給你看過</td><td>T-0006 票 <code>:208</code>、<code>:229</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>22</td><td>OQ-3 仍然開著</td><td><code>.proj.specs/OPEN-QUESTIONS.md:30</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>23</td><td>notices 的章節順序；Assets 表有 17 列資料</td><td><code>git show ef78392:THIRD_PARTY_NOTICES.md</code> 的 <code>## </code> 標題（第 3、121、148、158、165 行）與 Assets 表列數（2026-10-23）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>24</td><td>比對在 <code>3fe3721</code> 重跑仍全部通過，之後到 <code>310a82a</code> 只改了票檔，所以合併進 <code>main</code> 的目標檔就是比對過的版本</td><td>T-0006 票 <code>:428-430</code>，加上 <code>git diff --stat 3fe3721 310a82a</code>（只有票檔）</td><td class="tier t-i">推論</td></tr>
+<tr><td>25</td><td>實作等於 spec，所以剩下的 finding 只可能是 spec 措辭或票面紀錄</td><td>由 #5–#7、#24、#14 推得</td><td class="tier t-i">推論</td></tr>
+<tr><td>26</td><td>retrospective 記錄的成本：合計約 4.40M，stage 6 加上 chain 分析約占 67%（加總與比例已重算）</td><td><code>retrospective.md</code>「成本紀錄」一節；原始數字來自 workflow 完成通知，無法重新查核</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>27</td><td>CC 官方 legalcode.txt 的 Last-Modified 是 2023-09-11</td><td>https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt 的回應標頭（2026-10-22）；也記在 <code>traceability.md:75-79</code></td><td class="tier t-e">外部</td></tr>
+<tr><td>28</td><td>當天下載的 legalcode.txt 與 <code>LICENSE</code> 的 blob 相同（<code>2d58298e</code>）</td><td>對下載檔執行 <code>git hash-object</code>（2026-10-22）；<code>security-T-0006.md:14</code></td><td class="tier t-e">外部</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>這份報告不主張的事</h3>
+<ul class="note">
+<li>不主張授權與署名在法律上是正確的；那是 owner 的裁決。這份報告只確認 repo 內容符合 spec。</li>
+<li>不涵蓋部署出去的網站（OQ-3），也不涵蓋依賴套件或供應鏈掃描。</li>
+<li>「安全審查確認 0 個」只涵蓋這次 epic 的 diff，不代表整個專案是安全的。</li>
+<li>11 項 spec 層級問題在這裡只是列出，不建議怎麼改；要不要處理由你決定。</li>
+</ul>
+
+<h2>要你決定的事</h2>
+<div class="decision">
+<p><strong>epic 0004 就此結案，接著用 <code>/grill-with-docs 0005</code> 開始 epic 0005 嗎？</strong>如果你想先處理那 11 項 spec 措辭問題，就先開一個小 epic。</p>
+</div>
+
+</main>
+</body>
+</html>
