@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import sys
 import tomllib
+import unicodedata
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -211,6 +212,8 @@ def check_glossary(root):
 # chalkdeck: license-reference check (epic 0005-license-reference-check).
 PROVENANCE = "docs/agents/skill-sources.json"
 PLACEHOLDER = re.compile(r"<[^<>\s]+>")
+SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
+ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
 
 
 def _quoted(value):
@@ -220,13 +223,26 @@ def _quoted(value):
 
 
 def _resolve(root, target):
-    """The reason a repository path does not resolve to a regular file, or None."""
-    current = root
-    for segment in target.split("/"):
-        if segment not in os.listdir(current):
+    """The path rules: the reason a target does not name a regular file in the repository, or None."""
+    segments = target.split("/")
+    if target.startswith(("/", "\\")) or "\\" in target or ".." in segments:
+        return "is outside the repository"
+    if "<" in target or "" in segments or "." in segments:
+        return "is not a plain repository path"
+    current, walked = root, []
+    for segment in segments:
+        names = os.listdir(current)
+        if segment not in names:
+            folded = unicodedata.normalize("NFC", segment).casefold()
+            close = sorted(name for name in names if unicodedata.normalize("NFC", name).casefold() == folded)
+            if close:
+                return f"differs in case from {_quoted('/'.join(walked + [close[0]]))}"
             return "does not exist"
+        walked.append(segment)
         current = current / segment
-    return None
+        if current.is_symlink():
+            return f"passes through a symlink at {_quoted('/'.join(walked))}"
+    return None if current.is_file() else "is not a regular file"
 
 
 def _location_reason(root, value):
@@ -239,20 +255,24 @@ def _location_reason(root, value):
         return None
     if value != value.strip():
         return "has leading or trailing whitespace"
+    scheme = SCHEME.match(value)
+    if scheme:
+        return "is outside the repository" if len(scheme[0]) == 2 else "uses an unsupported URL scheme"
     return _resolve(root, value)
 
 
 def _locations(document):
-    """(JSON Pointer, value) for every license_location key, in document order, without recursion."""
-    stack = [(None, document, "")]
+    """(JSON Pointer, value, holding object) for every license_location key, in document order,
+    without recursion."""
+    stack = [(None, document, "", None)]
     while stack:
-        key, node, pointer = stack.pop()
+        key, node, pointer, parent = stack.pop()
         if key == "license_location":
-            yield pointer, node
+            yield pointer, node, parent
         if isinstance(node, dict):
-            children = [(name, value, f"{pointer}/{name.replace('~', '~0').replace('/', '~1')}") for name, value in node.items()]
+            children = [(name, value, f"{pointer}/{name.replace('~', '~0').replace('/', '~1')}", node) for name, value in node.items()]
         elif isinstance(node, list):
-            children = [(None, value, f"{pointer}/{index}") for index, value in enumerate(node)]
+            children = [(None, value, f"{pointer}/{index}", node) for index, value in enumerate(node)]
         else:
             continue
         stack.extend(reversed(children))
@@ -262,10 +282,14 @@ def check_license_references(root):
     """Return one message per bad license reference, in the order the epic 0005 spec defines."""
     messages = []
     sources = json.loads((root / PROVENANCE).read_text(encoding="utf-8"))
-    for pointer, value in _locations(sources):
+    for pointer, value, holder in _locations(sources):
+        prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
         reason = _location_reason(root, value)
         if reason:
-            messages.append(f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)} {reason}")
+            messages.append(f"{prefix} {reason}")
+        required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
+        if required and "license" in holder and holder["license"] != required:
+            messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
     return messages
 
 

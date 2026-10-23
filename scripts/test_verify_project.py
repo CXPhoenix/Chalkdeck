@@ -314,7 +314,9 @@ def ref(value, pointer, reason):
     return f"{PROVENANCE}: license reference {value} at {pointer} {reason}"
 
 
-class ProvenanceReferenceTest(unittest.TestCase):
+class LicenseCase(unittest.TestCase):
+    """Shared fixture and assertions for the license-reference tests; it holds no tests itself."""
+
     def setUp(self):
         self.fx = LicenseFixture()
         self.addCleanup(self.fx.close)
@@ -323,6 +325,12 @@ class ProvenanceReferenceTest(unittest.TestCase):
         self.fx.provenance(value)
         self.assertEqual(self.fx.check(), messages)
 
+    def loc(self, value, rendered, reason):
+        """Expect exactly one message for a one-key object {"license_location": value}."""
+        self.expect({"license_location": value}, [ref(rendered, '"/license_location"', reason)])
+
+
+class ProvenanceReferenceTest(LicenseCase):
     def test_p7_missing_file(self):
         self.expect({"license_location": "missing.md"}, [ref('"missing.md"', '"/license_location"', "does not exist")])
 
@@ -346,9 +354,6 @@ class ProvenanceReferenceTest(unittest.TestCase):
     def test_p1_valid_in_array(self):
         self.expect({"x": [{"license_location": "LICENSE"}]}, [])
 
-    def loc(self, value, rendered, reason):
-        """Expect exactly one message for a one-key object {"license_location": value}."""
-        self.expect({"license_location": value}, [ref(rendered, '"/license_location"', reason)])
 
     def test_p4_empty(self):
         self.loc("", '""', "is empty")
@@ -397,3 +402,88 @@ class ProvenanceReferenceTest(unittest.TestCase):
 
     def test_p5_trailing_ideographic_space(self):
         self.loc("LICENSE-CODE　", '"LICENSE-CODE\\u3000"', "has leading or trailing whitespace")
+
+    def test_p6_url_scheme(self):
+        self.loc("https://example.org/LICENSE", '"https://example.org/LICENSE"', "uses an unsupported URL scheme")
+
+    def test_p6_drive(self):
+        self.loc("C:LICENSE", '"C:LICENSE"', "is outside the repository")
+
+    def test_p7_fragment_is_not_stripped(self):
+        self.loc("LICENSE#x", '"LICENSE#x"', "does not exist")
+
+    def test_p7_absolute(self):
+        self.loc("/LICENSE", '"/LICENSE"', "is outside the repository")
+
+    def test_p7_dot_segment(self):
+        self.loc("./LICENSE", '"./LICENSE"', "is not a plain repository path")
+
+    def test_p7_unpaired_angle_bracket(self):
+        self.loc("LICENSE<old", '"LICENSE<old"', "is not a plain repository path")
+
+    def test_p7_case_mismatch(self):
+        self.loc("license", '"license"', 'differs in case from "LICENSE"')
+
+    def test_p7_symlink(self):
+        make_symlink(self, "LICENSE", self.fx.root / "link")
+        self.loc("link", '"link"', 'passes through a symlink at "link"')
+
+    def test_p7_directory(self):
+        (self.fx.root / "adir").mkdir()
+        self.loc("adir", '"adir"', "is not a regular file")
+
+
+class LicenseAgreementTest(LicenseCase):
+    def mismatch(self, location, required, actual, pointer='"/license_location"'):
+        return ref(location, pointer, f"is {required}, not {actual}")
+
+    def test_d1_license_with_mit(self):
+        self.expect({"license": "MIT", "license_location": "LICENSE"}, [self.mismatch('"LICENSE"', "CC-BY-SA-4.0", '"MIT"')])
+
+    def test_d1_license_code_with_cc(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"')])
+
+    def test_d1_license_code_with_null(self):
+        self.expect({"license": None, "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", "null")])
+
+    def test_d1_license_code_with_lowercase(self):
+        self.expect({"license": "mit", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"mit"')])
+
+    def test_d1_license_code_with_trailing_space(self):
+        self.expect({"license": "MIT ", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"MIT "')])
+
+    def test_d2_license_code_with_mit(self):
+        self.expect({"license": "MIT", "license_location": "LICENSE-CODE"}, [])
+
+    def test_d2_license_with_cc(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "LICENSE"}, [])
+
+    def test_d3_skill_license_path(self):
+        self.fx.write("skills/x/LICENSE", "Apache License 2.0\n")
+        self.expect({"license": "Apache-2.0", "license_location": "skills/x/LICENSE"}, [])
+
+    def test_d3_no_license_key(self):
+        self.expect({"license_location": "LICENSE-CODE"}, [])
+
+    def test_d3_location_with_leading_space(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": " LICENSE-CODE"},
+                    [ref('" LICENSE-CODE"', '"/license_location"', "has leading or trailing whitespace")])
+
+    def test_d3_location_in_other_case(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "license-code"},
+                    [ref('"license-code"', '"/license_location"', 'differs in case from "LICENSE-CODE"')])
+
+    def test_d5_position_before_nested(self):
+        value = {"license_location": "LICENSE-CODE", "x": {"license_location": "missing"}, "license": "CC-BY-SA-4.0"}
+        self.expect(value, [
+            self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"'),
+            ref('"missing"', '"/x/license_location"', "does not exist"),
+        ])
+
+    def test_d6_nested_object(self):
+        value = {"skills": {"x": {"licensing": {"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}}}}
+        self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/skills/x/licensing/license_location"')])
+
+    def test_d6_object_in_array(self):
+        value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
+        self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
