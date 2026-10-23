@@ -40,3 +40,17 @@ is open, what it blocks, and what would settle it.
 - **Blocks:** nothing in the repository; publishing compliance of public decks.
 - **Settles it:** a decision on where a deployed notice lives. Candidates: a page generated at
   build time; a theme change applied only to new decks; a footer convention for new decks.
+
+## OQ-4 — Standing check that license targets are committed
+
+- **Question:** How is it checked, on every change, that each license reference in the notices and
+  the provenance file points at a committed file, not one that exists only in the local checkout?
+- **Why open:** Epic 0005 keeps the verifier a file-system check that needs no Git (grill Q2'). A
+  file that was renamed or added without `git add` passes it locally. The epic verifies committed
+  state once, by running the verifier in a detached worktree of HEAD at stage 8; no workflow rule
+  repeats that run, and deck content work does not run the verifier at all (round-1 Ruling R1).
+- **Blocks:** nothing now; the guarantee that a landed notices or provenance change has no
+  uncommitted target.
+- **Settles it:** a decision among, for example, a workflow rule to run the verifier in a fresh
+  worktree before landing, a CI job that runs it on the pushed commit, or a Git-aware mode of the
+  verifier.

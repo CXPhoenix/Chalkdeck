@@ -146,6 +146,37 @@ Subagent tokens: about 0.48M (axis 1 0.12M, axis 2 0.10M, axis 3 0.15M, axis 4 0
 - **E-5** 缺少 provenance 時 `verify()` 報兩次。
 - **E-6** case 不符的訊息會揭露磁碟上相近的檔名，只限本機執行。
 
-## Rulings
+## Rulings (repository owner, 2026-10-23)
 
-Pending: the repository owner adjudicates the P1 findings and the revision path.
+Owner's answer to R1–R8: "R1–R8 都照建議，做 revision 2 後跑第 2 輪。"
+
+- **Gate:** no P0 survived round 1. The owner chose to revise the spec and run round 2 with the
+  frozen prompt (R8 a).
+- **R1** (3-1, 4-2), committed state: (a). The spec and ADR-0008 say that tracking is not checked
+  and that this epic's E2 verified committed state once. No standing guarantee is claimed. A new
+  open question tracks a standing check.
+- **R2** (4-3 to 4-7), hidden links: narrow the grammar. The following fail:
+  - a `<` outside code spans that is not an angle-bracket destination (raw HTML or autolink); this
+    replaces the HTML comment construct;
+  - a blockquote line;
+  - a tab in leading whitespace;
+  - a byte order mark;
+  - a carriage return;
+  - a backtick fence opener whose info string holds a backtick;
+  - empty link text.
+
+  Link text must be on one line, which reverses grill Q8's multi-line allowance. Images do not
+  count toward (c).
+- **R3** (4-9), link text: (c) requires `[CC BY-SA 4.0](LICENSE)` and `[MIT](LICENSE-CODE)`, with
+  exact link text.
+- **R4** (4-1), sentence skip: accepted as residual risk and stated in Out of Scope. The placeholder
+  skip narrows to the paired form `<word>`.
+- **R5** (3-2, 4-17), deck track: `AGENTS.md` slide hard rules gain a line to run the verifier after
+  editing the notices' Assets row. ADR-0008 states its effect on ADR-0007.
+- **R6** (3-4), `README.md:51`: unchanged, and the spec says so.
+- **R7** (2-3, 3-5), red evidence: every sub-case that passes on its first run takes its red by
+  mutation, whether or not it expects a message. The test plan table lists each mutation. The spec
+  states that this extends ADR-0006's technique beyond that ADR's scope, for this epic only.
+- **R8**: revision 2 is self-checked, then round 2 replays `review/prompt.md` verbatim.
+- **Parent fixes without a ruling:** every other P1 and the cheap P2 rows, as listed for the owner on
+  2026-10-23. 4-13, 4-14 and 4-18 to 4-21 are recorded and not changed.
