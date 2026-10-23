@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 import tomllib
 import unicodedata
@@ -229,22 +230,26 @@ def _resolve(root, target):
     segments = target.split("/")
     if target.startswith(("/", "\\")) or "\\" in target or ".." in segments:
         return "is outside the repository"
-    if "<" in target or "" in segments or "." in segments:
+    if any(char in target for char in "%?<>") or "" in segments or "." in segments:
         return "is not a plain repository path"
     current, walked = root, []
-    for segment in segments:
-        names = os.listdir(current)
-        if segment not in names:
-            folded = unicodedata.normalize("NFC", segment).casefold()
-            close = sorted(name for name in names if unicodedata.normalize("NFC", name).casefold() == folded)
-            if close:
-                return f"differs in case from {_quoted('/'.join(walked + [close[0]]))}"
-            return "does not exist"
-        walked.append(segment)
-        current = current / segment
-        if current.is_symlink():
-            return f"passes through a symlink at {_quoted('/'.join(walked))}"
-    return None if current.is_file() else "is not a regular file"
+    try:
+        for segment in segments:
+            names = os.listdir(current)
+            if segment not in names:
+                folded = unicodedata.normalize("NFC", segment).casefold()
+                close = sorted(name for name in names if unicodedata.normalize("NFC", name).casefold() == folded)
+                if close:
+                    return f"differs in case from {_quoted('/'.join(walked + [close[0]]))}"
+                return "does not exist"
+            walked.append(segment)
+            current = current / segment
+            mode = os.lstat(current).st_mode
+            if stat.S_ISLNK(mode):
+                return f"passes through a symlink at {_quoted('/'.join(walked))}"
+    except OSError:
+        return "does not exist"
+    return None if stat.S_ISREG(mode) else "is not a regular file"
 
 
 def _location_reason(root, value):

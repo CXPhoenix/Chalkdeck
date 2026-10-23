@@ -1083,3 +1083,82 @@ in the approved table, with `U(reason)` for
 | 60 | I1 | 100,000 nested arrays | `U(not valid JSON)` | treat `RecursionError` as `{}` |
 | 61 | I1 | a 5,000-digit integer as `license_location` | `U(not valid JSON)` | raise the int digit limit |
 | 62 | I1 | top-level `[]` | `U(not a JSON object)` | accept a top-level array |
+
+### 2026-10-24 — Red records for #45–#49 (C1), committed with their green
+
+Runs use `python3 -I -B` after removing `scripts/__pycache__`. F3 (resolution through `os.lstat` and `stat.S_ISLNK`/`S_ISREG`) landed with #45 green.
+
+#### #45 P7/R3 segment below a regular file — red
+
+- HEAD: `9b3a0e1668b35018fb97273ed6a53a4ba0949a8b`
+- test file blob: `56e17d755d884bac62591d725f768694e51d4d74`; verifier blob: `1f2cfb5e5eccccf26c0841e6df96fe7bdfef6970`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_segment_below` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_p7_segment_below_a_regular_file (test_verify_project.ProvenanceReferenceTest.test_p7_segment_below_a_regular_file)
+NotADirectoryError: [Errno 20] Not a directory: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpmzk916n3/LICENSE'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
+
+#### #46 P7/R7 unlistable parent (passed on first run; mutation: let resolution errors propagate) — red
+
+- HEAD: `9b3a0e1668b35018fb97273ed6a53a4ba0949a8b`
+- test file blob: `dac832b23e17669e6a668c0f39268f7226278f42`; verifier blob: `9c1c19a328248fca9d8efdbd5047a3ddb964af40`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_unlistable` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_p7_unlistable_parent (test_verify_project.ProvenanceReferenceTest.test_p7_unlistable_parent)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmp061y4ie1/sub'
+Ran 1 test in 0.004s
+FAILED (errors=1)
+```
+
+#### #47 P7/R2 closing angle bracket — red
+
+- HEAD: `9b3a0e1668b35018fb97273ed6a53a4ba0949a8b`
+- test file blob: `27e56f933cdf0fd874138bf71a04e095ab165eac`; verifier blob: `a2fed93b5bb9d4d71b097995931699eed9d50a51`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_closing_angle` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p7_closing_angle_bracket (test_verify_project.ProvenanceReferenceTest.test_p7_closing_angle_bracket)
+AssertionError: Lists differ: ['doc[53 chars]SE>old" at "/license_location" does not exist'] != ['doc[53 chars]SE>old" at "/license_location" is not a plain repository path']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" is not a plain repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #48 P7/R2 query — red
+
+- HEAD: `9b3a0e1668b35018fb97273ed6a53a4ba0949a8b`
+- test file blob: `60abb77ec969fd5f3aaf4883cdd7b2f81a9704d4`; verifier blob: `705f5bb0b5698b19f657cf1eff5d1f319da019d8`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_query` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p7_query (test_verify_project.ProvenanceReferenceTest.test_p7_query)
+AssertionError: Lists differ: ['doc[51 chars]ENSE?x" at "/license_location" does not exist'] != ['doc[51 chars]ENSE?x" at "/license_location" is not a plain repository path']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" is not a plain repository path']
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### #49 P7/R2 percent — red
+
+- HEAD: `9b3a0e1668b35018fb97273ed6a53a4ba0949a8b`
+- test file blob: `7cbd1ccafc202a0a13a3ee28c298bccbdfcfe899`; verifier blob: `d9da46a16d3912800b1495e48a5cf0fd53c237f8`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_percent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p7_percent (test_verify_project.ProvenanceReferenceTest.test_p7_percent)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [71 chars]ath']
+- []
++ ['docs/agents/skill-sources.json: license reference "a%20b.md" at '
++  '"/license_location" is not a plain repository path']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+

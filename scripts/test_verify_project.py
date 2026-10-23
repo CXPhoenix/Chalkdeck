@@ -431,6 +431,27 @@ class ProvenanceReferenceTest(LicenseCase):
         (self.fx.root / "adir").mkdir()
         self.loc("adir", '"adir"', "is not a regular file")
 
+    def test_p7_segment_below_a_regular_file(self):
+        self.loc("LICENSE/x", '"LICENSE/x"', "does not exist")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "running as root or without POSIX permissions")
+    def test_p7_unlistable_parent(self):
+        sub = self.fx.root / "sub"
+        self.fx.write("sub/LICENSE", "MIT\n")
+        sub.chmod(0)
+        self.addCleanup(sub.chmod, 0o755)
+        self.loc("sub/LICENSE", '"sub/LICENSE"', "does not exist")
+
+    def test_p7_closing_angle_bracket(self):
+        self.loc("LICENSE>old", '"LICENSE>old"', "is not a plain repository path")
+
+    def test_p7_query(self):
+        self.loc("LICENSE?x", '"LICENSE?x"', "is not a plain repository path")
+
+    def test_p7_percent(self):
+        self.fx.write("a%20b.md", "text\n")
+        self.loc("a%20b.md", '"a%20b.md"', "is not a plain repository path")
+
 
 class LicenseAgreementTest(LicenseCase):
     """Rows D1-D3, D5 and D6 and approved test plan items #31-#44: (d) license agreement."""
