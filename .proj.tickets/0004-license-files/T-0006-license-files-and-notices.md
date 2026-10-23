@@ -2,7 +2,7 @@
 id: T-0006
 title: License content under CC BY-SA 4.0 and code under MIT, with notices and pointers
 epic: 0004-license-files
-status: review
+status: done
 blocked_by: []
 ---
 
@@ -497,3 +497,9 @@ was scanned in memory against both archives' `namelist()`: `bluechall-master.zip
 found; `webchall-master.zip` 236 members, 0 found. With the X1-file and commit-message scans above,
 AC4's "no member path is published" holds for every place it names. Status moves to `done` after the
 merge.
+
+### 2026-10-23 — Landed
+
+PR #9 merged into `main` as a merge commit: `ef78392b5ce7312d2e194a179e2fd31a9c38cba2` (parents
+`746378f` and `310a82a`), 2026-10-23T07:51:20Z. Status set to `done`. The epic close-out (chain
+analysis, evidence report, retrospective) follows on `specs/0004-license-files-closeout`.
