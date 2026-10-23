@@ -2,7 +2,7 @@
 id: T-0007
 title: The verifier reports bad license references in the provenance file
 epic: 0005-license-reference-check
-status: processing
+status: review
 blocked_by: []
 ---
 
@@ -169,3 +169,798 @@ come first, so P7a drives the function into existence.
 Not tests in this ticket (judged in Comments): T1, T2, T3, T6, W3, W4 and X1–X3. A CLI run on the
 worktree records the PASS line, together with a run on a temporary copy whose provenance holds one
 bad value; the copy is outside the repository and is deleted after the run.
+
+### 2026-10-23 — Test plan approved (hard rule 2)
+
+The repository owner: "T-0007 的 test plan 表格核准，開始 /tdd。" Red records below follow the
+table's numbering. Each holds the failing output, the HEAD commit, and the `git hash-object -w`
+blobs of the test file and of `scripts/verify-project.py` at that run, so the code as it ran can be
+read back even between commits.
+
+### 2026-10-24 — Red records, natural (item 3)
+
+Fifteen sub-cases failed on their own first run. The order follows the table with two approved-plan
+deviations, each noted in its record: #5 and #6 ran before #3 and #4, so the walk the latter guard
+existed; #17 ran before #15 and #16, so step 5 existed for their mutations.
+
+#### #1 P7 missing.md — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `ce66d0aa30ca8b67e94b75c90885195dc2df0e9c`; verifier blob: `452fb86fa4e0371d0b57b77ef09866c4c91793c3`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_missing_file` (exit 1)
+
+```
+ERROR: test_p7_missing_file (test_verify_project.ProvenanceReferenceTest.test_p7_missing_file)
+AttributeError: module 'verify_project' has no attribute 'check_license_references'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #5 P8 pointer through an array (run before #3 and #4, which need the walk to exist) — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `2bf9b486d3d0984bc33d418bbf3a7e514731155a`; verifier blob: `a743cadcf1c90b416921b271dc10d2c073383ecb`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p8_pointer_through_array` (exit 1)
+
+```
+FAIL: test_p8_pointer_through_array (test_verify_project.ProvenanceReferenceTest.test_p8_pointer_through_array)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [58 chars]ist']
+- []
++ ['docs/agents/skill-sources.json: license reference "missing" at '
++  '"/x/0/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #7 P4 empty string — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `b00051baa041e09c6b2e732ac848e9f3ba290836`; verifier blob: `1d3a63ae4e3ee757f7cb1105965c3b7b0952bd3d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p4_empty` (exit 1)
+
+```
+FAIL: test_p4_empty (test_verify_project.ProvenanceReferenceTest.test_p4_empty)
+AssertionError: Lists differ: ['doc[26 chars]n: license reference "" at "/license_location" does not exist'] != ['doc[26 chars]n: license reference "" at "/license_location" is empty']
+First differing element 0:
+-  'does not exist']
++  'is empty']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #8 P3 number — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `44e595a26e80905e467da729300a98deb72bac3e`; verifier blob: `6ebdf82be55c878ea7be2a31eebbc407372f2fff`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p3_number` (exit 1)
+
+```
+ERROR: test_p3_number (test_verify_project.ProvenanceReferenceTest.test_p3_number)
+AttributeError: 'int' object has no attribute 'split'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #13 P2 placeholder — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `7e143ddcf610b5d6cb44f7ab27b4d1ff1ef6d0f0`; verifier blob: `47df0c15c6678205fedf63032e7ddace91fc2ee2`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p2_placeholder` (exit 1)
+
+```
+FAIL: test_p2_placeholder (test_verify_project.ProvenanceReferenceTest.test_p2_placeholder)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [77 chars]ist'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference '
+-  '".agents/skills/<skill>/LICENSE" at "/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #14 P2 sentence — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `b1d1a5f617669eb79c82dae3326beba87cfb50a9`; verifier blob: `2e5ccb918ae411101d3054d22dc0f91e3ea976fd`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p2_sentence` (exit 1)
+
+```
+FAIL: test_p2_sentence (test_verify_project.ProvenanceReferenceTest.test_p2_sentence)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [124 chars]ist'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "Upstream repository root '
+-  'LICENSE; the skill directories ship no LICENSE file." at "/license_location" '
+-  'does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #17 P5 trailing space (run before #15 and #16, which need step 5 to exist) — red
+
+- HEAD: `0ea0fc13d7000a8a4a1e1f7a873e33c9a9962ac7`
+- test file blob: `87b89c92a7fea1a13308da7a358432db163eae38`; verifier blob: `b251780e38ad1ab61685334846f01e9566cfa47e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p5_trailing_space` (exit 1)
+
+```
+FAIL: test_p5_trailing_space (test_verify_project.ProvenanceReferenceTest.test_p5_trailing_space)
+AssertionError: Lists differ: ['doc[59 chars]E " at "/license_location" does not exist'] != ['doc[59 chars]E " at "/license_location" has leading or trailing whitespace']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #22 P6 URL scheme — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `3c52c42310e3c9278b7399c0b6f945bff34fc753`; verifier blob: `edea4f7f28d33a599c117155b8f85751b8dca954`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p6_url_scheme` (exit 1)
+
+```
+FAIL: test_p6_url_scheme (test_verify_project.ProvenanceReferenceTest.test_p6_url_scheme)
+AssertionError: Lists differ: ['doc[69 chars]ICENSE" at "/license_location" does not exist'] != ['doc[69 chars]ICENSE" at "/license_location" uses an unsupported URL scheme']
+First differing element 0:
+-  '"https://example.org/LICENSE" at "/license_location" does not exist']
+?                                                        ^^      - ^^^^ -
++  '"https://example.org/LICENSE" at "/license_location" uses an unsupported URL '
+?                                                        ^^   + +++++++ +  ^^^^^^
++  'scheme']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #25 P7 absolute path — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `4dfaf3d9def759a6ac45e3576ff20c50c5c4ed40`; verifier blob: `a9213e94ffce036e83af1ed7e596b446c52d5be7`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_absolute` (exit 1)
+
+```
+FAIL: test_p7_absolute (test_verify_project.ProvenanceReferenceTest.test_p7_absolute)
+AssertionError: Lists differ: ['doc[45 chars]e "/LICENSE" at "/license_location" does not exist'] != ['doc[45 chars]e "/LICENSE" at "/license_location" is outside the repository']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" is outside the repository']
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #26 P7 dot segment — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `a5368faf4547a9794c43e2f66f2e415f729daa20`; verifier blob: `786e6035694a433348f61a2d3b5044648c712f6c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_dot_segment` (exit 1)
+
+```
+FAIL: test_p7_dot_segment (test_verify_project.ProvenanceReferenceTest.test_p7_dot_segment)
+AssertionError: Lists differ: ['doc[51 chars]ICENSE" at "/license_location" does not exist'] != ['doc[51 chars]ICENSE" at "/license_location" is not a plain repository path']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" is not a plain repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #27 P7 unpaired angle bracket — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `17ee262863af47490892245eca70486ed570d46d`; verifier blob: `862a253253c09aa9c8b57d1eb7d6d031c9ce4969`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_unpaired` (exit 1)
+
+```
+FAIL: test_p7_unpaired_angle_bracket (test_verify_project.ProvenanceReferenceTest.test_p7_unpaired_angle_bracket)
+AssertionError: Lists differ: ['doc[53 chars]SE<old" at "/license_location" does not exist'] != ['doc[53 chars]SE<old" at "/license_location" is not a plain repository path']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" is not a plain repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #28 P7 case mismatch — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `991ce67faca9f4e36d3edeca36c376b3180ada1b`; verifier blob: `ffed2087e360fc30864a47513f6c35a3c0ada211`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_case` (exit 1)
+
+```
+FAIL: test_p7_case_mismatch (test_verify_project.ProvenanceReferenceTest.test_p7_case_mismatch)
+AssertionError: Lists differ: ['doc[49 chars]icense" at "/license_location" does not exist'] != ['doc[49 chars]icense" at "/license_location" differs in case from "LICENSE"']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" differs in case from "LICENSE"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #29 P7 symlink — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `7609f5accc08392e6083b2279065e9d7cc5544a9`; verifier blob: `680fb3d9e2722c4b5ebdffea58f434ff375ff56f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_symlink` (exit 1)
+
+```
+FAIL: test_p7_symlink (test_verify_project.ProvenanceReferenceTest.test_p7_symlink)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [71 chars]nk"']
+- []
++ ['docs/agents/skill-sources.json: license reference "link" at '
++  '"/license_location" passes through a symlink at "link"']
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### #30 P7 directory — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `a24cd29b6ee8c31bcb1c96614deca6aaf7d75f06`; verifier blob: `a6ba7f9f94494cef2bde281fbbf68c1c8739a0cb`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_directory` (exit 1)
+
+```
+FAIL: test_p7_directory (test_verify_project.ProvenanceReferenceTest.test_p7_directory)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [58 chars]ile']
+- []
++ ['docs/agents/skill-sources.json: license reference "adir" at '
++  '"/license_location" is not a regular file']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #31 D1 LICENSE with MIT — red
+
+- HEAD: `e34c5cff0f14f9f79a12d71d183ab0bc95b8cc5c`
+- test file blob: `fe7cdb439783530f4f07778cbca9c8db1d50e78a`; verifier blob: `77796f261af9b8f79ee3b8c42180b1a4dc55db4e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d1_license_with_mit` (exit 1)
+
+```
+FAIL: test_d1_license_with_mit (test_verify_project.LicenseAgreementTest.test_d1_license_with_mit)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [66 chars]IT"']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE" at '
++  '"/license_location" is CC-BY-SA-4.0, not "MIT"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+### 2026-10-24 — Red records, by mutation (item 3)
+
+Twenty-nine sub-cases passed on their first run and took their red by the mutation the approved
+table names. Each mutation was applied to `scripts/verify-project.py`, the sub-case's test was run
+and failed, and the file was restored byte for byte (the helper asserts it).
+
+A tooling fault was found and corrected before these records. Python's bytecode cache keys on
+source mtime in whole seconds and on size. Two mutations of equal length written within one second
+(#40 `value.strip()` and #41 `value.upper()`) therefore ran #40's cached code for #41, which passed.
+Reading the #41 verifier blob back (`8cdb416`) and running it directly gave the expected two
+messages, confirming the cause. Every run since uses `python3 -I -B` after removing
+`scripts/__pycache__`. All 29 mutation reds were then re-run at HEAD `18bd008`; each exited 1 and
+the file was restored. Those re-runs are the records below; the earlier mutation runs are
+superseded. The natural reds above came from code changes of different sizes and match the code
+each recorded blob holds.
+
+#### #2 P1 top-level valid (passed on first run; mutation: resolution reports does not exist for an existing regular file) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `5d23686a6af6988ff953aaf0ad511fc1097801e0`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p1_valid_top_level` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p1_valid_top_level (test_verify_project.ProvenanceReferenceTest.test_p1_valid_top_level)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [54 chars]ist'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "LICENSE" at '
+-  '"/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #3 P1 nested valid (passed on first run; mutation: report does not exist for values below the top level) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `bb6b7d85d2cffe88819c4867e96cb9b58b9493d6`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p1_valid_nested` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p1_valid_nested (test_verify_project.ProvenanceReferenceTest.test_p1_valid_nested)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [65 chars]ist'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
+-  '"/a/b/c/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #4 P1 valid in an array (passed on first run; mutation: report does not exist for values inside an array) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `0776ca72628b7892235682ea91bb23b38679d907`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p1_valid_in_array` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p1_valid_in_array (test_verify_project.ProvenanceReferenceTest.test_p1_valid_in_array)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [58 chars]ist'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "LICENSE" at '
+-  '"/x/0/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #6 P9 document order (passed on first run; mutation: walk keys in sorted order) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `ea38bc60cc93e3d169b6c4398d29ab856eba09aa`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p9_document_order` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p9_document_order (test_verify_project.ProvenanceReferenceTest.test_p9_document_order)
+AssertionError: Lists differ: ['doc[51 chars]sing-1" at "/a/0/license_location" does not ex[212 chars]ist'] != ['doc[51 chars]sing-b" at "/b/license_location" does not exis[212 chars]ist']
+First differing element 0:
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #9 P3 null (passed on first run; mutation: drop step 1) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `d1cc35708053d8458425a7d988798aed031a298e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p3_null` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_p3_null (test_verify_project.ProvenanceReferenceTest.test_p3_null)
+TypeError: expected string or bytes-like object, got 'NoneType'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
+
+#### #10 P3 true (passed on first run; mutation: drop step 1) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `d1cc35708053d8458425a7d988798aed031a298e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p3_true` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_p3_true (test_verify_project.ProvenanceReferenceTest.test_p3_true)
+TypeError: expected string or bytes-like object, got 'bool'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #11 P3 array (passed on first run; mutation: drop step 1) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `d1cc35708053d8458425a7d988798aed031a298e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p3_array` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_p3_array (test_verify_project.ProvenanceReferenceTest.test_p3_array)
+TypeError: expected string or bytes-like object, got 'list'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
+
+#### #12 P3 object holding a nested location (passed on first run; mutation: walk does not enter a license_location value) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `f86acd4fc1f594fb4b29c97905378472630fb934`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p3_object` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p3_object_with_nested_location (test_verify_project.ProvenanceReferenceTest.test_p3_object_with_nested_location)
+AssertionError: Lists differ: ['doc[113 chars]ring'] != ['doc[113 chars]ring', 'docs/agents/skill-sources.json: licens[73 chars]ist']
+-  '"missing"} at "/license_location" is not a string']
+?                                                     ^
++  '"missing"} at "/license_location" is not a string',
+?                                                     ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
++  '"/license_location/license_location" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #15 P2 leading space with a placeholder (passed on first run; mutation: step 5 before step 3) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `2a684173122a380f57aec27cc91875be88eaaeaf`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p2_leading_space_with_placeholder` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p2_leading_space_with_placeholder (test_verify_project.ProvenanceReferenceTest.test_p2_leading_space_with_placeholder)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [71 chars]ace'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference " <x>" at '
+-  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #16 P2 leading space with inner space (passed on first run; mutation: step 5 before step 4) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `2a684173122a380f57aec27cc91875be88eaaeaf`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p2_leading_space_with_inner_space` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p2_leading_space_with_inner_space (test_verify_project.ProvenanceReferenceTest.test_p2_leading_space_with_inner_space)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [71 chars]ace'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference " a b" at '
+-  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #18 P5 leading space (passed on first run; mutation: drop step 5) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `031545f88d283e6052aa07f3976f40f346764542`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p5_leading_space` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p5_leading_space (test_verify_project.ProvenanceReferenceTest.test_p5_leading_space)
+AssertionError: Lists differ: ['doc[59 chars]DE" at "/license_location" does not exist'] != ['doc[59 chars]DE" at "/license_location" has leading or trailing whitespace']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #19 P5 trailing newline (passed on first run; mutation: drop step 5) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `031545f88d283e6052aa07f3976f40f346764542`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p5_trailing_newline` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p5_trailing_newline (test_verify_project.ProvenanceReferenceTest.test_p5_trailing_newline)
+AssertionError: Lists differ: ['doc[61 chars]\n" at "/license_location" does not exist'] != ['doc[61 chars]\n" at "/license_location" has leading or trailing whitespace']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #20 P5 whitespace only (passed on first run; mutation: drop step 5) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `031545f88d283e6052aa07f3976f40f346764542`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p5_whitespace_only` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p5_whitespace_only (test_verify_project.ProvenanceReferenceTest.test_p5_whitespace_only)
+AssertionError: Lists differ: ['doc[48 chars]  " at "/license_location" does not exist'] != ['doc[48 chars]  " at "/license_location" has leading or trailing whitespace']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #21 P5 trailing U+3000 (passed on first run; mutation: drop step 5) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `031545f88d283e6052aa07f3976f40f346764542`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p5_trailing_ideographic` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p5_trailing_ideographic_space (test_verify_project.ProvenanceReferenceTest.test_p5_trailing_ideographic_space)
+AssertionError: Lists differ: ['doc[65 chars]00" at "/license_location" does not exist'] != ['doc[65 chars]00" at "/license_location" has leading or trailing whitespace']
+First differing element 0:
+-  '"/license_location" does not exist']
++  '"/license_location" has leading or trailing whitespace']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #23 P6 drive (passed on first run; mutation: treat one-letter schemes as unsupported) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `1000717b9fd1b19959437e3e2f05c477c71058dc`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p6_drive` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p6_drive (test_verify_project.ProvenanceReferenceTest.test_p6_drive)
+AssertionError: Lists differ: ['doc[51 chars]ICENSE" at "/license_location" uses an unsupported URL scheme'] != ['doc[51 chars]ICENSE" at "/license_location" is outside the repository']
+First differing element 0:
+-  '"/license_location" uses an unsupported URL scheme']
++  '"/license_location" is outside the repository']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #24 P7 fragment is not stripped (passed on first run; mutation: strip #... in provenance values) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `73e9305c7b0a9400b66d95bb73ea02ae242226f7`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_p7_fragment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_p7_fragment_is_not_stripped (test_verify_project.ProvenanceReferenceTest.test_p7_fragment_is_not_stripped)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [56 chars]ist']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE#x" at '
++  '"/license_location" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #32 D1 LICENSE-CODE with CC-BY-SA-4.0 (passed on first run; mutation: drop (d)) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `3908631f12c728f6838a28bb6617c75ecdbd2bd3`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d1_license_code_with_cc` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d1_license_code_with_cc (test_verify_project.LicenseAgreementTest.test_d1_license_code_with_cc)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [71 chars].0"']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/license_location" is MIT, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #33 D1 LICENSE-CODE with null (passed on first run; mutation: a non-string license matches) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `d9c15c9cb31cc71f67c6b37757c0eb90576ce0fc`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d1_license_code_with_null` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d1_license_code_with_null (test_verify_project.LicenseAgreementTest.test_d1_license_code_with_null)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [61 chars]ull']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/license_location" is MIT, not null']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #34 D1 LICENSE-CODE with mit (passed on first run; mutation: compare license case-insensitively) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `8c16220fc2407a8af3bb0575fc135f59d2b5cf32`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d1_license_code_with_lowercase` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d1_license_code_with_lowercase (test_verify_project.LicenseAgreementTest.test_d1_license_code_with_lowercase)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [62 chars]it"']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/license_location" is MIT, not "mit"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #35 D1 LICENSE-CODE with MIT and a space (passed on first run; mutation: strip license before comparing) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `41e85cef05e7ba23f83e5ecf3372f21ea65c72e0`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d1_license_code_with_trailing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d1_license_code_with_trailing_space (test_verify_project.LicenseAgreementTest.test_d1_license_code_with_trailing_space)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [63 chars]T "']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/license_location" is MIT, not "MIT "']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #36 D2 LICENSE-CODE with MIT (passed on first run; mutation: report a mismatch when equal) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `2955676843cb5bc2f93569df0cd57c73d336e12d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d2_license_code_with_mit` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d2_license_code_with_mit (test_verify_project.LicenseAgreementTest.test_d2_license_code_with_mit)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [62 chars]IT"'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
+-  '"/license_location" is MIT, not "MIT"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #37 D2 LICENSE with CC-BY-SA-4.0 (passed on first run; mutation: report a mismatch when equal) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `2955676843cb5bc2f93569df0cd57c73d336e12d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d2_license_with_cc` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d2_license_with_cc (test_verify_project.LicenseAgreementTest.test_d2_license_with_cc)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [75 chars].0"'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "LICENSE" at '
+-  '"/license_location" is CC-BY-SA-4.0, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #38 D3 skill LICENSE path with Apache-2.0 (passed on first run; mutation: apply (d) to every location, requiring MIT) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `5dbf3261dedb1c67525aa9e77a54c825186d2048`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d3_skill` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d3_skill_license_path (test_verify_project.LicenseAgreementTest.test_d3_skill_license_path)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license [73 chars].0"'] != []
++ []
+- ['docs/agents/skill-sources.json: license reference "skills/x/LICENSE" at '
+-  '"/license_location" is MIT, not "Apache-2.0"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #39 D3 no license key (passed on first run; mutation: a missing license key is a mismatch) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `a22401ce781030577d8954338ddd60fa743c2a3c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d3_no_license` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_d3_no_license_key (test_verify_project.LicenseAgreementTest.test_d3_no_license_key)
+KeyError: 'license'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
+
+#### #40 D3 location with a leading space (passed on first run; mutation: strip the location before (d)) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `700c3f74e516065ee21615e3fad04f6b0479c8ef`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d3_location_with_leading` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d3_location_with_leading_space (test_verify_project.LicenseAgreementTest.test_d3_location_with_leading_space)
+AssertionError: Lists differ: ['doc[116 chars]pace', 'docs/agents/skill-sources.json: licens[74 chars].0"'] != ['doc[116 chars]pace']
+-  '"/license_location" has leading or trailing whitespace',
+?                                                          ^
++  '"/license_location" has leading or trailing whitespace']
+?                                                          ^
+-  'docs/agents/skill-sources.json: license reference " LICENSE-CODE" at '
+-  '"/license_location" is MIT, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #41 D3 location in another case (passed on first run; mutation: casefold the location before (d)) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `8cdb416bd3b7b6c95bf6481e89cfcbe082525528`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d3_location_in_other` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d3_location_in_other_case (test_verify_project.LicenseAgreementTest.test_d3_location_in_other_case)
+AssertionError: Lists differ: ['doc[116 chars]ODE"', 'docs/agents/skill-sources.json: licens[73 chars].0"'] != ['doc[116 chars]ODE"']
+-  '"/license_location" differs in case from "LICENSE-CODE"',
+?                                                           ^
++  '"/license_location" differs in case from "LICENSE-CODE"']
+?                                                           ^
+-  'docs/agents/skill-sources.json: license reference "license-code" at '
+-  '"/license_location" is MIT, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #42 D5 position before nested (passed on first run; mutation: emit (d) after every other message) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `fb6453ea9840c38c38901f2550f83b17f7f1f6c3`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d5_position` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d5_position_before_nested (test_verify_project.LicenseAgreementTest.test_d5_position_before_nested)
+AssertionError: Lists differ: ['doc[43 chars]nce "missing" at "/x/license_location" does no[122 chars].0"'] != ['doc[43 chars]nce "LICENSE-CODE" at "/license_location" is M[122 chars]ist']
+First differing element 0:
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+-  '"/x/license_location" does not exist',
+-  'docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
+? ^
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
+? ^
+-  '"/license_location" is MIT, not "CC-BY-SA-4.0"']
+?                                                  ^
++  '"/license_location" is MIT, not "CC-BY-SA-4.0"',
+?                                                  ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+```
+
+#### #43 D6 nested object (passed on first run; mutation: apply (d) to the top-level object only) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `10b7e795e4f8c835ddd71dbb76112634e8a88e85`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d6_nested` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d6_nested_object (test_verify_project.LicenseAgreementTest.test_d6_nested_object)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [90 chars].0"']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/skills/x/licensing/license_location" is MIT, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #44 D6 object in an array (passed on first run; mutation: skip objects inside arrays for (d)) — red
+
+- HEAD: `18bd008a60d61b1d4b85bdb4f0fcdaed2354ad8d`
+- test file blob: `2ea64fdcc837405823b90631a7fe5b2fedaa4df3`; verifier blob: `90e74ce145e1d97bfcb7c89be2041d906cb2bc4a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d6_object_in_array` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d6_object_in_array (test_verify_project.LicenseAgreementTest.test_d6_object_in_array)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: license [78 chars].0"']
+- []
++ ['docs/agents/skill-sources.json: license reference "LICENSE-CODE" at '
++  '"/list/0/license_location" is MIT, not "CC-BY-SA-4.0"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+### 2026-10-24 — Wiring, texts, module checks and scope (items 4–7)
+
+- **Wiring (item 4):** `verify()` now ends with `errors.extend(check_license_references(root))`
+  right after `errors.extend(check_glossary(root))` (commit `6b13094`). On the ticket worktree,
+  `python3 scripts/verify-project.py` exits 0 and prints
+  `PASS: shared instructions, 45 skills across Claude/Codex trees, invocation policies, helper assets, native role configs, the glossary convention and license references`.
+  The full W1 test and the final W2 run belong to T-0008.
+- **CLI demonstration** (surface: the verifier CLI on macOS). The tree at HEAD `6b13094` was
+  exported with `git archive` into a `mktemp -d` directory outside the repository. Its
+  tune-skills `license_location` was set to `LICENSE`, and that copy's own script was run. It exited
+  1 with exactly one FAIL line:
+  `FAIL: docs/agents/skill-sources.json: license reference "LICENSE" at "/skills/tune-skills/licensing/license_location" is CC-BY-SA-4.0, not "MIT"`.
+  The directory was then removed. This is the regression the spec's Problem Statement names.
+- **Texts (item 5):** at HEAD these hold, read in the diff:
+  - T1 is the PASS line above;
+  - T2 is the docstring's first sentence, "Check portable project instructions, per-runtime skill
+    trees, native role configs, the project glossary convention and license references.";
+  - T3: `AGENTS.md` reads "It verifies harness plumbing, the glossary convention and license
+    references, not slide behavior." Only that paragraph is rewrapped;
+  - T6 is the test module's first sentence, as T6 defines it.
+- **W3 (item 6):**
+  - the imports are `hashlib`, `json`, `os`, `pathlib`, `re`, `sys`, `tomllib`, `unicodedata`, all
+    in the W allow-list;
+  - `grep -nE` for `subprocess`, `multiprocessing`, `pty`, the listed `os.*` names, `__import__`,
+    `write_text`, `write_bytes`, `touch(` and `open(` in `scripts/verify-project.py` printed
+    nothing.
+- **W4 (item 6):** `git diff 46cfe03...HEAD -- scripts/verify-project.py` has three kinds of changed
+  line:
+  - T2;
+  - the added `import unicodedata`;
+  - one hunk with the new block, which starts with
+    `# chalkdeck: license-reference check (epic 0005-license-reference-check).`, the `verify()` call,
+    and the T1 line, which diff merges into that same hunk.
+
+  No other line of an existing check changed.
+- **Scope (item 7):** `git diff --name-only 46cfe03...HEAD` lists `AGENTS.md`,
+  `scripts/test_verify_project.py`, `scripts/verify-project.py` and this ticket, all in X1.
+- **Checks (item 7, X3):**
+  - `python3 scripts/verify-project.py` exits 0;
+  - `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 182 tests, OK (138 at B plus 44
+    new);
+  - `python3 scripts/check_style_skills.py` prints "PASS: 5 style skills match the baseline" and
+    exits 0.
+- **Known interim gap until T-0008:** this ticket has no unreadable-input handling (rows I1–I4).
+  A missing or invalid provenance file raises an exception from `check_license_references`, so
+  `verify()` stops with a traceback instead of reporting. The real tree is unaffected. T-0008's I1
+  closes the gap.
+
+### 2026-10-24 — Coverage report table (item 8)
+
+| Spec AC | Rows closed here | Evidence | Status |
+|---|---|---|---|
+| AC1 | P1–P9, D1–D3, D5, D6 (44 sub-cases) | red records above; 182 tests OK at `6b13094` | met for these rows; D4 is in T-0008 |
+| AC2 | — | — | T-0008 |
+| AC3 | — | — | T-0008 |
+| AC4 | W3, W4; wiring and PASS line | Wiring, W3 and W4 entries above | in part; W1 and the final W2 in T-0008 |
+| AC5 | T1, T2, T3, T6 | Texts entry above | in part; T4, T5, T7–T9 in T-0008 |
+| AC6 | — | — | T-0008 |
+| AC7 | X1, X2, X3 for this ticket | first Comment (B, drift), Scope and Checks entries above | met for this ticket |
+
+Stage 5 is done; `status` moves to `review` for stages 6–8.
