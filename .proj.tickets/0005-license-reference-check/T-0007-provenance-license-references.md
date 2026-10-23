@@ -83,3 +83,89 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
 - Baseline at B: `python3 scripts/verify-project.py` exits 0 (PASS, 45 skills);
   `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 138 tests, OK.
 - Worktree: `.worktrees/T-0007`, branch `tickets/T-0007/provenance-license-references`.
+
+### 2026-10-23 — Owner decisions from the epic 0004 retrospective
+
+Asked before stage 5, as the spec's Further Notes require. Answers, as chosen by the repository
+owner:
+
+- **D1** (does a standing "do it to completion" count as test plan approval?): "不算". The agent
+  stops after writing the test plan table and waits for the owner's approval. Recording this in
+  `docs/agents/workflow.md` is template work outside this ticket's X1; it goes to the D3 epic.
+- **D2** (a small epic for the 11 stage-6 spec wording points?): "記進 OQ，先不開". The OQ entry is
+  written at the epic 0005 close-out, outside this ticket's X1.
+- **D3** (a template-work epic for documentation-only tickets?): "開，排在 0005 之後".
+
+### 2026-10-23 — Test plan table (item 2), awaiting the repository owner's approval
+
+Scope: rows P1–P9, D1–D3, D5 and D6 (44 sub-cases). D4, I1, I2 and W1 are in T-0008.
+
+Fixture defaults (traceability, Matrix): regular files `LICENSE` and `LICENSE-CODE`; the notices are
+the two default lines. This ticket does not read the notices. Each sub-case writes the provenance
+file shown and calls `check_license_references(root)` on `os.path.realpath` of a temporary
+directory. The result is compared with the whole expected list.
+
+Notation in the table:
+
+- `V @ P: reason` stands for the message
+  `docs/agents/skill-sources.json: license reference V at P reason`.
+- `V` and `P` are already rendered by Q.
+- `[]` means no message.
+- A one-key object `{"license_location": X}` is written `loc X`, at pointer `"/license_location"`.
+
+Red: the first test errors because `check_license_references` does not exist; that counts. Every
+other sub-case records its own red. When a sub-case passes on its first run, the mutation in the
+last column is applied to the implementation, and the failure is recorded before the implementation
+is restored (Ruling R7). The planned order is the table order. The provenance walk and resolution
+come first, so P7a drives the function into existence.
+
+| # | Row | Sub-case | Expected | Mutation if the first run passes |
+|---|---|---|---|---|
+| 1 | P7 | loc `"missing.md"` | `"missing.md" @ "/license_location": does not exist` | resolution accepts any name |
+| 2 | P1 | loc `"LICENSE"` | `[]` | resolution reports `does not exist` for an existing regular file |
+| 3 | P1 | `{"a":{"b":{"c":{"license_location":"LICENSE-CODE"}}}}` | `[]` | same, for values below the top level |
+| 4 | P1 | `{"x":[{"license_location":"LICENSE"}]}` | `[]` | same, for values inside an array |
+| 5 | P8 | `{"x":[{"license_location":"missing"}]}` | `"missing" @ "/x/0/license_location": does not exist` | array indices count from 1 |
+| 6 | P9 | `{"b":{"license_location":"missing-b"},"a":[{"license_location":"missing-1"},{"license_location":"missing-0"}]}` | `"missing-b" @ "/b/license_location": does not exist`, `"missing-1" @ "/a/0/license_location": does not exist`, `"missing-0" @ "/a/1/license_location": does not exist` | walk keys in sorted order |
+| 7 | P4 | loc `""` | `"" @ "/license_location": is empty` | drop step 2 |
+| 8 | P3 | loc `5` | `5 @ "/license_location": is not a string` | drop step 1 |
+| 9 | P3 | loc `null` | `null @ …: is not a string` | drop step 1 |
+| 10 | P3 | loc `true` | `true @ …: is not a string` | drop step 1 |
+| 11 | P3 | loc `["x"]` | `["x"] @ …: is not a string` | drop step 1 |
+| 12 | P3 | loc `{"license_location":"missing"}` | `{"license_location": "missing"} @ "/license_location": is not a string`, `"missing" @ "/license_location/license_location": does not exist` | walk does not enter a `license_location` value |
+| 13 | P2 | loc `".agents/skills/<skill>/LICENSE"` | `[]` | drop step 3 |
+| 14 | P2 | loc `"Upstream repository root LICENSE; the skill directories ship no LICENSE file."` | `[]` | drop step 4 |
+| 15 | P2 | loc `" <x>"` | `[]` | step 5 before step 3 |
+| 16 | P2 | loc `" a b"` | `[]` | step 5 before step 4 |
+| 17 | P5 | loc `"LICENSE-CODE "` | `"LICENSE-CODE " @ …: has leading or trailing whitespace` | drop step 5 |
+| 18 | P5 | loc `" LICENSE-CODE"` | `" LICENSE-CODE" @ …: has leading or trailing whitespace` | drop step 5 |
+| 19 | P5 | loc `"LICENSE-CODE\n"` | `"LICENSE-CODE\n" @ …: has leading or trailing whitespace` | drop step 5 |
+| 20 | P5 | loc `"  "` | `"  " @ …: has leading or trailing whitespace` | drop step 5 |
+| 21 | P5 | loc `"LICENSE-CODE"` + U+3000 | `"LICENSE-CODE\u3000" @ …: has leading or trailing whitespace` | drop step 5 |
+| 22 | P6 | loc `"https://example.org/LICENSE"` | `… @ …: uses an unsupported URL scheme` | drop step 6 |
+| 23 | P6 | loc `"C:LICENSE"` | `"C:LICENSE" @ …: is outside the repository` | treat one-letter schemes as unsupported |
+| 24 | P7 | loc `"LICENSE#x"` | `"LICENSE#x" @ …: does not exist` | strip `#…` in provenance values |
+| 25 | P7 | loc `"/LICENSE"` | `"/LICENSE" @ …: is outside the repository` | drop path rule 1 |
+| 26 | P7 | loc `"./LICENSE"` | `"./LICENSE" @ …: is not a plain repository path` | drop the `.` segment check |
+| 27 | P7 | loc `"LICENSE<old"` | `"LICENSE<old" @ …: is not a plain repository path` | drop `<` from rule 2 |
+| 28 | P7 | loc `"license"` | `"license" @ …: differs in case from "LICENSE"` | compare names case-insensitively |
+| 29 | P7 | loc `"link"`, `link` a symlink to `LICENSE` | `"link" @ …: passes through a symlink at "link"` | use `os.stat` instead of `os.lstat` |
+| 30 | P7 | loc `"adir"`, `adir/` a directory | `"adir" @ …: is not a regular file` | drop the regular-file check |
+| 31 | D1 | `{"license":"MIT","license_location":"LICENSE"}` | `"LICENSE" @ …: is CC-BY-SA-4.0, not "MIT"` | drop (d) |
+| 32 | D1 | `{"license":"CC-BY-SA-4.0","license_location":"LICENSE-CODE"}` | `"LICENSE-CODE" @ …: is MIT, not "CC-BY-SA-4.0"` | drop (d) |
+| 33 | D1 | `{"license":null,"license_location":"LICENSE-CODE"}` | `"LICENSE-CODE" @ …: is MIT, not null` | treat a non-string `license` as matching |
+| 34 | D1 | `{"license":"mit","license_location":"LICENSE-CODE"}` | `"LICENSE-CODE" @ …: is MIT, not "mit"` | compare `license` case-insensitively |
+| 35 | D1 | `{"license":"MIT ","license_location":"LICENSE-CODE"}` | `"LICENSE-CODE" @ …: is MIT, not "MIT "` | strip `license` before comparing |
+| 36 | D2 | `{"license":"MIT","license_location":"LICENSE-CODE"}` | `[]` | report a mismatch when the values are equal |
+| 37 | D2 | `{"license":"CC-BY-SA-4.0","license_location":"LICENSE"}` | `[]` | same |
+| 38 | D3 | `{"license":"Apache-2.0","license_location":"skills/x/LICENSE"}`, that file existing | `[]` | apply (d) to every location, requiring `MIT` |
+| 39 | D3 | `{"license_location":"LICENSE-CODE"}` | `[]` | treat a missing `license` key as a mismatch |
+| 40 | D3 | `{"license":"CC-BY-SA-4.0","license_location":" LICENSE-CODE"}` | `" LICENSE-CODE" @ …: has leading or trailing whitespace` | strip the location before (d) |
+| 41 | D3 | `{"license":"CC-BY-SA-4.0","license_location":"license-code"}` | `"license-code" @ …: differs in case from "LICENSE-CODE"` | casefold the location before (d) |
+| 42 | D5 | `{"license_location":"LICENSE-CODE","x":{"license_location":"missing"},"license":"CC-BY-SA-4.0"}` | `"LICENSE-CODE" @ "/license_location": is MIT, not "CC-BY-SA-4.0"`, `"missing" @ "/x/license_location": does not exist` | emit (d) at the end of the object |
+| 43 | D6 | `{"skills":{"x":{"licensing":{"license":"CC-BY-SA-4.0","license_location":"LICENSE-CODE"}}}}` | `"LICENSE-CODE" @ "/skills/x/licensing/license_location": is MIT, not "CC-BY-SA-4.0"` | apply (d) to the top-level object only |
+| 44 | D6 | `{"list":[{"license":"CC-BY-SA-4.0","license_location":"LICENSE-CODE"}]}` | `"LICENSE-CODE" @ "/list/0/license_location": is MIT, not "CC-BY-SA-4.0"` | skip objects inside arrays for (d) |
+
+Not tests in this ticket (judged in Comments): T1, T2, T3, T6, W3, W4 and X1–X3. A CLI run on the
+worktree records the PASS line, together with a run on a temporary copy whose provenance holds one
+bad value; the copy is outside the repository and is deleted after the run.
