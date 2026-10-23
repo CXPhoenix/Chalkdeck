@@ -1162,3 +1162,196 @@ Ran 1 test in 0.002s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Red records for #50–#62 (C2), committed with their green
+
+#54 deviates from the approved table: its mutation reports a FIFO as `missing` instead of skipping the regular-file check, because the approved mutation would open the FIFO and block the run. Still left to T-0008 (I3 and the Q path): a provenance `OSError` other than a missing or non-directory parent (for example a permission error) and a `RecursionError` raised by Q are not yet mapped to messages.
+
+#### #50 I1 provenance missing — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `caf426282581c631f349372e06077f8f2dd4d1d8`; verifier blob: `79f6c097ba958d039096cfe21c35f5823c13091a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_missing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_missing (test_verify_project.ProvenanceInputTest.test_i1_missing)
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpxmv3qpgf/docs/agents/skill-sources.json'
+Ran 1 test in 0.004s
+FAILED (errors=1)
+```
+
+#### #51 I1 provenance a symlink — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `a729eccf7d6978177c7a211336ed288a8d8a7d5c`; verifier blob: `3bcc752c624a4e73be28ddfbbb4352d33d8f7883`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_symlink` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_symlink (test_verify_project.ProvenanceInputTest.test_i1_symlink)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+- []
++ ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #52 I1 docs/agents a symlink (passed on first run; mutation: check only the last segment for a symlink) — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `5dc4bb05c97344ae11a5a534fc3e725c4990ccf9`; verifier blob: `8b7a4901ef8b10dc564370616c014a8093837a29`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_symlinked_parent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_symlinked_parent (test_verify_project.ProvenanceInputTest.test_i1_symlinked_parent)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+- []
++ ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #53 I1 provenance a directory — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `1c090c8cddfdfdabb5484a0795f59fdca76da152`; verifier blob: `49917ad6b393115bd3f64c07f299748206320b50`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_directory` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_directory (test_verify_project.ProvenanceInputTest.test_i1_directory)
+IsADirectoryError: [Errno 21] Is a directory: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpjocepxwi/docs/agents/skill-sources.json'
+Ran 1 test in 0.004s
+FAILED (errors=1)
+```
+
+#### #54 I1 provenance a FIFO (passed on first run; mutation: report a FIFO as missing — changed from the table's 'skip the regular-file check', which would block on open and hang the run) — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `5fb4b479517b3cf9750c99c911e5f19e6d8e73a8`; verifier blob: `296d8a66a4ac694bccfa1f1f2ac34a582b700532`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_fifo` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_fifo (test_verify_project.ProvenanceInputTest.test_i1_fifo)
+AssertionError: Lists differ: ['doc[19 chars]ces.json: cannot read license references (missing)'] != ['doc[19 chars]ces.json: cannot read license references (not a regular file)']
+First differing element 0:
+- ['docs/agents/skill-sources.json: cannot read license references (missing)']
+?                                                                   ----- ^^ -
++ ['docs/agents/skill-sources.json: cannot read license references (not a '
+?                                                                    ^^^^^
++  'regular file)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #55 I1 docs is a regular file — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `e91bd3f6acdd931b48df713251f4c704ef0f4e71`; verifier blob: `accc60a70e5dad89f1f19561f6f368112a7ac762`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_docs_is` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_docs_is_a_regular_file (test_verify_project.ProvenanceInputTest.test_i1_docs_is_a_regular_file)
+NotADirectoryError: [Errno 20] Not a directory: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpxlar_4q3/docs'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
+
+#### #56 I1 Docs in another case (passed on first run; mutation: match segments case-insensitively) — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `269e381d909502ea2e7581e233736d8e55f6e25c`; verifier blob: `7307cf9b092394794424024c2aee0ca0620c381a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_directory_in_other` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_directory_in_other_case (test_verify_project.ProvenanceInputTest.test_i1_directory_in_other_case)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: cannot read license references (missing)']
+- []
++ ['docs/agents/skill-sources.json: cannot read license references (missing)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #57 I1 not UTF-8 — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `fab7df66381e8ed28735487406d306269293c897`; verifier blob: `11798034901d832df1d97de2773520727559b416`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_not_utf8` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_not_utf8 (test_verify_project.ProvenanceInputTest.test_i1_not_utf8)
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 22: invalid start byte
+Ran 1 test in 0.004s
+FAILED (errors=1)
+```
+
+#### #58 I1 not valid JSON — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `f18cda0af7496674e8fc9655fba817a2494ba49e`; verifier blob: `eee0242edebd59ffe47c1922988d79e6413a9e86`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_not_valid_json` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_not_valid_json (test_verify_project.ProvenanceInputTest.test_i1_not_valid_json)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #59 I1 UTF-8 BOM (passed on first run; mutation: strip a BOM before parsing) — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `4c4f935e697f1e7d090a7f717c95247da95d4af8`; verifier blob: `388ef1b073c6130c59eb727556162c7cbcb09fa4`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_utf8_bom` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_utf8_bom (test_verify_project.ProvenanceInputTest.test_i1_utf8_bom)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: cannot r[36 chars]ON)']
+- []
++ ['docs/agents/skill-sources.json: cannot read license references (not valid '
++  'JSON)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #60 I1 100,000 nested arrays — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `b5a423dded2fa69b11daf7b626fd07b5be6ff26a`; verifier blob: `ca20a2f9aa5b1ec5ff788d086dfb835727482f39`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_deep` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i1_deep_nesting (test_verify_project.ProvenanceInputTest.test_i1_deep_nesting)
+RecursionError: maximum recursion depth exceeded while decoding a JSON array from a unicode string
+Ran 1 test in 0.005s
+FAILED (errors=1)
+```
+
+#### #61 I1 5,000-digit integer (passed on first run; mutation: raise the int digit limit) — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `4b37103e49784d6734cb396c51babc545e6598d9`; verifier blob: `1cc93cefc174264f7b08a94aa36884c9b2dd1185`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_long_integer` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_long_integer (test_verify_project.ProvenanceInputTest.test_i1_long_integer)
+AssertionError: Lists differ: ['doc[24 chars]son: license reference 99999999999999999999999[5013 chars]ing'] != ['doc[24 chars]son: cannot read license references (not valid JSON)']
+First differing element 0:
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #62 I1 top-level array — red
+
+- HEAD: `1ffafbc69877078137744e20ef3d31a03d3645ad`
+- test file blob: `861e8fae443b855169e04784f3bd1edaf80a1ed2`; verifier blob: `0c462966e83e07bcddb7b79ed883c90d12f29d1f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_top_level` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_top_level_array (test_verify_project.ProvenanceInputTest.test_i1_top_level_array)
+AssertionError: Lists differ: [] != ['docs/agents/skill-sources.json: cannot r[39 chars]ct)']
+- []
++ ['docs/agents/skill-sources.json: cannot read license references (not a JSON '
++  'object)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+

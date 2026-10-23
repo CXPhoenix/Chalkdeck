@@ -287,10 +287,40 @@ def _locations(document):
         stack.extend(reversed(children))
 
 
+def _read_input(root, rel):
+    """(text, None) for a readable input file, or (None, reason) for the unreadable-input message."""
+    current = root
+    for segment in rel.split("/"):
+        try:
+            names = os.listdir(current)
+        except (FileNotFoundError, NotADirectoryError):
+            return None, "missing"
+        if segment not in names:
+            return None, "missing"
+        current = current / segment
+        mode = os.lstat(current).st_mode
+        if stat.S_ISLNK(mode):
+            return None, "a symlink"
+    if not stat.S_ISREG(mode):
+        return None, "not a regular file"
+    try:
+        return current.read_bytes().decode("utf-8"), None
+    except UnicodeDecodeError:
+        return None, "not UTF-8"
+
+
 def check_license_references(root):
     """Return one message per bad license reference, in the order the epic 0005 spec defines."""
     messages = []
-    sources = json.loads((root / PROVENANCE).read_text(encoding="utf-8"))
+    text, unreadable = _read_input(root, PROVENANCE)
+    if unreadable:
+        return [f"{PROVENANCE}: cannot read license references ({unreadable})"]
+    try:
+        sources = json.loads(text)
+    except (ValueError, RecursionError):
+        return [f"{PROVENANCE}: cannot read license references (not valid JSON)"]
+    if not isinstance(sources, dict):
+        return [f"{PROVENANCE}: cannot read license references (not a JSON object)"]
     for pointer, value, holder in _locations(sources):
         prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
         reason = _location_reason(root, value)

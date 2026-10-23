@@ -510,6 +510,77 @@ class LicenseAgreementTest(LicenseCase):
         value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
         self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
 
+class ProvenanceInputTest(LicenseCase):
+    """Row I1, provenance side, and approved test plan items #50-#62: an unreadable provenance file."""
+
+    def unreadable(self, reason):
+        self.assertEqual(self.fx.check(), [f"{PROVENANCE}: cannot read license references ({reason})"])
+
+    def test_i1_missing(self):
+        (self.fx.root / PROVENANCE).unlink()
+        self.unreadable("missing")
+
+    def test_i1_symlink(self):
+        target = self.fx.write("docs/agents/real.json", "{}")
+        (self.fx.root / PROVENANCE).unlink()
+        make_symlink(self, target.name, self.fx.root / PROVENANCE)
+        self.unreadable("a symlink")
+
+    def test_i1_symlinked_parent(self):
+        self.fx.write("elsewhere/skill-sources.json", "{}")
+        agents = self.fx.root / "docs/agents"
+        (agents / "skill-sources.json").unlink()
+        agents.rmdir()
+        make_symlink(self, "../elsewhere", agents)
+        self.unreadable("a symlink")
+
+    def test_i1_directory(self):
+        (self.fx.root / PROVENANCE).unlink()
+        (self.fx.root / PROVENANCE).mkdir()
+        self.unreadable("not a regular file")
+
+    def test_i1_fifo(self):
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("mkfifo unavailable")
+        (self.fx.root / PROVENANCE).unlink()
+        os.mkfifo(self.fx.root / PROVENANCE)
+        self.unreadable("not a regular file")
+
+    def test_i1_docs_is_a_regular_file(self):
+        (self.fx.root / PROVENANCE).unlink()
+        (self.fx.root / "docs/agents").rmdir()
+        (self.fx.root / "docs").rmdir()
+        self.fx.write("docs", "not a directory\n")
+        self.unreadable("missing")
+
+    def test_i1_directory_in_other_case(self):
+        (self.fx.root / "docs").rename(self.fx.root / "Docs")
+        self.unreadable("missing")
+
+    def test_i1_not_utf8(self):
+        (self.fx.root / PROVENANCE).write_bytes(b'{"license_location": "\xff"}')
+        self.unreadable("not UTF-8")
+
+    def test_i1_not_valid_json(self):
+        self.fx.write(PROVENANCE, "{")
+        self.unreadable("not valid JSON")
+
+    def test_i1_utf8_bom(self):
+        (self.fx.root / PROVENANCE).write_bytes(b"\xef\xbb\xbf{}")
+        self.unreadable("not valid JSON")
+
+    def test_i1_deep_nesting(self):
+        self.fx.write(PROVENANCE, "[" * 100000 + "]" * 100000)
+        self.unreadable("not valid JSON")
+
+    def test_i1_long_integer(self):
+        self.fx.write(PROVENANCE, '{"license_location": ' + "9" * 5000 + "}")
+        self.unreadable("not valid JSON")
+
+    def test_i1_top_level_array(self):
+        self.fx.write(PROVENANCE, "[]")
+        self.unreadable("not a JSON object")
+
 
 if __name__ == "__main__":
     unittest.main()
