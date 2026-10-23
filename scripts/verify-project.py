@@ -218,7 +218,8 @@ ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
 
 
 def _quoted(value):
-    """Q(x): JSON text with every non-printable character escaped, so a value cannot forge output."""
+    """Quoted rendering (spec 0005 Q): JSON text with every non-printable character escaped, so a
+    value cannot forge output."""
     text = json.dumps(value, ensure_ascii=False)
     return "".join(char if char.isprintable() else char.encode("unicode_escape").decode("ascii") for char in text)
 
@@ -247,7 +248,8 @@ def _resolve(root, target):
 
 
 def _location_reason(root, value):
-    """Steps (a)1-7 for one license_location value: a reason, or None when it is valid or skipped."""
+    """Steps 1-7 of license reference (a), spec 0005: a reason, or None when the value is valid or
+    skipped."""
     if not isinstance(value, str):
         return "is not a string"
     if value == "":
@@ -258,18 +260,19 @@ def _location_reason(root, value):
         return "has leading or trailing whitespace"
     scheme = SCHEME.match(value)
     if scheme:
-        return "is outside the repository" if len(scheme[0]) == 2 else "uses an unsupported URL scheme"
+        drive = len(scheme[0]) == 2  # one letter and a colon, such as C:
+        return "is outside the repository" if drive else "uses an unsupported URL scheme"
     return _resolve(root, value)
 
 
 def _locations(document):
-    """(JSON Pointer, value, holding object) for every license_location key, in document order,
-    without recursion."""
+    """(JSON Pointer, value, holder) for every license_location key, in document order, without
+    recursion; the holder is the object that holds the key."""
     stack = [(None, document, "", None)]
     while stack:
-        key, node, pointer, parent = stack.pop()
+        key, node, pointer, holder = stack.pop()
         if key == "license_location":
-            yield pointer, node, parent
+            yield pointer, node, holder
         if isinstance(node, dict):
             children = [(name, value, f"{pointer}/{name.replace('~', '~0').replace('/', '~1')}", node) for name, value in node.items()]
         elif isinstance(node, list):

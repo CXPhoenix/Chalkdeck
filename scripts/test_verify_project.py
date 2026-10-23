@@ -274,9 +274,6 @@ class UnreadableFileTest(unittest.TestCase):
         self.assertEqual(fx.check(), ["docs/agents/locked.md: cannot read as UTF-8"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 # chalkdeck: license-reference check, provenance side (epic 0005-license-reference-check, T-0007).
 PROVENANCE = "docs/agents/skill-sources.json"
@@ -332,6 +329,8 @@ class LicenseCase(unittest.TestCase):
 
 
 class ProvenanceReferenceTest(LicenseCase):
+    """Rows P1-P9 and approved test plan items #1-#30 and #45-#49: provenance values, (a) and the path rules."""
+
     def test_p7_missing_file(self):
         self.expect({"license_location": "missing.md"}, [ref('"missing.md"', '"/license_location"', "does not exist")])
 
@@ -354,7 +353,6 @@ class ProvenanceReferenceTest(LicenseCase):
 
     def test_p1_valid_in_array(self):
         self.expect({"x": [{"license_location": "LICENSE"}]}, [])
-
 
     def test_p4_empty(self):
         self.loc("", '""', "is empty")
@@ -402,7 +400,7 @@ class ProvenanceReferenceTest(LicenseCase):
         self.loc("  ", '"  "', "has leading or trailing whitespace")
 
     def test_p5_trailing_ideographic_space(self):
-        self.loc("LICENSE-CODE　", '"LICENSE-CODE\\u3000"', "has leading or trailing whitespace")
+        self.loc("LICENSE-CODE\u3000", '"LICENSE-CODE\\u3000"', "has leading or trailing whitespace")
 
     def test_p6_url_scheme(self):
         self.loc("https://example.org/LICENSE", '"https://example.org/LICENSE"', "uses an unsupported URL scheme")
@@ -435,6 +433,8 @@ class ProvenanceReferenceTest(LicenseCase):
 
 
 class LicenseAgreementTest(LicenseCase):
+    """Rows D1-D3, D5 and D6 and approved test plan items #31-#44: (d) license agreement."""
+
     def mismatch(self, location, required, actual, pointer='"/license_location"'):
         return ref(location, pointer, f"is {required}, not {actual}")
 
@@ -488,3 +488,7 @@ class LicenseAgreementTest(LicenseCase):
     def test_d6_object_in_array(self):
         value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
         self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
+
+
+if __name__ == "__main__":
+    unittest.main()

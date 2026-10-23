@@ -1040,3 +1040,46 @@ Parent reproductions:
 
 Worst per axis: Standards S1 (new tests silently skipped by a direct run); Spec F1 (a provenance
 value can crash the verifier).
+
+### 2026-10-24 — Stage 6 rulings and amended test plan
+
+The repository owner: "C1–C4 都照建議，修正後重跑檢查。"
+
+- **C1** (F1, F2, F3, S5): fix resolution and path rule 2 in this ticket; F3 moves resolution to
+  `os.lstat` and `stat.S_ISREG` without its own test. Approved sub-cases #45–#49 below.
+- **C2** (F4, S4): bring the provenance side of I1 into this ticket, with the spec's messages
+  `docs/agents/skill-sources.json: cannot read license references (<reason>)`. The sub-cases are
+  #50–#62 below. T-0008's I1 adds the notices line to each of them.
+- **C3** (S3, S2): measure line coverage with the standard library's `trace`, and add workflow's
+  columns to the coverage table. The amended rows below carry a Seam column.
+- **C4** (F5): W3's "`replace` method call" means the file-system `Path.replace` and its kin, not
+  `str.replace`. W3 is re-judged by identifier with an AST walk.
+- Mechanical fixes without a ruling: S1, S6, S7, S9, S10, S11, M3, M5, and the wording of F7, F8,
+  F9 and F13.
+- Process fixes without a ruling: from here on, each green commit carries that round's red records
+  (F6). Blob pruning (F10) goes to the epic retrospective.
+
+Amended test plan rows (seam: `check_license_references(root)` on a `LicenseFixture`; notation as
+in the approved table, with `U(reason)` for
+`docs/agents/skill-sources.json: cannot read license references (reason)`):
+
+| # | Row | Sub-case | Expected | Mutation if the first run passes |
+|---|---|---|---|---|
+| 45 | P7 / R3 | loc `"LICENSE/x"` | `"LICENSE/x" @ …: does not exist` | let resolution errors propagate |
+| 46 | P7 / R7 | loc `"sub/LICENSE"`, `sub/` mode 000 (skipped as root) | `"sub/LICENSE" @ …: does not exist` | let resolution errors propagate |
+| 47 | P7 / R2 | loc `"LICENSE>old"` | `"LICENSE>old" @ …: is not a plain repository path` | drop `>` from rule 2 |
+| 48 | P7 / R2 | loc `"LICENSE?x"` | `"LICENSE?x" @ …: is not a plain repository path` | drop `?` from rule 2 |
+| 49 | P7 / R2 | loc `"a%20b.md"`, that file existing | `"a%20b.md" @ …: is not a plain repository path` | drop `%` from rule 2 |
+| 50 | I1 | provenance missing | `U(missing)` | treat a missing file as `{}` |
+| 51 | I1 | provenance a symlink to a file | `U(a symlink)` | follow the symlink |
+| 52 | I1 | `docs/agents` a symlink to a directory holding the file | `U(a symlink)` | check only the last segment for a symlink |
+| 53 | I1 | provenance a directory | `U(not a regular file)` | skip the regular-file check |
+| 54 | I1 | provenance a FIFO (skipped where `mkfifo` is unavailable) | `U(not a regular file)` | skip the regular-file check; the run must not hang |
+| 55 | I1 | `docs` a regular file | `U(missing)` | report `not readable` for `NotADirectoryError` |
+| 56 | I1 | the directory named `Docs` on disk | `U(missing)` | match segments case-insensitively |
+| 57 | I1 | bytes not UTF-8 | `U(not UTF-8)` | decode with `errors="replace"` |
+| 58 | I1 | `{` | `U(not valid JSON)` | treat a parse error as `{}` |
+| 59 | I1 | UTF-8 BOM before `{}` | `U(not valid JSON)` | strip a BOM before parsing |
+| 60 | I1 | 100,000 nested arrays | `U(not valid JSON)` | treat `RecursionError` as `{}` |
+| 61 | I1 | a 5,000-digit integer as `license_location` | `U(not valid JSON)` | raise the int digit limit |
+| 62 | I1 | top-level `[]` | `U(not a JSON object)` | accept a top-level array |
