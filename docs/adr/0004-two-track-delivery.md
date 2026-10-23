@@ -5,6 +5,8 @@ date: 2026-10-16
 
 # Two tracks: deck content work skips the pipeline, template work does not
 
+_Amended by [ADR-0007](0007-license-split.md): a deck change may also edit the notices' Assets-table rows for third-party files under its own `assets/` folder._
+
 Deck content work — a change confined to one deck's `slides/<deck-id>/` folder — takes a light track:
 a `decks/<deck-id>` branch, the slide authoring rules, a check of every changed page in the dev
 server, and a PR. Template work — anything shared across decks — takes the full nine-stage pipeline.

@@ -33,8 +33,9 @@ scripts, global assets, deploy configuration, skills, project configuration — 
 **Deck content work** — a change confined to one deck's `slides/<deck-id>/` folder, its own assets
 included — takes this lighter track instead. See [ADR-0004](../adr/0004-two-track-delivery.md).
 
-**Classify before starting.** If a change touches anything outside `slides/<deck-id>/`, it is
-template work, even when it began as a deck edit; split the shared part into its own epic or ticket.
+**Classify before starting.** If a change touches anything outside `slides/<deck-id>/`, other than
+the two shared edits below (the allowlist and the deck's rows in the notices), it is template work,
+even when it began as a deck edit; split the shared part into its own epic or ticket.
 Editing another deck is a separate piece of deck content work, not part of this one.
 
 **What the track skips:** the spec, adversarial review, tickets, the test plan and coverage tables,
@@ -55,6 +56,8 @@ not evidence.
 **The allowlist** (`deploy/public-decks.txt`) is edited on this track, but only on the author's
 explicit instruction for a named deck id. Never add a deck because it looks finished. Going public
 still requires a published GitHub Release, which uses `/tw-emoji-release-note`.
+
+**The notices** (`THIRD_PARTY_NOTICES.md`) are the other shared file this track may edit: a deck change adds, updates or removes the Assets-table rows for third-party files under its own `slides/<deck-id>/assets/`, naming each holder as the file's license requires and no one else ([ADR-0007](../adr/0007-license-split.md)). Any other change to the notices is template work.
 
 ## Stage 1 — Converge the requirement
 

@@ -97,24 +97,9 @@
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
-        "license_location": "LICENSE",
+        "license_location": "LICENSE-CODE",
         "confirmed_on": "2026-09-28",
-        "evidence": "Authored with Claude Code in this project at the maintainer's request. Covered by the maintainer-selected root MIT license."
-      }
-    },
-    "init-template": {
-      "source": ".claude/skills/init-template in template commit 501c8a2",
-      "adaptations": [
-        "Relocated to shared project skill root.",
-        "Skip template-history tokens; remove .tmpl.docs and its marked README entry unless keeping template files.",
-        "Use supplied values without repeated questions; support synchronized copies and product README generation."
-      ],
-      "licensing": {
-        "status": "maintainer-confirmed-project-origin",
-        "license": "MIT",
-        "license_location": "LICENSE",
-        "confirmed_on": "2026-09-13",
-        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected root MIT license."
+        "evidence": "Authored with Claude Code in this project at the maintainer's request. Covered by the maintainer-selected MIT license in LICENSE-CODE."
       }
     },
     "tw-emoji-commit": {
@@ -132,9 +117,9 @@
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
-        "license_location": "LICENSE",
+        "license_location": "LICENSE-CODE",
         "confirmed_on": "2026-09-13",
-        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected root MIT license."
+        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected MIT license in LICENSE-CODE."
       }
     },
     "tw-emoji-pr-note": {
@@ -151,9 +136,9 @@
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
-        "license_location": "LICENSE",
+        "license_location": "LICENSE-CODE",
         "confirmed_on": "2026-09-13",
-        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected root MIT license."
+        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected MIT license in LICENSE-CODE."
       }
     },
     "tw-emoji-release-note": {
@@ -170,9 +155,9 @@
       "licensing": {
         "status": "maintainer-confirmed-project-origin",
         "license": "MIT",
-        "license_location": "LICENSE",
+        "license_location": "LICENSE-CODE",
         "confirmed_on": "2026-09-13",
-        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected root MIT license."
+        "evidence": "Maintainer explicitly confirmed authoring this skill with Claude Code in this project conversation. Covered by the maintainer-selected MIT license in LICENSE-CODE."
       }
     },
     "security-review": {
@@ -236,15 +221,14 @@
     "to-spec": "Use configured tracker and traceability; replace length and seam-count preferences with coverage.",
     "implement": "Preserve TDD gates, scope checks to configured tools and review pending work before skill-owned commits.",
     "tdd": "Reuse approved test plans and seams; load examples on demand.",
-    "init-template": "Trigger on requested adoption, not placeholder presence alone.",
-    "agent-browser": "Compact branch-specific discovery and permit evidence-equivalent native tools. Restore Apache-2.0 text and add a prominent modification notice without changing execution guidance.",
+    "agent-browser": "Compact branch-specific discovery and permit evidence-equivalent native tools. Restore Apache-2.0 text and add a prominent modification notice without changing execution guidance. Both runtimes: the SKILL.md license pointer names this skill's LICENSE instead of the project root (epic 0004).",
     "writing-for-agents": "Codex tree: describe manual invocation as host policy rather than zero-cost metadata invisibility. Claude tree: disable-model-invocation keeps the description out of context (Claude Code skills docs, 2026-09-26).",
     "teach": "Both runtimes: one added paragraph in SKILL.md under Teaching Workspace: when the current directory is a repository root with a project GLOSSARY.md, create a subdirectory and use it as the teaching workspace (epic 0001, T-0001). Reapply after upstream updates.",
     "tune-skills": "Both runtimes: keep-list wording 'CONTEXT templates' renamed to 'GLOSSARY templates' with the glossary rename (epic 0001, T-0001). Both runtimes: keep list gains the style-skill baseline and checker; run the checker before and after any re-tune (epic 0002, T-0003)."
   },
   "licensing": {
-    "verified_on": "2026-09-13",
-    "project_license": "MIT",
+    "verified_on": "2026-10-22",
+    "project_license": "CC-BY-SA-4.0 AND MIT",
     "project_copyright": "Copyright (c) 2026 CXPhoenix",
     "notices": "THIRD_PARTY_NOTICES.md",
     "groups": {

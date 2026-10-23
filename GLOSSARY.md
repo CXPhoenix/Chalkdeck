@@ -60,7 +60,9 @@ _Avoid_: template (for a theme), skin, style
 ## Work
 
 **Deck content work** (deck 內容工作):
-A change confined to one deck's `slides/<deck id>/` folder, including its own assets.
+A change confined to one deck's `slides/<deck id>/` folder, including its own assets. Two shared
+edits ride along: the deck's line in the allowlist, and the deck's own rows in the Assets table of
+`THIRD_PARTY_NOTICES.md` (ADR-0004, ADR-0007).
 _Avoid_: slide edit, content change
 
 **Template work** (模板／工具工作):

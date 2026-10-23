@@ -65,3 +65,11 @@ export default openSlideConfig;
 ```
 
 Supported fields: `slidesDir`, `port`.
+
+## License
+
+Except where otherwise noted, the decks, themes, assets and project documentation in this
+repository are licensed by [CXPhoenix](https://github.com/CXPhoenix) under
+[CC BY-SA 4.0](LICENSE), and the code, agent tooling and agent instructions under
+[MIT](LICENSE-CODE). Third-party material, including the open-slide scaffold, keeps its own terms;
+see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the exact boundary and attributions.
