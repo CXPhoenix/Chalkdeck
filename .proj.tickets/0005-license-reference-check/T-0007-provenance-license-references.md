@@ -40,7 +40,10 @@ through a symlink or is not a regular file. It also reports every root-license `
 whose `license` disagrees with the root license file. Placeholders and sentences are skipped. Messages are
 rendered by Q and come in document order. A provenance file that is missing, a symlink, not a regular
 file, unreadable, not UTF-8, not valid JSON or not an object gives one
-`cannot read license references (<reason>)` line instead of a traceback (Rulings C2, E2). On the real
+`cannot read license references (<reason>)` line from `check_license_references` instead of a
+traceback (Rulings C2, E2). Through the CLI, the pre-existing provenance read in `verify()` still
+runs first and can raise or block for a top-level array, deep nesting or a symlink to a special
+file; that is unchanged here by spec and recorded for later (stage 7 SEC-03, Ruling G1). On the real
 tree the verifier still passes, and its PASS line names license references.
 
 ## Acceptance criteria
@@ -71,7 +74,7 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
 
 ## 給使用者（zh-TW）
 
-這張票替 verifier 加上 provenance 這一側的授權引用檢查。完成後，`skill-sources.json` 裡任何 `license_location` 有以下情況都會出現 `FAIL:`：不是字串、是空字串、頭尾有空白、用了 URL scheme、跑出 repo、不是單純路徑、檔案不存在、大小寫不符、經過 symlink、不是一般檔案。指向根授權檔的條目，`license` 和檔案不一致時也會 FAIL。placeholder 和說明句會略過。訊息依 JSON 的文件順序輸出，特殊字元都會跳脫。provenance 檔不存在、是 symlink、不是一般檔案、讀不到、不是 UTF-8、不是合法 JSON 或頂層不是物件時，會輸出一行 `cannot read license references (<原因>)`，不會丟 traceback（stage 6 裁決 C2、E2 提前納入）。
+這張票替 verifier 加上 provenance 這一側的授權引用檢查。完成後，`skill-sources.json` 裡任何 `license_location` 有以下情況都會出現 `FAIL:`：不是字串、是空字串、頭尾有空白、用了 URL scheme、跑出 repo、不是單純路徑、檔案不存在、大小寫不符、經過 symlink、不是一般檔案。指向根授權檔的條目，`license` 和檔案不一致時也會 FAIL。placeholder 和說明句會略過。訊息依 JSON 的文件順序輸出，特殊字元都會跳脫。provenance 檔不存在、是 symlink、不是一般檔案、讀不到、不是 UTF-8、不是合法 JSON 或頂層不是物件時，`check_license_references` 會回傳一行 `cannot read license references (<原因>)`，不會丟 traceback（stage 6 裁決 C2、E2 提前納入）。不過從 CLI 執行時，`verify()` 原有的讀檔會先執行，遇到頂層是 array、深層巢狀或指向特殊裝置的 symlink，仍可能 traceback 或卡住；依 spec 這部分不改，記錄在 stage 7 的 SEC-03（裁決 G1），留給後續處理。
 
 真實檔案樹上 verifier 仍然 PASS，PASS 行會多出「license references」。notices 的檢查、deck 軌的規則、ADR-0008 與 E2E 都在 T-0008。
 
@@ -1708,3 +1711,40 @@ HIGH/MEDIUM with confidence ≥ 0.8. Real but excluded or pre-existing:
 - SEC-12(a): pre-existing pyc loading in tests.
 
 The report's "後續事項" lists them for the repository owner.
+
+### 2026-10-24 — Stage 7 rulings
+
+The repository owner: "G1–G3 都照建議。"
+
+- **G1** (SEC-03): no change to the pre-existing `verify()` provenance read in this epic, because
+  the spec keeps the existing check unchanged. The Deliverable and the zh-TW section now say that
+  the no-traceback guarantee holds for `check_license_references`, not the CLI. At the epic
+  close-out, the CLI-level gap goes to `.proj.specs/OPEN-QUESTIONS.md`.
+- **G2** (SEC-11, SEC-12(a)): both pre-existing hardening gaps go to `OPEN-QUESTIONS.md` at the epic
+  close-out, together with decision D2's 11 spec wording points.
+- **G3** (SEC-01): no hardening now; recorded only.
+
+Close-out carry list for epic 0005, so far: D2 (OQ), G1 (OQ), G2 (OQ), F10 (retrospective: blob
+pruning), M7 and N14 (retrospective), and the D3 documentation-ticket epic after 0005.
+
+
+### 2026-10-24 — Stage 8 verification (surface: the verifier CLI on macOS)
+
+The epic's E1–E4 are judged on T-0008's HEAD (spec, Several tickets). For this ticket, stage 8 runs
+the same CLI checks at HEAD `91283ef`. Code and tests are unchanged since `abf9f40`:
+`git diff --name-only abf9f40 HEAD` lists only the security report and this ticket.
+
+- On the ticket worktree: `python3 -I -B scripts/verify-project.py` exits 0 with the T1 PASS line.
+- Committed state, the T-0007 analogue of E2:
+  - `git worktree add --detach <tmp>/t0007-head HEAD` was listed by `git worktree list` as detached
+    at `91283ef`;
+  - `python3 -I -B <tmp>/t0007-head/scripts/verify-project.py` exits 0 with the same PASS line.
+- A broken provenance value, the T-0007 analogue of E3: in that checkout, the tune-skills
+  `license_location` was set to `LICENSE`, and that checkout's own script was run. It exited 1 and
+  printed exactly one `FAIL:` line:
+  `FAIL: docs/agents/skill-sources.json: license reference "LICENSE" at "/skills/tune-skills/licensing/license_location" is CC-BY-SA-4.0, not "MIT"`.
+- Cleanup, the analogue of E4: `git worktree remove --force` removed it, and `git worktree list` no
+  longer shows it. The check ran twice, the second time to capture the exit code; both checkouts
+  were removed.
+
+Stage 8 is done for this ticket. Next: stage 9, push and a PR described with `/tw-emoji-pr-note`.
