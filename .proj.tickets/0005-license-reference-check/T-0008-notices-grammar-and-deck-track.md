@@ -2780,3 +2780,91 @@ not branch coverage.
 - **Ruling I2-order** changed #190–#194's expectation.
 
 Stage 5 is done; `status` is `review`.
+
+### 2026-10-24 — Stage 6 code review
+
+Scope: committed changes, B `99ba5ec` to HEAD `c408b68`; staged, unstaged and untracked layers
+empty. Two `harness-reviewer` passes, Standards and Spec, ran in parallel on one packet (about
+0.36M subagent tokens). HEAD and status were unchanged when both reports came back. Findings are
+condensed per axis; none is dropped.
+
+**Standards** (18 findings and about 12 smells; repeats of T-0007 lessons are marked "repeat").
+
+- S-1 (repeat, high, low–medium): the test plan table lacks workflow's columns.
+- S-2 (high, medium): 52 G and C tests were written up front, then implemented together
+  (horizontal slicing).
+- S-3 (repeat, high, medium): implementation ran ahead of tests. 46 N and R sub-cases and #195–#202
+  passed on their first run.
+- S-4 (repeat at larger scale, high, medium): about 41 mutations were not in the approved table
+  (#80–#112, #153, #195–#201). They are labelled "deviation" without approval.
+- S-5 (repeat, high, low): 7 red outputs are cut short. Two records' `-k` patterns matched other
+  tests too (`test_i1_symlink`, `test_i1_directory`), and #75's pattern also ran #74.
+- S-6 (repeat, high, low): five top-level definitions in the test file have one blank line before
+  them, not two.
+- S-7 (repeat, high, low): double blank lines and unwrapped paragraphs in this ticket; workflow
+  item 6 is one long line.
+- S-8 (medium, low): the deviation list cites "#3, #4", which are not T-0008 numbers.
+- S-9 (high, low): the I1-extension red headings carry a range, not individual numbers.
+- S-10 (high, low): the #190–#202 records sit under the RecursionError heading.
+- S-11 (medium, low): `processing` was set in the second commit, not the first.
+- S-12 (medium, low): T-0007's `done` reaches `main` only when T-0008 lands.
+- S-13 (low, low): ADR-0008 changes the deck track defined in ADR-0004 too, and ADR-0004 has no
+  "Amended by" line.
+- S-14 (low–medium, low): ADR-0008 says a `|` "inside a code span, link text or title"; the code also
+  flags one in a destination.
+- S-15 (high, low): the test file's `# chalkdeck:` marker still says "provenance side, T-0007".
+- S-16 (high, low): the `_provenance_messages` and `_notices_messages` docstrings misdescribe their
+  return values.
+- S-17 (high, low): the coverage table lists 10 of the 15 functions, and the `verify()` row has no
+  figure.
+- S-18 (medium, low): the W4 record misnames hunk 3 (it is `_unreadable`, not the input reader).
+- Smells:
+  - the bare `== 2` drive test is repeated in `_destination_reason` (repeat of M3);
+  - the backtick-info-string condition appears twice, and `FENCE.match` runs three times;
+  - `_construct` and `_notices_messages` are long;
+  - a lambda is assigned to a name;
+  - group-1 messages pass through an output parameter;
+  - tuples are unpacked by position;
+  - `tail = match and …`;
+  - the closer regex is rebuilt on every line;
+  - test helpers are duplicated (`none`, `expect_text`, hand-written missing-link and unreadable
+    strings);
+  - `test_g5_angle_destination` duplicates `test_n1_angle`;
+  - test names: `b = chr(92)`, O3 and O4 in a "Notices" class, D4 placed before the helpers, an
+    unused `names`, the spelling `licence_messages`;
+  - the `NOTICES` constant is duplicated;
+  - the loose-blob evidence (F10) recurs.
+
+**Spec** (no high finding; the grammar matches its definitions).
+
+- A1 (medium, low): `tab indentation` treats only spaces and tabs as leading whitespace, so a line
+  starting with U+3000 and then a tab is not reported.
+- A2 (low, low): the table-row test uses `lstrip()`, but the spec says the "first non-space
+  character". The two space notions disagree.
+- A3 (medium, low): `\d` in list markers matches non-ASCII digits.
+- B (high/low reachability, medium): a `RecursionError` from Q is not handled as traceability:83–85
+  defines. The 3.13.11 probe does not give a general reason. On 3.11 the reviewer reasons the margin
+  is zero; 3.14 is unknown.
+- C (medium, low): W4 read literally fails, because some changed lines are T-0007 code already
+  present at B, not a new block. The record used the intent reading.
+- D1 (high, medium): as S-3 and S-4.
+- D2 (medium, low): the red records' command lines omit `-I`.
+- D3 (high, low): as S-8.
+- D4 (high fact, low): X2 says "B is the first Comment, before any commit". Here a T-0007 handover
+  Comment and commit `b391a96` came first.
+- D5 (high, low): `test_r4_normalization` can skip for a reason outside the three allowed skip
+  kinds.
+- D6 (high, low): O1's line numbers differ from the matrix but match approved row #197.
+- D7 (high, low): the I2 row still has the old order, which is on the close-out carry list.
+- E (high, low): branches with no test, whose removal would survive the suite:
+  - the title `<` exemption;
+  - `|` in link text or a destination on a table row;
+  - the escapes `\]`, `\)`, `\>`;
+  - the list markers `*`, `+` and `1)`;
+  - U+FEFF after line 1;
+  - a tab before a destination or title.
+- F (low): the texts T4, T5 and T7–T9 match. ADR-0008 adds a correct `Name <email>` consequence that
+  T4 did not ask for.
+
+Worst per axis: Standards S-4 (about 41 unapproved mutations); Spec B (the `RecursionError`
+handling the spec defines is missing).
