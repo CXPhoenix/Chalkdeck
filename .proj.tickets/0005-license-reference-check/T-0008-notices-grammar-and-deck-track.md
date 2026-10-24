@@ -3134,7 +3134,6 @@ Ran 1 test in 0.012s
 FAILED (failures=1)
 ```
 
-
 ### 2026-10-24 — Stage 6 fixes: corrections, checks and coverage at `3e0d609`
 
 The code and texts after the stage-6 rulings are in `967a227` (#203–#216 and A1–A3) and `3e0d609`
@@ -3145,7 +3144,7 @@ The code and texts after the stage-6 rulings are in `967a227` (#203–#216 and A
 
 - S-8/D3: in "Stage 5 close", read the order deviation as "the deferred N1 reds (#67, #69–#73)".
   "#3, #4" belong to T-0007.
-- S-9: the thirteen records headed "I1 ext test_i1_<name> (T-0008 #177-#189)" map in table order to
+- S-9: the thirteen records headed "I1 ext `test_i1_<name>` (T-0008 #177-#189)" map in table order to
   #177–#189: `missing`, `symlink`, `symlinked_parent`, `directory`, `fifo`, `docs_is…`,
   `directory_in_other…`, `not_utf8`, `not_valid_json`, `utf8_bom`, `deep_nesting`, `long_integer`,
   `top_level_array`.
@@ -3175,7 +3174,7 @@ The code and texts after the stage-6 rulings are in `967a227` (#203–#216 and A
 |---|---|---|---|---|
 | `check_license_references(root)` on a `LicenseFixture`, notices from line 3 | (b) and the path rules through notices | #65–#112, #213 | AC1 (D4); AC2 (N1–N6, R1–R7) | link forms, skipped schemes and anchors, empty, scheme, fragment, line, outside, not plain, missing, case, normalization, symlink, not a file, unlistable, unsearchable, tab before a title |
 | same | (c) | #164–#176 | AC2 (C1–C4) | absent, only in skipped regions, fragment, angle, title, wrong text, swapped, image, `./`, case, padded and lower-case text |
-| same | the grammar | #113–#163, #203–#212, #214–#216 | AC2 (G1–G10) | fences, code spans, each of the fifteen constructs, priority pairs, link-like text in titles, table rows, list items, code spans in links, `<` in titles, `|` in link text and destinations, the other escapes, other list markers, BOM after line 1, Unicode leading whitespace, tab before a table row, non-ASCII digits |
+| same | the grammar | #113–#163, #203–#212, #214–#216 | AC2 (G1–G10) | fences, code spans, each of the fifteen constructs, priority pairs, link-like text in titles, table rows, list items, code spans in links, `<` in titles, `\|` in link text and destinations, the other escapes, other list markers, BOM after line 1, Unicode leading whitespace, tab before a table row, non-ASCII digits |
 | same | inputs, order, rendering | #177–#201 | AC3 (I1–I4, O1–O4) | unreadable provenance with notices, unreadable notices, both, group order, column order, control and non-ASCII characters, pointer escapes |
 | `verify()` | wiring | #202 | AC4 (W1) | glossary message right before the license messages |
 
@@ -3213,9 +3212,9 @@ license test classes under `trace`. 203 tests ran, with 0 failures, 0 errors and
 |---|---|---|---|---|
 | `check_license_references(root)`: provenance (`_locations`, `_location_reason`, `_scheme_reason`, `_quoted`, `_parse_int`, `_unreadable`) | T-0007 #1–#64; #65, #199–#201 | 11/11, 11/11, 2/2, 2/2, 3/3, 1/1 | AC1, AC3 | none |
 | same: `_provenance_messages` | as above | 23/26 | AC1, AC3 | lines 372 and 375–376: the H2 `RecursionError` guard, which cannot be triggered on CPython 3.13.11 (Ruling H2) |
-| same: `_read_input` | #50–#64, #177–#196 | 25/27 | AC3 | lines 324–325: `not readable` for an `os.listdir` error other than missing or not-a-directory on an input's own path; no approved sub-case reaches it |
+| same: `_read_input` | #50–#64, #177–#196 | 25/27 | AC3 | lines 324–325: `not readable` when a directory on an input's path cannot be listed (an `os.listdir` error other than missing or not-a-directory); no approved sub-case reached it then (#221 later did) |
 | same: (b) and paths (`_destination_reason`, `_resolve`, `_links`) | #65–#112, #213 | 9/9, 23/23, 8/8 | AC2 | none |
-| same: grammar (`_construct`, `_code_spans`, `_inside`, `_fence_opener`) | #113–#163, #203–#216 | 42/42, 10/10, 1/1, 2/2 | AC2 | none |
+| same: grammar (`_construct`, `_code_spans`, `_inside`, `_fence_opener`) | #113–#163, #203–#212, #214–#216 | 42/42, 10/10, 1/1, 2/2 | AC2 | none |
 | same: `_notices_messages`, `check_license_references` | all notices rows | 34/34, 4/4 | AC2, AC3 | none |
 | `verify()` | #202 | not measured (outside the epic block) | AC4 | `verify()` was changed by one call in T-0007 |
 | total, epic 0005 block (17 functions) | 203 | 211/216 lines (97.7%) | — | as above |
@@ -3445,3 +3444,42 @@ PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j
 Ran 1 test in 0.002s
 FAILED (errors=1)
 ```
+
+### 2026-10-24 — Fix-round fixes and final checks at `073f843`
+
+Code and tests are final at `073f843`: #217–#221 in `5f05675`, and the J3, J5 comments, docstrings
+and test layout in `073f843`, which changes no behaviour. The commit adding this Comment carries
+J1 (`workflow.md` item 6 back to T8's one-line text), N-5 (ADR-0008 rewrapped) and the ticket fixes
+N-3, N-4, N-11, N-12 and P-12's wording. Every check below ran on that tree.
+
+**Checks** (W2, X1, X3):
+
+- `python3 scripts/verify-project.py` exits 0 with the T1 PASS line.
+- `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 346 tests, OK.
+- A direct `python3 scripts/test_verify_project.py` ran 230 tests, OK.
+- `python3 scripts/check_style_skills.py` passes.
+- `git diff --name-only 99ba5ec...HEAD` lists only X1 paths, as before.
+
+**W3, by AST:** the same nine imports; no forbidden `os.*` call, no `__import__` and no built-in
+`open(`; `replace` only on `str`, at lines 178 and 297.
+
+**W4, by intent (Ruling H4):** the diff from `99ba5ec` keeps its six hunks, all after the epic-0005
+`# chalkdeck:` comment at line 214.
+
+**Coverage, measured.** Command: `python3 -I -B <scratchpad>/cov/measure8.py .`, with the seven
+license test classes under `trace`. 208 tests ran, with 0 failures, 0 errors and 0 skipped.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_license_references(root)`: provenance (`_locations`, `_location_reason`, `_scheme_reason`, `_quoted`, `_parse_int`, `_unreadable`) | T-0007 #1–#64; #65, #199–#201 | 11/11, 11/11, 2/2, 2/2, 3/3, 1/1 | AC1, AC3 | none |
+| same: `_provenance_messages` | as above | 23/26 | AC1, AC3 | lines 372, 376 and 377: the H2 `RecursionError` guard, which a probe on CPython 3.13.11 could not trigger (Rulings H2, J3) |
+| same: `_read_input` | #50–#64, #177–#196, #221 | 27/27 | AC3 | none |
+| same: (b) and paths (`_destination_reason`, `_resolve`, `_links`) | #65–#112, #213, #217, #218 | 9/9, 23/23, 8/8 | AC2 | none |
+| same: grammar (`_construct`, `_code_spans`, `_inside`, `_fence_opener`) | #113–#163, #203–#212, #214–#216, #219, #220 | 42/42, 10/10, 1/1, 2/2 | AC2 | none |
+| same: `_notices_messages`, `check_license_references` | all notices rows | 34/34, 4/4 | AC2, AC3 | none |
+| `verify()` | #202 | not measured (outside the epic block) | AC4 | `verify()` was changed by one call in T-0007 |
+| total, epic 0005 block (17 functions) | 208 | 213/216 lines (98.6%) | — | as above |
+
+**AC status:** unchanged from "Stage 5 close", with #203–#212, #214–#216, #219 and #220 added to AC2
+(grammar), #213, #217 and #218 to AC2 (b), and #221 to AC3. AC6 (E1–E4) remains for stage 8.
+Stage 6 is closed, with no third round ("Fix-round rulings"); the next step is stage 7.

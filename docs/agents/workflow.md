@@ -52,10 +52,7 @@ not evidence.
 4. **Delivered decks stay frozen:** on a deck that has been presented, accept only typo and
    broken-link fixes. Anything larger becomes a new deck with a new deck id.
 5. **Commits** use `/tw-emoji-commit`, as everywhere.
-6. **Notices check:** when the change adds, updates or removes an Assets-table row in the notices,
-   run `python3 scripts/verify-project.py` and report its result. A FAIL blocks the merge; a FAIL
-   outside the deck's own rows is reported to the repository owner, not fixed on this track
-   ([ADR-0008](../adr/0008-verifier-license-reference-contract.md)).
+6. **Notices check:** when the change adds, updates or removes an Assets-table row in the notices, run `python3 scripts/verify-project.py` and report its result. A FAIL blocks the merge; a FAIL outside the deck's own rows is reported to the repository owner, not fixed on this track ([ADR-0008](../adr/0008-verifier-license-reference-contract.md)).
 
 **The allowlist** (`deploy/public-decks.txt`) is edited on this track, but only on the author's
 explicit instruction for a named deck id. Never add a deck because it looks finished. Going public
