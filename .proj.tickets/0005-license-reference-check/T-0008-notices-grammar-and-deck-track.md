@@ -82,3 +82,23 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
 stage 8 會在 HEAD 的暫存 worktree 上跑 verifier（應該 PASS），再故意改壞第 34 行的連結（應該只出現一行 FAIL），最後移除暫存 worktree。開工前同樣會先請你核准 test plan 表格。
 
 ## Comments
+
+### 2026-10-24 — Handed over from T-0007 (stage-6 Rulings C2, E2, E3)
+
+Written on the T-0007 branch, so that these items land with it.
+
+- **Already done in T-0007.** The provenance side of I1 (test plan items #50–#62) and of I3 (#63,
+  #64) is implemented and tested. For I1, this ticket adds to each existing sub-case the notices
+  line `[x](missing)` and its message, as traceability row I1 states; it does not rewrite the
+  provenance handling. Rows R3 and R7 are reachable from provenance values and are tested there
+  (#45, #46). Row R2's `%`, `?` and `>` are tested there too (#47–#49).
+- **Rule 2's whitespace (E3, F-R3).** `_resolve` does not yet reject whitespace. Through (b), R2's
+  `<docs/my file.md>` must give `is not a plain repository path`; add it when R2 is implemented.
+- **A `RecursionError` from Q (E3, F-R2).** traceability "Document order" says that a
+  `RecursionError` raised by Q while rendering a value counts as `not valid JSON`, and that the
+  provenance file then gives that one message. T-0007 does not catch it. Determine whether it is
+  reachable once `json.loads` has accepted the value. If it is, add a sub-case and the handling,
+  and drop messages already collected; if not, record why.
+- **`_resolve`'s `os.lstat` error branch (F-R10).** It shares one `try` with `os.listdir` and has no
+  sub-case of its own. R7's notices sub-cases should include a directory that is readable but not
+  searchable.

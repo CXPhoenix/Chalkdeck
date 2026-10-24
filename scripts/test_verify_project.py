@@ -274,7 +274,6 @@ class UnreadableFileTest(unittest.TestCase):
         self.assertEqual(fx.check(), ["docs/agents/locked.md: cannot read as UTF-8"])
 
 
-
 # chalkdeck: license-reference check, provenance side (epic 0005-license-reference-check, T-0007).
 PROVENANCE = "docs/agents/skill-sources.json"
 DEFAULT_NOTICES = "[CC BY-SA 4.0](LICENSE)\n[MIT](LICENSE-CODE)\n"
@@ -329,7 +328,7 @@ class LicenseCase(unittest.TestCase):
 
 
 class ProvenanceReferenceTest(LicenseCase):
-    """Rows P1-P9 and approved test plan items #1-#30 and #45-#49: provenance values, (a) and the path rules."""
+    """Rows P1-P9 and approved test plan items #1-#30 and #45-#49: provenance license_location values and the path rules."""
 
     def test_p7_missing_file(self):
         self.expect({"license_location": "missing.md"}, [ref('"missing.md"', '"/license_location"', "does not exist")])
@@ -434,7 +433,7 @@ class ProvenanceReferenceTest(LicenseCase):
     def test_p7_segment_below_a_regular_file(self):
         self.loc("LICENSE/x", '"LICENSE/x"', "does not exist")
 
-    @unittest.skipIf(CANNOT_DENY_READ, "running as root or without POSIX permissions")
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
     def test_p7_unlistable_parent(self):
         sub = self.fx.root / "sub"
         self.fx.write("sub/LICENSE", "MIT\n")
@@ -454,7 +453,7 @@ class ProvenanceReferenceTest(LicenseCase):
 
 
 class LicenseAgreementTest(LicenseCase):
-    """Rows D1-D3, D5 and D6 and approved test plan items #31-#44: (d) license agreement."""
+    """Rows D1-D3, D5 and D6 and approved test plan items #31-#44: a root license file and its recorded license agree."""
 
     def mismatch(self, location, required, actual, pointer='"/license_location"'):
         return ref(location, pointer, f"is {required}, not {actual}")
@@ -510,8 +509,9 @@ class LicenseAgreementTest(LicenseCase):
         value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
         self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
 
+
 class ProvenanceInputTest(LicenseCase):
-    """Row I1, provenance side, and approved test plan items #50-#62: an unreadable provenance file."""
+    """Rows I1 and I3, provenance side, and approved test plan items #50-#64: an unreadable provenance file."""
 
     def unreadable(self, reason):
         self.assertEqual(self.fx.check(), [f"{PROVENANCE}: cannot read license references ({reason})"])
@@ -539,9 +539,8 @@ class ProvenanceInputTest(LicenseCase):
         (self.fx.root / PROVENANCE).mkdir()
         self.unreadable("not a regular file")
 
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "mkfifo unavailable")
     def test_i1_fifo(self):
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("mkfifo unavailable")
         (self.fx.root / PROVENANCE).unlink()
         os.mkfifo(self.fx.root / PROVENANCE)
         self.unreadable("not a regular file")
@@ -580,6 +579,20 @@ class ProvenanceInputTest(LicenseCase):
     def test_i1_top_level_array(self):
         self.fx.write(PROVENANCE, "[]")
         self.unreadable("not a JSON object")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unreadable_file(self):
+        path = self.fx.root / PROVENANCE
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.unreadable("not readable")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unsearchable_directory(self):
+        agents = self.fx.root / "docs/agents"
+        agents.chmod(0o444)
+        self.addCleanup(agents.chmod, 0o755)
+        self.unreadable("not readable")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,10 @@ shorter than the spec, the spec governs.
 The epic is split into two tickets (owner, 2026-10-23: "照兩張票拆"). This one builds the license-
 reference check for the provenance file and wires it into the verifier. T-0008 adds the notices,
 the deck-track texts and the end-to-end runs. Rows whose expected output includes a notices message
-(D4, I1, I2, W1) belong to T-0008, so this ticket can close on its own.
+(D4, I1, I2, W1) belong to T-0008, so this ticket can close on its own. Stage-6 Rulings C1, C2 and
+E2 (2026-10-24) pulled forward the provenance side of I1 and I3 and the R2, R3 and R7 resolution
+behaviour reachable from provenance values (test plan items #45–#64); T-0008 adds the notices line
+to those I1 cases.
 
 Branch `tickets/T-0007/provenance-license-references` from `main` **after** the spec merge (the
 commit that merges `specs/0005-license-reference-check` into `main`). Work in a worktree under
@@ -35,8 +38,10 @@ the provenance file that is not a string, is empty, has surrounding whitespace, 
 leaves the repository, is not a plain repository path, does not exist, differs in case, passes
 through a symlink or is not a regular file. It also reports every root-license `license_location`
 whose `license` disagrees with the root license file. Placeholders and sentences are skipped. Messages are
-rendered by Q and come in document order. On the real tree the verifier still passes, and its PASS
-line names license references.
+rendered by Q and come in document order. A provenance file that is missing, a symlink, not a regular
+file, unreadable, not UTF-8, not valid JSON or not an object gives one
+`cannot read license references (<reason>)` line instead of a traceback (Rulings C2, E2). On the real
+tree the verifier still passes, and its PASS line names license references.
 
 ## Acceptance criteria
 
@@ -48,8 +53,9 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
    `git diff --name-only 2577b504fa5f22fcef047a95f6d9c2afc9a2daf4 <B> -- scripts/ AGENTS.md docs/agents/skill-sources.json THIRD_PARTY_NOTICES.md`.
    If it lists any path, stop and ask the repository owner whether to proceed; quote the answer.
 2. **Test plan table approved** (hard rule 2): one line per sub-case of P1–P9, D1–D3, D5 and D6,
-   with its expected list and, where a first-run pass is expected, its mutation.
-3. **Provenance rows pass** (AC1; P1–P9, D1–D3, D5, D6): each sub-case is its own test, passes at
+   with its expected list and, where a first-run pass is expected, its mutation; and, after stage 6,
+   rows #45–#64 approved under Rulings C1, C2, E1 and E2.
+3. **Provenance rows pass** (AC1; P1–P9, D1–D3, D5, D6; and #45–#64): each sub-case is its own test, passes at
    HEAD, and has its red recorded in Comments with the failing output, the HEAD commit and the
    `git hash-object -w` blob of the test file. Nothing skips on macOS as a non-root user.
 4. **Wiring and real tree** (AC4 in part; W2 in part): `verify()` extends its errors with
@@ -65,7 +71,7 @@ rows it covers; those are authoritative, and the coverage report table is keyed 
 
 ## 給使用者（zh-TW）
 
-這張票替 verifier 加上 provenance 這一側的授權引用檢查。完成後，`skill-sources.json` 裡任何 `license_location` 有以下情況都會出現 `FAIL:`：不是字串、是空字串、頭尾有空白、用了 URL scheme、跑出 repo、不是單純路徑、檔案不存在、大小寫不符、經過 symlink、不是一般檔案。指向根授權檔的條目，`license` 和檔案不一致時也會 FAIL。placeholder 和說明句會略過。訊息依 JSON 的文件順序輸出，特殊字元都會跳脫。
+這張票替 verifier 加上 provenance 這一側的授權引用檢查。完成後，`skill-sources.json` 裡任何 `license_location` 有以下情況都會出現 `FAIL:`：不是字串、是空字串、頭尾有空白、用了 URL scheme、跑出 repo、不是單純路徑、檔案不存在、大小寫不符、經過 symlink、不是一般檔案。指向根授權檔的條目，`license` 和檔案不一致時也會 FAIL。placeholder 和說明句會略過。訊息依 JSON 的文件順序輸出，特殊字元都會跳脫。provenance 檔不存在、是 symlink、不是一般檔案、讀不到、不是 UTF-8、不是合法 JSON 或頂層不是物件時，會輸出一行 `cannot read license references (<原因>)`，不會丟 traceback（stage 6 裁決 C2、E2 提前納入）。
 
 真實檔案樹上 verifier 仍然 PASS，PASS 行會多出「license references」。notices 的檢查、deck 軌的規則、ADR-0008 與 E2E 都在 T-0008。
 
@@ -946,12 +952,13 @@ FAILED (failures=1)
     new);
   - `python3 scripts/check_style_skills.py` prints "PASS: 5 style skills match the baseline" and
     exits 0.
-- **Known interim gap until T-0008:** this ticket has no unreadable-input handling (rows I1–I4).
+- **Known interim gap until T-0008** (superseded on 2026-10-24 by Rulings C2 and E2; see
+  "Stage 6 rulings and amended test plan" and "Fix-round rulings"): this ticket has no unreadable-input handling (rows I1–I4).
   A missing or invalid provenance file raises an exception from `check_license_references`, so
   `verify()` stops with a traceback instead of reporting. The real tree is unaffected. T-0008's I1
   closes the gap.
 
-### 2026-10-24 — Coverage report table (item 8)
+### 2026-10-24 — Coverage report table (item 8), superseded by the final table below
 
 | Spec AC | Rows closed here | Evidence | Status |
 |---|---|---|---|
@@ -1405,7 +1412,7 @@ FAILED (failures=1)
     `FAIL: docs/agents/skill-sources.json: cannot read license references (missing)`, with no
     traceback.
 
-### 2026-10-24 — Coverage report table, revised (item 8, C3)
+### 2026-10-24 — Coverage report table, revised (item 8, C3), superseded by the final table below
 
 Measured with the standard library's `trace`: the three license test classes ran under a line
 counter, and the executable lines (from `co_lines`) of the six new functions were compared with
@@ -1506,3 +1513,90 @@ S9 are handled by notes. M1, M2, M4, M6 and M7 had no ruling.
 
 Worst per axis: Standards N2 (13 test plan rows without row-by-row approval); Spec F-R1 and F-R3
 (remaining crash paths, and rule 2's whitespace still missing).
+
+### 2026-10-24 — Fix-round rulings
+
+The repository owner: "E1–E5 都照建議。"
+
+- **E1** (N2, N3, F-R5): rows #50–#62 are approved as written in "Stage 6 rulings and amended test
+  plan", including #54 (FIFO) and #61 (5,000-digit integer), which the C2 question had not listed.
+  #54's red is redone with the approved mutation, which skips the regular-file check; the mutated
+  code opens the FIFO with `O_NONBLOCK`, so the run cannot hang.
+- **E2** (F-R1, N12): the provenance side of I3 moves into this ticket. Any other `OSError` while
+  walking or reading the provenance file gives `not readable`. Approved rows:
+
+  | # | Row | Sub-case | Expected | Mutation if the first run passes |
+  |---|---|---|---|---|
+  | 63 | I3 | provenance file mode 000 (skipped as root) | `U(not readable)` | let read errors propagate |
+  | 64 | I3 | `docs/agents` readable but not searchable, mode 0o444 (skipped as root) | `U(not readable)` | let `os.lstat` errors propagate |
+
+- **E3** (F-R3, F-R2): rule 2's whitespace and a `RecursionError` raised by Q go to T-0008, as items
+  written into that ticket; this ticket corrects its coverage note.
+- **E4** (F-R11): `json.loads` gets a `parse_int` that rejects integers of more than 4,300 digits as
+  `not valid JSON`, whatever the interpreter's limit; #61 covers it.
+- **E5**: no third stage-6 round. After these fixes, X3 and the coverage measurement are re-run at
+  the final HEAD and the evidence completed, and the ticket moves to stage 7.
+
+### 2026-10-24 — Red records for #54 (redone), #61 (redone), #63 and #64, committed with their green
+
+The exact command for every record from here on is `rm -rf scripts/__pycache__ && python3 -I -B -m unittest discover -s scripts -p test_verify_project.py -k <name>`.
+
+#### #54 I1 provenance a FIFO, redone under Ruling E1 (mutation: skip the regular-file check; the mutated code opens with O_NONBLOCK so it cannot hang) — red
+
+- HEAD: `fa95db7a2e5a128a410d9e2cbfd2618e8eba8120`
+- test file blob: `861e8fae443b855169e04784f3bd1edaf80a1ed2`; verifier blob: `0512d0aab0e5111cacac04784ded2a8e297bc2aa`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_fifo` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_fifo (test_verify_project.ProvenanceInputTest.test_i1_fifo)
+AssertionError: Lists differ: ['doc[19 chars]ces.json: cannot read license references (not valid JSON)'] != ['doc[19 chars]ces.json: cannot read license references (not a regular file)']
+First differing element 0:
+- ['docs/agents/skill-sources.json: cannot read license references (not valid '
+?                                                                       - ---
++ ['docs/agents/skill-sources.json: cannot read license references (not a '
+-  'JSON)']
++  'regular file)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #63 I3 provenance file mode 000 — red
+
+- HEAD: `fa95db7a2e5a128a410d9e2cbfd2618e8eba8120`
+- test file blob: `cf2cd8efcd30e275796af26d18f156db374d74e4`; verifier blob: `3926b9c9ed56a949f1fbabfccfac55125b4b13ed`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i3_unreadable_file` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i3_unreadable_file (test_verify_project.ProvenanceInputTest.test_i3_unreadable_file)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmploa2gbyo/docs/agents/skill-sources.json'
+Ran 1 test in 0.005s
+FAILED (errors=1)
+```
+
+#### #64 I3 docs/agents readable but not searchable — red
+
+- HEAD: `fa95db7a2e5a128a410d9e2cbfd2618e8eba8120`
+- test file blob: `811f8e80bb6e68e26855f48b3ed222132aedae3d`; verifier blob: `b49bd307d92addcc344265450065fd86a20333cc`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i3_unsearchable` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i3_unsearchable_directory (test_verify_project.ProvenanceInputTest.test_i3_unsearchable_directory)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpf9msd39q/docs/agents/skill-sources.json'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #61 I1 5,000-digit integer, redone under Ruling E4 (passed after the parse_int change; mutation: drop the digit check and lift the interpreter limit) — red
+
+- HEAD: `fa95db7a2e5a128a410d9e2cbfd2618e8eba8120`
+- test file blob: `811f8e80bb6e68e26855f48b3ed222132aedae3d`; verifier blob: `ece15c12a0d1bad4eb24e38dac8b26df14f34bc0`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_long_integer` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_long_integer (test_verify_project.ProvenanceInputTest.test_i1_long_integer)
+AssertionError: Lists differ: ['doc[24 chars]son: license reference 99999999999999999999999[5013 chars]ing'] != ['doc[24 chars]son: cannot read license references (not valid JSON)']
+First differing element 0:
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+

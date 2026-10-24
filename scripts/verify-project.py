@@ -232,7 +232,7 @@ def _resolve(root, target):
         return "is outside the repository"
     if any(char in target for char in "%?<>") or "" in segments or "." in segments:
         return "is not a plain repository path"
-    current, walked = root, []
+    current, walked, mode = root, [], 0
     try:
         for segment in segments:
             names = os.listdir(current)
@@ -287,24 +287,44 @@ def _locations(document):
         stack.extend(reversed(children))
 
 
+def _unreadable(reason):
+    return [f"{PROVENANCE}: cannot read license references ({reason})"]
+
+
+def _parse_int(digits):
+    """Reject a JSON integer longer than Python's default 4,300-digit limit, whatever the interpreter allows."""
+    if len(digits.lstrip("-")) > 4300:
+        raise ValueError("integer too long")
+    return int(digits)
+
+
 def _read_input(root, rel):
     """(text, None) for a readable input file, or (None, reason) for the unreadable-input message."""
-    current = root
+    current, mode = root, 0
     for segment in rel.split("/"):
         try:
             names = os.listdir(current)
         except (FileNotFoundError, NotADirectoryError):
             return None, "missing"
+        except OSError:
+            return None, "not readable"
         if segment not in names:
             return None, "missing"
         current = current / segment
-        mode = os.lstat(current).st_mode
+        try:
+            mode = os.lstat(current).st_mode
+        except OSError:
+            return None, "not readable"
         if stat.S_ISLNK(mode):
             return None, "a symlink"
     if not stat.S_ISREG(mode):
         return None, "not a regular file"
     try:
-        return current.read_bytes().decode("utf-8"), None
+        data = current.read_bytes()
+    except OSError:
+        return None, "not readable"
+    try:
+        return data.decode("utf-8"), None
     except UnicodeDecodeError:
         return None, "not UTF-8"
 
@@ -314,13 +334,13 @@ def check_license_references(root):
     messages = []
     text, unreadable = _read_input(root, PROVENANCE)
     if unreadable:
-        return [f"{PROVENANCE}: cannot read license references ({unreadable})"]
+        return _unreadable(unreadable)
     try:
-        sources = json.loads(text)
+        sources = json.loads(text, parse_int=_parse_int)
     except (ValueError, RecursionError):
-        return [f"{PROVENANCE}: cannot read license references (not valid JSON)"]
+        return _unreadable("not valid JSON")
     if not isinstance(sources, dict):
-        return [f"{PROVENANCE}: cannot read license references (not a JSON object)"]
+        return _unreadable("not a JSON object")
     for pointer, value, holder in _locations(sources):
         prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
         reason = _location_reason(root, value)
