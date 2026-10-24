@@ -3222,3 +3222,112 @@ license test classes under `trace`. 203 tests ran, with 0 failures, 0 errors and
 
 **AC status for the epic** is unchanged from "Stage 5 close", with #203–#216 added to AC2. AC6
 (E1–E4) remains for stage 8.
+
+### 2026-10-24 — Stage 6 code review, fix round
+
+Scope: committed changes `1dfc146..b59a223` (four commits: `967a227`, `3e0d609`, `2159b1c`,
+`b59a223`), the fixes under Rulings H1–H5 and rows #203–#216. Staged, unstaged and untracked layers
+were empty. Same two axes, run in parallel on one packet (about 0.24M subagent tokens). HEAD, status
+and the captured diff were unchanged when both reports came back. Neither reviewer had a shell; the
+parent checked what they could not:
+
+- all 14 records for #203–#216 cite test file blob `a69c3b06…`;
+- those records give the flags as `-B` only;
+- the ticket has a double blank line before "Stage 6 fixes" (line 3137), as well as at 578, 1303,
+  2399 and 2696.
+
+Both reviewers found `3e0d609` behaviour-preserving apart from the H2 guard, the #203–#216 tests
+matching the approved table, and the coverage figures (211/216, uncovered lines 372, 375–376 and
+324–325) matching HEAD.
+
+**Standards** (12 findings, 10 smells). First-round status:
+
+- fixed: S-6, S-14 (rewrap aside), S-15, S-16;
+- partly fixed: S-7 (item 6 rewrapped; old double blank lines remain), S-17 (`verify()` still has
+  no figure);
+- handled by a note: S-1 (after-the-fact column table, not approved before tests), S-5, S-8, S-9,
+  S-10, S-11, S-18;
+- by ruling: S-2, S-3, S-4 (H1), S-13 (H5);
+- no disposition: S-12.
+
+Smells fixed: the `== 2` repeat, the lambda, `tail = match and`, the duplicated helpers and
+`NOTICES`, `b`, `names`, `licence`. Partly: `FENCE.match` runs twice, not three times; the
+unreadable messages are still hand-written in tests. Not addressed: long `_construct` and
+`_notices_messages`, positional tuple unpacking, the closer regex rebuilt per line, the duplicated
+angle test, O3 and O4 in a Notices class, D4 before the helpers, F10.
+
+- N-1 (high conf., medium-low): `3e0d609` is typed `refactor` but carries the H2 behaviour change,
+  ADR-0008 decision text and the `workflow.md` rewrap.
+- N-2 (high, medium): #203–#216 were written as one batch before any ran (one shared test blob;
+  #205's first run shows all fourteen ran together). This repeats S-2, which H1 had just sent to
+  the retrospective.
+- N-3 (high, low): a double blank line before "Stage 6 fixes" (line 3137).
+- N-4 (high, low): line 3178's table cell holds an unescaped `|` (in "`|` in link text and
+  destinations"), which splits the row in GFM.
+- N-5 (high, low): ADR-0008 lines 23 and 25 run to 101 and 110 columns after the edit.
+- N-6 (high, low): `NoticesGrammarTest`'s docstring still says #113–#163; #213 (N1) sits in the
+  grammar class while the plan table and `NoticesReferenceTest` place it under (b).
+- N-7 (medium, low): the new records say `-B`; the D2 correction says every run used `-I -B`.
+- N-8 (medium, low): #205's fixture `a|b` was added after the first run without row approval, and
+  `|` is not a legal Windows file name (no skip guard).
+- N-9 (medium, low): the guard's comment, "CPython 3.13 cannot reach it…", turns one 3.13.11 probe
+  into a general claim; the project supports 3.11+.
+- N-10 (high, low): S-12 has no disposition.
+- N-11 (medium, low): line 3148's "test_i1_" followed by an angle-bracket placeholder sits outside a
+  code span and renders as raw HTML.
+- N-12 (high, low): the coverage table lists #213 under both (b) and the grammar; the plan table
+  lists it under (b) only.
+- Smells:
+  - K-1: `_scheme_reason` matches `SCHEME` again after its callers did, and raises `TypeError` for
+    a target without a scheme;
+  - K-2: `_fence_opener` returns `None` for both "not a fence" and "rejected fence", so callers
+    match `FENCE` again;
+  - K-3: the guard's `try` spans the whole loop, `_resolve`'s I/O included;
+  - K-4: #203–#216 are appended in plan order, not grouped by row;
+  - K-5: `RequiredLinkTest` inherits helpers it does not use, and `NoticesCase`'s "from line 3"
+    docstring does not fit `expect_text`;
+  - K-6: the unaddressed first-round smells above;
+  - K-7: the `_notices_messages` and `_provenance_messages` docstrings are ambiguous ("(A, then B
+    followed by C)", "returns none");
+  - K-8: F10 recurs, with 11 uncommitted mutation blobs;
+  - K-9: `# chalkdeck:` markers differ between the two scripts, and the verifier comment cites a
+    ticket id;
+  - K-10: the renamed `rendered = …` line in the tests runs to about 130 columns.
+  - Low confidence, possibly out of scope: `workflow.md` line 64 is one long line too.
+
+**Spec** (15 findings, all low). First-round status: A1, A3 and B (under H2) fixed; A2 fixed but its
+branch is untested (P-4, P-5); C, D1, D5 by ruling (H1, H4); D2 by note (but see P-9); D3 corrected;
+D4 judged without a ruling (P-10); D6 and F not addressed (P-11); D7 deferred (Ruling I2-order);
+E mostly fixed (P-2).
+
+- P-1 (medium conf.): T8 gives item 6 "shown as Markdown source" on one line, and only T2, T3 and
+  T6 allow rewrapping; `3e0d609` split it into four lines. Read literally, AC5/T8 fails; S-7 and T8
+  conflict and need a ruling.
+- P-2 (high): a tab before a destination (`\([ \t]*`, `[ \t]*\)` in `LINK`) has no test; #213 covers
+  the title only.
+- P-3 (high): the backtick in the escape set (line 460) has no test; first-round E missed it too.
+- P-4 (high): the A2 branch that skips leading spaces before a table row (line 446) has no test;
+  `line.startswith("|")` would pass the suite.
+- P-5 (medium): A2 narrows detection. A row starting with U+3000 or U+00A0, then a `|` in a code
+  span, was reported before and now gives nothing, though GFM still splits it into cells. This
+  follows the spec's wording and H3, so it is a spec-level gap.
+- P-6 (medium): the guard also wraps `_location_reason` and `_resolve`, wider than "by json.loads,
+  or by Q" (traceability:83–85) and "walked or rendered by Q" (H2).
+- P-7 (medium): as N-9; the comment also names only Q, though the guard covers the walk.
+- P-8 (medium): the rulings' readings of the spec are not on the close-out carry list: H3
+  ("first non-space" is U+0020, digits are ASCII), H2 ("walked"), H4 (the R4 skip outside the
+  spec's three skip kinds).
+- P-9 (medium): as N-7.
+- P-10 (medium): D4 was judged "X2 holds in substance" without an owner ruling; X2's wording does
+  not hold.
+- P-11 (high): D6 (O1's line numbers differ from the matrix) and F (ADR-0008's `Name <email>`
+  consequence not asked for by T4) have no ruling.
+- P-12 (high): the coverage table's "on an input's own path" for lines 324–325 is imprecise (it is a
+  directory on the path that cannot be listed); traceability:526 lists "parent unlistable" as an
+  I1–I3 boundary with no test.
+- P-13 (high): as N-12.
+- P-14 (high): as N-5.
+- P-15 (medium): as N-2.
+
+Worst per axis: Standards N-2 (the fix round's own tests written as one batch); Spec P-1 (T8's
+one-line text against the S-7 rewrap) and P-5 (non-ASCII-indented table rows now pass silently).
