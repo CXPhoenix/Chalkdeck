@@ -3331,3 +3331,37 @@ E mostly fixed (P-2).
 
 Worst per axis: Standards N-2 (the fix round's own tests written as one batch); Spec P-1 (T8's
 one-line text against the S-7 rewrap) and P-5 (non-ASCII-indented table rows now pass silently).
+
+### 2026-10-24 — Fix-round rulings
+
+The repository owner: "J1–J8 都照建議，#217–#221 核准。"
+
+- **J1** (P-1, S-7): item 6 of `workflow.md` goes back to T8's one-line text.
+- **J2** (P-2, P-3, P-4, P-12): rows #217–#221 are approved as below. Each is written and run on its
+  own before the next; the last column is fixed here before the run.
+- **J3** (P-6, K-3, N-9, P-7): the guard keeps its width. Its comment is corrected to say that the
+  3.13.11 probe could not reach it and that it covers the walk as well as Q.
+- **J4** (P-5, P-8, P-10, P-11): to the epic close-out.
+  - P-5, table rows indented with non-ASCII whitespace, goes into `OPEN-QUESTIONS.md`.
+  - The spec corrections, with the I2 row: the readings in H2 ("walked"), H3 (U+0020, ASCII
+    digits) and H4 (the R4 skip); X2's wording (D4); O1's line numbers (D6).
+  - F: ADR-0008's `Name <email>` consequence is accepted.
+- **J5**: the document and docstring fixes N-3, N-4, N-5 (P-14), N-6, N-11, N-12 (P-13), P-12's
+  wording, K-7 and K-10. N-7 (P-9): the record template printed `-B` while the runner ran
+  `python3 -I -B`; the template is corrected for later records.
+- **J6** (N-8): #205's fixture `a|b` is approved after the fact. Windows is not a verification
+  surface of this verifier, so no skip guard is added.
+- **J7** (N-1, N-2, K-8, N-10): N-1 (commit type), N-2 (the batch of #203–#216) and K-8 (F10 again)
+  go to the retrospective; history is not rewritten. S-12 is accepted: T-0007's `done` lands with
+  this ticket's PR.
+- **J8**: the other smells (K-1, K-2, K-4, K-5, K-6, K-9) stay as they are.
+- No third stage-6 round. After these fixes the checks and the coverage measurement are re-run at
+  the final HEAD, and the ticket moves to stage 7.
+
+| # | Row | Sub-case (line 3) | Expected | Mutation if the first run passes |
+|---|---|---|---|---|
+| 217 | N1 | `[x](`, tab, `LICENSE)` | `[]` | allow only spaces after `(` |
+| 218 | N1 | `[x](LICENSE`, tab, `)` | `[]` | allow only spaces before `)` |
+| 219 | G3 | ``a\`b\`c`` (the backticks pair, so `unmatched backtick` does not apply) | `M(3, backslash escape)` | drop the backtick from the escape set |
+| 220 | G8 | two spaces, then `` \| `a\|b` \| `` | `M(3, pipe inside a table cell element)` | test `line.startswith("\|")` |
+| 221 | I3 | provenance; `docs/agents` mode 0o333, searchable but not listable (skipped as root) | `U(not readable)` | let `os.listdir` errors propagate |
