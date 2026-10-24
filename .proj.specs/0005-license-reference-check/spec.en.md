@@ -25,7 +25,9 @@ files are the facts this spec checks against.
 
 Revision 2 applies the round-1 Rulings R1–R8 and the parent fixes recorded with them. Revision 3
 is a post-review patch: it applies the round-2 Rulings S1–S3 and the parent fixes recorded with
-them, is self-checked, and is not reviewed again (Ruling S4).
+them, is self-checked, and is not reviewed again (Ruling S4). The close-out corrections of
+2026-10-24, listed at the end of `traceability.md`, apply ticket rulings to the wording without a
+review round.
 
 ## Problem Statement
 
@@ -176,7 +178,8 @@ HEAD. OQ-4 tracks a standing check.
   applies to this epic only (grill Q6, Ruling R7).
 - **Platform skips.** Symlink, FIFO and permission sub-cases may skip only where the platform cannot
   create the fixture or the run is as root. On macOS as a non-root user, the reference platform,
-  nothing skips. A skip elsewhere is recorded and does not count as a pass.
+  nothing skips. A normalization sub-case may also skip where the file system does not keep a
+  decomposed (NFD) name; APFS keeps it. A skip elsewhere is recorded and does not count as a pass.
 - **Wiring.** One test calls `verify()` on a fixture that also fails the glossary check. It asserts
   that the returned errors end with exactly the license-reference messages, right after the glossary
   message (W1).
@@ -215,7 +218,8 @@ HEAD. OQ-4 tracks a standing check.
 - **AC7.**
   - `git diff <B SHA>...HEAD --name-only`, with the latest recorded B, lists only the paths of row
     X1.
-  - B is the first Comment, and any re-recorded B quotes the repository owner's agreement (X2).
+  - B is the first Comment the ticket writes, before any code or test change, and any re-recorded B
+    quotes the repository owner's agreement (X2).
   - The three commands of row X3 exit 0 at HEAD.
 
 ## Out of Scope

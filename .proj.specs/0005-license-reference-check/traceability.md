@@ -8,7 +8,8 @@ Messages drafts in `../0003-license-split/traceability.md` (revision 2), and cha
 
 Revision 2 applies the round-1 Rulings (R1–R8) and the parent fixes listed there. Revision 3 applies
 the round-2 Rulings (S1–S4) of `review/round-2.md` and the parent fixes listed there. It is
-self-checked; no third review round runs (Ruling S4).
+self-checked; no third review round runs (Ruling S4). The close-out corrections of 2026-10-24 apply
+ticket rulings to the wording without a review round; the last section lists them.
 
 Glossary terms used here (`GLOSSARY.md`): Repository owner, Reuser, Author, Deck content work.
 
@@ -81,7 +82,7 @@ Array indices are decimal and count from 0.
 an object's keys in order, an array's items in order. The walk enters every object and array,
 including one that is itself a `license_location` value. It keeps its own stack instead of
 recursing, so it walks every value `json.loads` returns. A `RecursionError` raised by `json.loads`,
-or by Q while rendering a value, counts as `not valid JSON` (see Unreadable inputs); the provenance
+or while a value is walked or rendered by Q, counts as `not valid JSON` (see Unreadable inputs); the provenance
 file then gives that one message and no other.
 
 ### License references
@@ -184,7 +185,8 @@ A file that ends with `\n` has an empty last item, which holds nothing to check.
   3. `backtick in fence info string` (see Fences);
   4. `indented fence` (see Fences);
   5. `unmatched backtick` (see Code spans);
-  6. `pipe inside a table cell element`: the line's first non-space character is `|`, and a `|`
+  6. `pipe inside a table cell element`: the line's first character other than a space (U+0020)
+     is `|`, and a `|`
      appears inside a code span, or inside the link text, destination or title of a recognized
      link (Ruling S1);
   7. `raw HTML or autolink`: outside code spans, the line holds a `<` that is not the opening `<`
@@ -192,7 +194,7 @@ A file that ends with `\n` has an empty last item, which holds nothing to check.
      this covers HTML comments, HTML blocks, inline tags and autolinks;
   8. `blockquote`: the line is at most 3 spaces, then `>`;
   9. `block inside a list item`: the line is at most 3 spaces, a list marker (`-`, `*`, `+`, or 1–9
-     digits followed by `.` or `)`), one or more spaces, and then either 3 or more spaces more,
+     ASCII digits `0`–`9` followed by `.` or `)`), one or more spaces, and then either 3 or more spaces more,
      a run of 3 or more backticks or tildes, `>`, or `[`, one or more characters other than `]`,
      `]:` (Ruling S2). In other words, the marker is followed by 4 or more spaces, or by spaces and
      a fence run, a blockquote or a link reference definition;
@@ -390,8 +392,9 @@ E1–E4 and X3 are judged on the HEAD of the last ticket to land.
 
 **Skips.** A symlink, FIFO or permission sub-case may skip only where the platform cannot create
 the fixture or the run is as root. On macOS as a non-root user, the reference platform, no sub-case
-skips. A skip on another platform is recorded in Comments with the platform and does not count as
-a pass.
+skips. A normalization sub-case may also skip where the file system does not keep a decomposed
+(NFD) name; APFS keeps it, so it does not skip on the reference platform. A skip on another platform
+is recorded in Comments with the platform and does not count as a pass.
 
 ### Provenance (a)
 
@@ -472,10 +475,10 @@ The rows below replace the defaults' first two lines as they state.
 | ID | Type × field × boundary | Expected behaviour | AC |
 |---|---|---|---|
 | I1 | provenance input × missing / a symlink / `docs/agents` a symlink to a directory holding the file / a directory / a FIFO / `docs` a regular file / the directory named `Docs` on disk / not UTF-8 / not valid JSON / UTF-8 BOM / 100,000 nested arrays / a 5,000-digit integer / a top-level array; in every sub-case the notices also hold `[x](missing)` on line 3 | the unreadable message, with reasons `missing`, `a symlink` (twice), `not a regular file` (twice, the FIFO never opened), `missing` (twice), `not UTF-8`, `not valid JSON` (four times), `not a JSON object`; then `THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist` | AC3 |
-| I2 | notices input × missing / a symlink / a directory / not UTF-8 / named `third_party_notices.md` on disk; in every sub-case the provenance file is `{"license_location": "missing"}` | the provenance message for `"missing"` (`does not exist`, pointer `"/license_location"`), then the unreadable message with reasons `missing`, `a symlink`, `not a regular file`, `not UTF-8`, `missing`; no grammar or missing-link messages | AC3 |
+| I2 | notices input × missing / a symlink / a directory / not UTF-8 / named `third_party_notices.md` on disk; in every sub-case the provenance file is `{"license_location": "missing"}` | the unreadable message with reasons `missing`, `a symlink`, `not a regular file`, `not UTF-8`, `missing`, then the provenance message for `"missing"` (`does not exist`, pointer `"/license_location"`); no grammar or missing-link messages | AC3 |
 | I3 | input × permission denied × provenance / notices | `not readable` for each | AC3 |
 | I4 | both inputs unreadable × both missing | the provenance message, then the notices message, and nothing else | AC3 |
-| O1 | order × one readable fixture with a bad provenance value, a bad notices destination on line 3, an unsupported construct on line 4 and no `LICENSE-CODE` link | the provenance message, the construct message, the destination message, the missing-link message: groups 2, 3, 4, 5, not line order | AC3 |
+| O1 | order × one readable fixture with a bad provenance value, a bad notices destination on line 2, an unsupported construct on line 3 and no `LICENSE-CODE` link | the provenance message, the construct message, the destination message, the missing-link message: groups 2, 3, 4, 5, not line order | AC3 |
 | O2 | order × `[a](zz) [b](aa)` on one line, both missing | `"zz"` before `"aa"`: by column, not by name | AC3 |
 | O3 | rendering × a `license_location` that is a one-item array holding a string with `"`, `\`, a newline, U+0007 and U+2028 / a one-item array holding `授權` | `is not a string`, the array rendered by Q with `\"`, `\\`, `\n`, `\u0007`, `\u2028` / rendered `["授權"]`, the characters kept | AC3 |
 | O4 | rendering × `"missing"` at keys `a/b`, `c~d`, `e"f` and the empty key | `does not exist`, the pointer rendered as `"/a~1b/c~0d/e\"f//license_location"` | AC3 |
@@ -494,7 +497,7 @@ The rows below replace the defaults' first two lines as they state.
 | E3 | E2E × in `<tmp>`, line 34's destination changed to `.agents/skills/code-review/LICENCE`, then `python3 <tmp>/scripts/verify-project.py` | exits 1; the only `FAIL:` line is `FAIL: THIRD_PARTY_NOTICES.md:34: license reference ".agents/skills/code-review/LICENCE" does not exist` | AC6 |
 | E4 | E2E × cleanup | `git worktree list` first shows `<tmp>` as a detached worktree at HEAD; then `git worktree remove --force <tmp>` runs, and `git worktree list` no longer shows it | AC6 |
 | X1 | diff × paths | `git diff <B>...HEAD --name-only` lists only `scripts/verify-project.py`, `scripts/test_verify_project.py`, `AGENTS.md`, `docs/README.md`, `docs/agents/workflow.md`, `docs/adr/0007-license-split.md`, the ADR of T4, files under `.proj.tickets/0005-license-reference-check/`, and `.proj.specs/0005-license-reference-check/review/security-T-NNNN.md` | AC7 |
-| X2 | branch × base | B is the first Comment; any re-recorded B quotes the repository owner's agreement | AC7 |
+| X2 | branch × base | B is the first Comment the ticket writes, before any code or test change (a Comment and a status commit handed over by an earlier ticket may come first); any re-recorded B quotes the repository owner's agreement | AC7 |
 | X3 | checks × at HEAD | `python3 scripts/verify-project.py`, `python3 -m unittest discover -s scripts -p 'test_*.py'` and `python3 scripts/check_style_skills.py` exit 0 | AC7 |
 
 ## Self-check of rules added or changed in revisions 2 and 3
@@ -530,3 +533,18 @@ The rows below replace the defaults' first two lines as they state.
 | rev 3: T7, T8, T9 deck rule | yes | add, update, remove rows; FAIL outside the deck's rows | T7–T9, X1 | ADR-0004:8 amendment form; workflow.md:45-60 list; AGENTS.md:185 bullet |
 | rev 3: red definition, `hash-object -w`, mutation of the implementation | yes | missing function, first-run pass | Tests and red | ADR-0006 extension stated in the spec |
 | rev 3: several tickets | yes | which HEAD judges W2, E1–E4, X3 | Several tickets | stage 4 assigns rows |
+
+## Close-out corrections (2026-10-24)
+
+Applied at the epic close-out from rulings recorded in the tickets. They change wording to match
+what the owner ruled and the tests check; no behaviour changes.
+
+| Where | Before | After | Source |
+|---|---|---|---|
+| Document order | a `RecursionError` raised by `json.loads`, or by Q while rendering | also while a value is walked | T-0008 Ruling H2 |
+| Notices grammar, construct 6 | the line's first non-space character | the first character other than a space (U+0020) | T-0008 Ruling H3 (A2) |
+| Notices grammar, construct 9 | 1–9 digits | 1–9 ASCII digits `0`–`9` | T-0008 Ruling H3 (A3) |
+| Skips | symlink, FIFO and permission sub-cases | adds the normalization sub-case on a file system that does not keep NFD names | T-0008 Ruling H4 |
+| I2 | the provenance message, then the unreadable message | the unreadable message first (group 1), then the provenance message | T-0008 Ruling I2-order |
+| O1 | destination on line 3, construct on line 4 | destination on line 2, construct on line 3, as approved row #197 | T-0008 stage 6 D6 |
+| X2 | B is the first Comment | the first Comment the ticket writes, before any code or test change; handed-over Comments may come first | T-0008 stage 6 D4 |
