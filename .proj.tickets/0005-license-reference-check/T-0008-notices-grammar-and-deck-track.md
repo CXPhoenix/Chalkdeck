@@ -3483,3 +3483,32 @@ license test classes under `trace`. 208 tests ran, with 0 failures, 0 errors and
 **AC status:** unchanged from "Stage 5 close", with #203–#212, #214–#216, #219 and #220 added to AC2
 (grammar), #213, #217 and #218 to AC2 (b), and #221 to AC3. AC6 (E1–E4) remains for stage 8.
 Stage 6 is closed, with no third round ("Fix-round rulings"); the next step is stage 7.
+
+### 2026-10-24 — Stage 7 security review
+
+Report: `.proj.specs/0005-license-reference-check/review/security-T-0008.md`. Scope: base
+`99ba5ec` (origin/main) to HEAD `2c2a48f`, committed changes only; HEAD and status were unchanged
+across the review. The project security-review skill ran one candidate pass (10 candidates) and two
+independent false-positive passes (about 0.26M subagent tokens). The parent executed the verifier on
+each candidate input and rendered it with pandoc's GFM reader, a proxy for GitHub that is not GitHub
+itself; the rest is code reasoning.
+
+**Confirmed findings: 0.** No candidate is newly introduced, crosses a trust boundary, and reaches
+HIGH/MEDIUM with confidence ≥ 0.8. Real but below the threshold or excluded:
+
+- C-01–C-04 (LOW): spec-level grammar gaps where GitHub renders the notices differently from what
+  the verifier sees, against ADR-0008's own principle. Each PASSes in the verifier; pandoc confirms
+  the different rendering:
+  - C-01: a `\r` on a fence closer desynchronises fence state;
+  - C-02: nested list markers or a tab after a marker hide blocks, including a refdef that makes
+    `[MIT][x]` link to any URL;
+  - C-03: table rows without a leading `|` split a link into cells;
+  - C-04: a refdef label over two lines is not caught.
+- C-05 (INFO): front matter, math and control characters, unverified or near false positive.
+- C-06: `https:` without `//` is skipped; a quality gap, a false positive as a security issue.
+- C-07 (LOW, excluded as DoS): notices parsing is quadratic (8,000 code spans on one line take
+  5.6 s); fail-closed.
+- C-08, C-09, C-10 (INFO): new paths to SEC-06, SEC-08 and SEC-03 (G1), and the deck-track
+  instruction; the earlier dispositions still fit.
+
+The report's "後續事項" lists them for the repository owner.
