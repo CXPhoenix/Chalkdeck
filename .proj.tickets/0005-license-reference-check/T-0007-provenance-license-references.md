@@ -1428,3 +1428,81 @@ This is line coverage, not branch coverage.
 | AC4 | W2 on the worktree, W3 (above), W4 met; W1 in T-0008 |
 | AC5 | T1, T2, T3, T6 met; T4, T5, T7–T9 in T-0008 |
 | AC7 | X1, X2, X3 met for this ticket |
+
+### 2026-10-24 — Stage 6 code review, fix round
+
+Scope: committed changes `2431b20..258978d` (four commits), the fixes for the first round under
+Rulings C1–C4. Staged, unstaged and untracked layers were empty. Same two axes, run in parallel on
+one packet (about 0.26M subagent tokens). HEAD and status were unchanged when both reports came
+back. Parent checks: the U+3000 input is now an escape and neither script holds a non-ASCII
+invisible character. `git show --stat` confirms that `1ffafbc` and `e3f75f3` each carry code, tests
+and that round's red records.
+
+**Standards** (14 findings, 10 smells). First-round status: S1, S5, S6, S11, M3 (verifier side) and
+M5 are fixed. S2 and S3 are partly fixed. S4 is fixed in part, with the rest deferred. S7, S8 and
+S9 are handled by notes. M1, M2, M4, M6 and M7 had no ruling.
+
+- N1 (high conf., low-medium): C3 says the amended rows carry a Seam column; the table has none
+  (seam only in prose), and no Scope, AC or Boundary column.
+- N2 (low-medium, medium): rows #50–#62 were written after "C1–C4 都照建議" and the C2 question
+  listed about nine cases, not these thirteen (FIFO and the 5,000-digit integer were not listed).
+  Under hard rule 2 and decision D1 this lacks row-by-row approval.
+- N3 (high, low): #54's mutation was changed without re-approval.
+- N4 (medium-high, low-medium): the revised AC table lost its Evidence pointers, and the trace
+  measurement's command and HEAD are not recorded.
+- N5 (high, low): "AC2 … T-0008" contradicts R2, R3 and R7 pulled forward by C1.
+- N6 (high, low): the coverage note says whitespace shares rule 2's expression; it is not
+  implemented.
+- N7 (medium, low-medium): the ticket's Context, Deliverable and zh-TW section, and the old interim
+  gap note, were not updated for C1 and C2.
+- N8 (medium, low): the red records' command lines still differ from the command run.
+- N9 (high, low): three blank lines before the license block, one before `ProvenanceInputTest`.
+- N10 (high, low): double blank lines and unwrapped long paragraphs in the ticket.
+- N11 (high, low): the new skip reason differs from the existing wording for `CANNOT_DENY_READ`.
+- N12 (high, low): `_read_input` still raises on other `OSError`s (deferred to T-0008 and
+  recorded).
+- N13 (medium, low): the F13 correction still reads badly.
+- N14 (low-medium, low): `9b3a0e1` is typed `refactor` but changes what a direct run executes, and
+  it mixes rulings into the same commit.
+- Smells:
+  - J1: `_read_input` repeats `_resolve`'s walk with a different error policy.
+  - J2: the unreadable message template is written three times, plus once in a test.
+  - J3: `verify()` and the new check read the provenance file two different ways.
+  - J4: the test docstrings use the spec symbols (a) and (d); row "R7" collides with "Ruling R7".
+  - J5: `mode` is possibly unbound after the loops.
+  - J6: the `try` in `_resolve` is wider than the two calls it guards.
+  - J7: 6 of the 18 new sub-cases needed a mutation red.
+  - J8: M1, M4 and M6 are unchanged.
+  - J9: the FIFO test skips in its body, not with a decorator, and #61 depends on the interpreter's
+    integer-digit limit.
+  - J10: `_read_input(root, rel)` is general, though T-0008 justifies it.
+
+**Spec** (15 findings):
+
+- F-R1 (high, medium): `_read_input` still raises for a non-missing `listdir` error, an `lstat`
+  error and a read error (traceability:219-224 want `not readable`). If this ticket lands alone, a
+  permission problem crashes where B reported.
+- F-R2 (medium/high, low): a `RecursionError` from Q is unhandled, and T-0008 has no row or item
+  that takes it over.
+- F-R3 (high, medium): C1 did not add whitespace to rule 2, and the coverage note claims it is
+  there. Through (b), R2's `<docs/my file.md>` would not get `is not a plain repository path`.
+- F-R4 (high, low): as N1.
+- F-R5 (medium, medium-low): #54's mutation deviates without approval; the approved one can run
+  without hanging (open the FIFO with `O_NONBLOCK`), and nothing fails fast if a regression opens
+  the FIFO.
+- F-R6 (high, low): as N7, plus acceptance item 3 and the old coverage table.
+- F-R7 (high, low): as N4's Evidence part.
+- F-R8 (medium, low): "provenance side of I1 met" overstates it; no I1 sub-case yet matches the
+  matrix as written, notices line included.
+- F-R9 (high, low): the W4 record predates `import stat`; W4 still holds.
+- F-R10 (high, low): the `os.lstat` error branch in `_resolve` has no sub-case of its own.
+- F-R11 (medium, low): #61 depends on the default integer-digit limit, which
+  `PYTHONINTMAXSTRDIGITS` or `-X int_max_str_digits` can change.
+- F-R12 (medium, low): several new red outputs are cut short, as in S9.
+- F-R13 (low, low): red records committed with their green are simultaneous in Git, not before it.
+- F-R14 (medium, low): the checks ran at `e3f75f3`, not the final HEAD (only the ticket changed
+  after it).
+- F-R15 (medium, low): as N13.
+
+Worst per axis: Standards N2 (13 test plan rows without row-by-row approval); Spec F-R1 and F-R3
+(remaining crash paths, and rule 2's whitespace still missing).
