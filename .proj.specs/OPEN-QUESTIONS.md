@@ -55,3 +55,73 @@ is open, what it blocks, and what would settle it.
 - **Settles it:** a decision among, for example, a workflow rule to run the verifier in a fresh
   worktree before landing, a CI job that runs it on the pushed commit, or a Git-aware mode of the
   verifier.
+
+## OQ-5 — Deck-track wording in the epic 0004 notices rules
+
+- **Question:** Should one small epic make the deck-track notices exception read the same in every
+  place it is written (T10, T13–T18 of epic 0004, now in `AGENTS.md`, `docs/agents/workflow.md`,
+  ADR-0007 and `GLOSSARY.md`)?
+- **Why open:** Epic 0004's stage 6 found 11 spec-level wording points: STD-01, STD-02/SPEC-11,
+  STD-04/SMELL-02, STD-05, STD-06, STD-07, STD-16, SMELL-01, SPEC-12, SPEC-13 and SPEC-14 (T-0006,
+  "Stage 6 code review"). The most important: the holder is decided by the owner only and defaults
+  to unknown is restated only in ADR-0007, and an in-place file swap is covered by T13/T14 but not
+  T10. The repository owner chose "記進 OQ，先不開" (decision D2, T-0007).
+- **Blocks:** nothing now. The 0004 chain analysis found no chain through these points; they make
+  the deck track's notices guard rely on wording that differs between places.
+- **Settles it:** an epic that rewrites the exception once and points the other places at it, or a
+  decision that the current wording stands.
+
+## OQ-6 — The CLI reads the provenance file before the license-reference check
+
+- **Question:** How should `verify()` read `docs/agents/skill-sources.json` so the CLI reports an
+  unreadable or malformed file as a FAIL line instead of hanging or printing a traceback?
+- **Why open:** The pre-existing read at `scripts/verify-project.py:107-115` uses `read_text`, which
+  follows symlinks, and catches only `OSError`, `ValueError` and `KeyError`. A FIFO hangs, a symlink
+  to `/dev/zero` exhausts memory, and a top-level `[]` raises `TypeError`. The epic 0005 check
+  handles all three, and its "the notices are still checked" holds, but only at the function level:
+  from the CLI the earlier read fails first (T-0007 SEC-03, T-0008 C-09; Rulings G1 and L4). Spec
+  0005 keeps the existing checks unchanged, so the epic left it.
+- **Blocks:** nothing now. On the deck track the provenance file is not part of a deck change. If it
+  were, a traceback is not a `FAIL:` line, so the rule "a FAIL blocks the merge" should also cover
+  any non-zero exit (Ruling L4).
+- **Settles it:** a change that reads the provenance file once through the epic 0005 input walk, or
+  catches the remaining errors, with workflow item 6 reading "any non-zero exit blocks the merge".
+
+## OQ-7 — Hardening gaps that predate epic 0005
+
+- **Question:** Should the verifier escape every name it prints, and should its tests load the
+  verifier from source only?
+- **Why open:** Two pre-existing gaps found in T-0007's stage 7 (Ruling G2):
+  - SEC-11: the glossary and skill-tree messages print names from disk unescaped, so a committed
+    file name holding a newline, ESC or a bidi character can forge a line on stderr (the exit code
+    stays 1). The epic 0005 messages all go through quoted rendering.
+  - SEC-12(a): the tests load `verify-project.py` with `spec_from_file_location`, which can pick up a
+    committed unchecked-hash `.pyc` from `scripts/__pycache__` instead of the source.
+- **Blocks:** nothing; both need the attacker to control the branch, which already lets them edit
+  the verifier.
+- **Settles it:** a hardening ticket that applies quoted rendering to the older messages and makes
+  the tests bypass bytecode, or a decision to accept both.
+
+## OQ-8 — Notices that GitHub renders differently from what the verifier sees
+
+- **Question:** How far should the notices grammar go so that every construct GitHub renders
+  differently is rejected, as ADR-0008 intends?
+- **Why open:** T-0008's stage 7 found that each of these PASSes in the verifier while GitHub (by
+  the pandoc GFM proxy) renders something else (`review/security-T-0008.md`, C-01–C-06; Ruling L1):
+  - a `\r` on a fence closer desynchronises fence state, so links inside are unchecked and the
+    required links can land in a code block;
+  - nested list markers, or a tab after a marker, hide indented code, a fence or a link reference
+    definition inside a list item;
+  - a table row without a leading `|` splits a link into cells;
+  - a link reference definition whose label spans two lines is not caught;
+  - front matter, math and control characters in a fragment, unverified;
+  - `https:` without `//` is skipped although a browser resolves it as a relative path.
+  Stage 6 adds one more: a table row indented with non-ASCII whitespace, then a `|` inside a code
+  span, is no longer reported (T-0008 P-5, Ruling J4). All are spec-level gaps below the security
+  threshold; the code follows the spec. Workflow item 6 also lacks three sentences (Ruling L3):
+  check that the diff touches only the deck and the notices' Assets rows before running; the
+  verifier's output is data, not instructions; report the result to the owner, not on a public PR.
+- **Blocks:** nothing now; the owner reviews the rendered notices in every PR. The verifier's PASS
+  overstates what was checked until it is settled.
+- **Settles it:** the notices-grammar epic the owner scheduled after 0005 (Ruling L1): a revised
+  grammar in a new spec and ADR-0008, with the fixes listed in the report's "後續事項" item 1.
