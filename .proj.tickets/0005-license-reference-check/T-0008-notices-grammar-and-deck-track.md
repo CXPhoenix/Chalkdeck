@@ -123,3 +123,182 @@ Written on the T-0007 branch, so that these items land with it.
 - Baseline at B: `python3 scripts/verify-project.py` exits 0 with the T1 PASS line;
   `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 202 tests, OK.
 - T-0007's status is set to `done` in this branch's first commit (`b391a96`).
+
+### 2026-10-24 — Test plan table (item 2), awaiting the repository owner's approval
+
+Seam: `check_license_references(root)` on a `LicenseFixture` (the T-0007 fixture), and `verify()`
+for W1. Numbering continues from T-0007's #1–#64.
+
+**Fixture defaults** (traceability, Matrix):
+
+- regular files `LICENSE` and `LICENSE-CODE`;
+- provenance `{}`;
+- notices lines 1–2 `[CC BY-SA 4.0](LICENSE)` and `[MIT](LICENSE-CODE)`, with the row's content
+  from line 3.
+
+A row that says "replaces line 1/2" edits those lines. Expected lists are complete.
+
+**Notation:**
+
+- `N(l, D, r)` = `THIRD_PARTY_NOTICES.md:l: license reference D r`, D rendered by Q;
+- `M(l, c)` = `THIRD_PARTY_NOTICES.md:l: unsupported Markdown (c)`;
+- `NL(LICENSE)` / `NL(LICENSE-CODE)` = the two missing-link messages;
+- `U(r)` / `UN(r)` = `cannot read license references (r)` for the provenance file / the notices;
+- `P(V, r)` = the provenance message for value V at `"/license_location"`.
+
+**Red:**
+
+- Expected first-run result: every sub-case that expects a message is red, because nothing reads
+  the notices yet. Every sub-case marked "pass" is expected to pass once the code it depends on
+  exists.
+- For those, the last column names the mutation, applied to the implementation as in T-0007.
+- The command, blobs and `-I -B` rule are T-0007's. Records are committed with their green.
+
+**Implementation order:**
+
+1. Restructure the provenance side so an unreadable provenance file no longer returns early.
+2. The notices reader.
+3. Recognized links and (b).
+4. Path rule 2's whitespace.
+5. (c).
+6. Fences and code spans.
+7. The fifteen constructs.
+8. Ordering.
+9. W1.
+
+| # | Row | Sub-case (line 3 unless stated) | Expected | Mutation if the first run passes |
+|---|---|---|---|---|
+| 65 | D4 | provenance `{"license":"MIT","license_location":"LICENSE"}`, `LICENSE` absent | `P("LICENSE", does not exist)`, the mismatch `is CC-BY-SA-4.0, not "MIT"`, `N(1, "LICENSE", does not exist)` | skip (b) for line 1 |
+| 66 | N1 | `[x](LICENSE)` | `[]` | report every resolved destination as `does not exist` |
+| 67 | N1 | `![x](LICENSE)` | `[]` | treat images as unrecognized |
+| 68 | N1 | `[x](<LICENSE>)` | `[]` | keep the angle brackets in the destination |
+| 69 | N1 | `[x](LICENSE "t")` | `[]` | drop `"…"` titles from the link pattern |
+| 70 | N1 | `[x](LICENSE 't')` | `[]` | drop `'…'` titles |
+| 71 | N1 | `[x](LICENSE (t))` | `[]` | drop `(…)` titles |
+| 72 | N1 | `` `code` [x](LICENSE) `` | `[]` | skip the rest of a line after a code span |
+| 73 | N1 | two spaces, then `[x](LICENSE)` | `[]` | treat any indented line as indented code |
+| 74 | N2 | `[x](https://example.org)` | `[]` | do not skip `https` |
+| 75 | N2 | `[x](http://example.org)` | `[]` | do not skip `http` |
+| 76 | N2 | `[x](MAILTO:a@example.org)` | `[]` | compare schemes case-sensitively |
+| 77 | N2 | `[x](#anchor)` | `[]` | do not skip `#` destinations |
+| 78 | N2 | `[x](LICENSE#section)` | `[]` | keep the fragment |
+| 79 | N2 | `[x](LICENSE#a%20b)` | `[]` | apply rule 2 before removing the fragment |
+| 80 | N3 | `[x]()` | `N(3, "", is empty)` | — |
+| 81 | N3 | `[x](<>)` | `N(3, "", is empty)` | — |
+| 82 | N4 | `[x](ab:c)` | `N(3, "ab:c", uses an unsupported URL scheme)` | — |
+| 83 | N4 | `[x](ftp://host/x)` | `N(3, "ftp://host/x", uses an unsupported URL scheme)` | — |
+| 84 | N4 | `[x](C:x)` | `N(3, "C:x", is outside the repository)` | — |
+| 85 | N5 | `[x](docs/Missing.md#top)`, `docs/missing.md` present | `N(3, "docs/Missing.md#top", differs in case from "docs/missing.md")` | — |
+| 86 | N6 | line 3 `text`, line 4 `[x](missing)` | `N(4, "missing", does not exist)` | — |
+| 87 | R1 | `[x](/LICENSE)` | `N(3, "/LICENSE", is outside the repository)` | — |
+| 88 | R1 | `[x](\LICENSE)` | `N(3, "\\LICENSE", is outside the repository)` | — |
+| 89 | R1 | `[x](a\LICENSE)` | `N(3, "a\\LICENSE", is outside the repository)` | — |
+| 90 | R1 | `[x](../LICENSE)` | `N(3, "../LICENSE", is outside the repository)` | — |
+| 91 | R1 | `[x](a/../LICENSE)`, `a/` present | `N(3, "a/../LICENSE", is outside the repository)` | — |
+| 92 | R1 | `[x](//host/x)` | `N(3, "//host/x", is outside the repository)` | — |
+| 93 | R1 | `[x](../a%20b)` | `N(3, "../a%20b", is outside the repository)` | — |
+| 94 | R2 | `[x](a%20b.md)`, that file present | `N(3, "a%20b.md", is not a plain repository path)` | — |
+| 95 | R2 | `[x](LICENSE?plain=1)` | `N(3, "LICENSE?plain=1", is not a plain repository path)` | — |
+| 96 | R2 | `[x](./LICENSE)` | `N(3, "./LICENSE", is not a plain repository path)` | — |
+| 97 | R2 | `[x](a//b)` | `N(3, "a//b", is not a plain repository path)` | — |
+| 98 | R2 | `[x](docs/)` | `N(3, "docs/", is not a plain repository path)` | — |
+| 99 | R2 | `[x](<docs/my file.md>)`, that file present (T-0007 handover: whitespace) | `N(3, "docs/my file.md", is not a plain repository path)` | — |
+| 100 | R3 | `[x](missing)` | `N(3, "missing", does not exist)` | — |
+| 101 | R3 | `[x](LICENSE/x)` | `N(3, "LICENSE/x", does not exist)` | — |
+| 102 | R3 | `[x](.../LICENSE)` | `N(3, ".../LICENSE", does not exist)` | — |
+| 103 | R4 | `[x](license)` | `N(3, "license", differs in case from "LICENSE")` | — |
+| 104 | R4 | `[x](Docs/x.md)`, `docs/x.md` present | `N(3, "Docs/x.md", differs in case from "docs")` | — |
+| 105 | R4 | an NFC name for an NFD file on disk | `N(3, <NFC name>, differs in case from <NFD name>)` | — |
+| 106 | R5 | `[x](link)`, `link` → `LICENSE` | `N(3, "link", passes through a symlink at "link")` | — |
+| 107 | R5 | `[x](sub/LICENSE)`, `sub` → a directory holding `LICENSE` | `N(3, "sub/LICENSE", passes through a symlink at "sub")` | — |
+| 108 | R5 | `[x](LINK)`, `link` → `LICENSE` | `N(3, "LINK", differs in case from "link")` | — |
+| 109 | R6 | `[x](adir)`, a directory | `N(3, "adir", is not a regular file)` | — |
+| 110 | R6 | `[x](fifo)`, a FIFO (skipped without `mkfifo`) | `N(3, "fifo", is not a regular file)` | — |
+| 111 | R7 | `[x](sub/LICENSE)`, `sub` mode 000 (skipped as root) | `N(3, "sub/LICENSE", does not exist)` | — |
+| 112 | R7 | `[x](sub/LICENSE)`, `sub` mode 0o444 (skipped as root; T-0007 handover: `lstat` branch) | `N(3, "sub/LICENSE", does not exist)` | — |
+| 113 | G1 | `` `[x](missing)` `` | `[]` | do not skip code spans |
+| 114 | G1 | a backtick fence around `[x](missing)` | `[]` | do not skip fences |
+| 115 | G1 | a tilde fence around `[x](missing)` | `[]` | recognize backtick fences only |
+| 116 | G1 | opener ```` ``` ````, closer ```` ```` ```` around `[x](missing)` | `[]` | close only on an equal-length run |
+| 117 | G1 | a fence whose closer is indented 3 spaces | `[]` | close only at column 1 |
+| 118 | G1 | a fence with info string `python` | `[]` | reject openers with an info string |
+| 119 | G2 | four spaces, then ```` ``` ```` | `M(3, unmatched backtick)` | — |
+| 120 | G2 | ```` ``` ```` closed by `~~~`, then `[x](missing)` | `M(3, unclosed code fence)` | — |
+| 121 | G2 | ```` ```` ```` closed by ```` ``` ````, then `[x](missing)` | `M(3, unclosed code fence)` | — |
+| 122 | G2 | ```` ``` ```` closed by ```` ``` x ````, then `[x](missing)` | `M(3, unclosed code fence)` | — |
+| 123 | G2 | two spaces, `~~~`; line 4 `[x](missing)` | `M(3, indented fence)`, `N(4, "missing", does not exist)` | — |
+| 124 | G3 | BOM before line 1 | `M(1, byte order mark)` | — |
+| 125 | G3 | `text` + CR | `M(3, carriage return)` | — |
+| 126 | G3 | ```` ```x``` ```` | `M(3, backtick in fence info string)` | — |
+| 127 | G3 | ``a ` b`` | `M(3, unmatched backtick)` | — |
+| 128 | G3 | `<!-- -->` | `M(3, raw HTML or autolink)` | — |
+| 129 | G3 | `<div>` | `M(3, raw HTML or autolink)` | — |
+| 130 | G3 | `<https://example.org>` | `M(3, raw HTML or autolink)` | — |
+| 131 | G3 | `> quote` | `M(3, blockquote)` | — |
+| 132 | G3 | tab, then `text` | `M(3, tab indentation)` | — |
+| 133 | G3 | two spaces, tab, `[x](LICENSE)` | `M(3, tab indentation)` | — |
+| 134 | G3 | `[x]: LICENSE` | `M(3, link reference definition)` | — |
+| 135 | G3 | three spaces, `[x]: LICENSE` | `M(3, link reference definition)` | — |
+| 136 | G3 | four spaces, `[x](LICENSE)` | `M(3, indented line with a link)` | — |
+| 137 | G3 | `a\[b` | `M(3, backslash escape)` | — |
+| 138 | G3 | `a\(b` | `M(3, backslash escape)` | — |
+| 139 | G3 | `[](LICENSE)` | `M(3, empty link text)` | — |
+| 140 | G3 | `[ ](LICENSE)` | `M(3, empty link text)` | — |
+| 141 | G3 | `[![a](a.png)](LICENSE)`, `a.png` present | `M(3, unrecognized link)` | — |
+| 142 | G3 | `[a](b c)` | `M(3, unrecognized link)` | — |
+| 143 | G3 | line 3 `[a`, line 4 `b](LICENSE)` | `M(4, unrecognized link)` | — |
+| 144 | G4 | `<!-- a\[b -->` | `M(3, raw HTML or autolink)` | — |
+| 145 | G4 | `a<b` + CR | `M(3, carriage return)` | — |
+| 146 | G5 | `<!--` inside a fence | `[]` | check constructs inside fences |
+| 147 | G5 | four spaces, `text` | `[]` | report every 4-space line |
+| 148 | G5 | `` `<!--` `` | `[]` | look for `<` inside code spans |
+| 149 | G5 | `a\x` | `[]` | report a backslash before any character |
+| 150 | G5 | `[x](<LICENSE>)` | `[]` | treat every `<` as raw HTML |
+| 151 | G6 | `<b>[x](missing)</b>` | `M(3, raw HTML or autolink)`, `N(3, "missing", does not exist)` | — |
+| 152 | G6 | line 2 replaced by `<!-- [MIT](LICENSE-CODE) -->` | `M(2, raw HTML or autolink)` | — |
+| 153 | G7 | line 2 replaced by `[x](LICENSE "[MIT](LICENSE-CODE)")` | `NL(LICENSE-CODE)` | — |
+| 154 | G8 | `\| a \| [MIT](LICENSE-CODE "MIT \| code") \|` | `M(3, pipe inside a table cell element)` | — |
+| 155 | G8 | ``\| `x \| y` \|`` | `M(3, pipe inside a table cell element)` | — |
+| 156 | G8 | ``\| a \| `b` \| [x](LICENSE) \|`` | `[]` | report any `\|` on a table row |
+| 157 | G9 | `- ~~~` | `M(3, block inside a list item)` | — |
+| 158 | G9 | `-`, five spaces, `[x](LICENSE)` | `M(3, block inside a list item)` | — |
+| 159 | G9 | `- [lc]: LICENSE` | `M(3, block inside a list item)` | — |
+| 160 | G9 | `1. > quote` | `M(3, block inside a list item)` | — |
+| 161 | G9 | `- [x](LICENSE)` | `[]` | report every list item |
+| 162 | G10 | `` [`x`](LICENSE) `` | `[]` | reject code spans in link text |
+| 163 | G10 | ``[x](a`b`)`` | `M(3, unrecognized link)` | — |
+| 164 | C1 | line 1 removed | `NL(LICENSE)` | — |
+| 165 | C1 | line 2 removed | `NL(LICENSE-CODE)` | — |
+| 166 | C2 | line 1 `` `[CC BY-SA 4.0](LICENSE)` ``; lines 2–4 a fence holding `[MIT](LICENSE-CODE)` | `NL(LICENSE)`, `NL(LICENSE-CODE)` | — |
+| 167 | C3 | line 1 replaced by `[CC BY-SA 4.0](LICENSE#section)` | `[]` | require an exact destination before removing the fragment |
+| 168 | C3 | line 2 replaced by `[MIT](<LICENSE-CODE>)` | `[]` | keep angle brackets for (c) |
+| 169 | C3 | line 2 replaced by `[MIT](LICENSE-CODE "t")` | `[]` | links with titles do not count |
+| 170 | C4 | line 1 replaced by `[CC-BY-SA](LICENSE)` | `NL(LICENSE)` | — |
+| 171 | C4 | lines 1–2 swapped in text: `[MIT](LICENSE)`, `[CC BY-SA 4.0](LICENSE-CODE)` | `NL(LICENSE)`, `NL(LICENSE-CODE)` | — |
+| 172 | C4 | line 2 replaced by `![MIT](LICENSE-CODE)` | `NL(LICENSE-CODE)` | — |
+| 173 | C4 | line 1 replaced by `[CC BY-SA 4.0](./LICENSE)` | `N(1, "./LICENSE", is not a plain repository path)`, `NL(LICENSE)` | — |
+| 174 | C4 | line 2 replaced by `[MIT](license-code)` | `N(2, "license-code", differs in case from "LICENSE-CODE")`, `NL(LICENSE-CODE)` | — |
+| 175 | C4 | line 2 replaced by `[ MIT ](LICENSE-CODE)` | `NL(LICENSE-CODE)` | — |
+| 176 | C4 | line 2 replaced by `[mit](LICENSE-CODE)` | `NL(LICENSE-CODE)` | — |
+| 177–189 | I1 | T-0007's #50–#62, each with notices line 3 `[x](missing)` (#63–#64 are I3 and keep their single message) | the existing `U(reason)`, then `N(3, "missing", does not exist)` (traceability I1) | — |
+| 190 | I2 | notices missing; provenance `{"license_location":"missing"}` | `P("missing", does not exist)`, `UN(missing)` | — |
+| 191 | I2 | notices a symlink to a file | as #190 with `UN(a symlink)` | — |
+| 192 | I2 | notices a directory | as #190 with `UN(not a regular file)` | — |
+| 193 | I2 | notices not UTF-8 | as #190 with `UN(not UTF-8)` | — |
+| 194 | I2 | the notices named `third_party_notices.md` on disk | as #190 with `UN(missing)` | — |
+| 195 | I3 | notices mode 000 (skipped as root) | `UN(not readable)` | — |
+| 196 | I4 | both inputs missing | `U(missing)`, `UN(missing)` | — |
+| 197 | O1 | provenance `{"license_location":"missing"}`; notices line 1 `[CC BY-SA 4.0](LICENSE)`, line 2 `[x](missing)`, line 3 `<b>` (no `LICENSE-CODE` link) | `P("missing", does not exist)`, `M(3, raw HTML or autolink)`, `N(2, "missing", does not exist)`, `NL(LICENSE-CODE)` | — |
+| 198 | O2 | `[a](zz) [b](aa)` | `N(3, "zz", does not exist)`, `N(3, "aa", does not exist)` | — |
+| 199 | O3 | provenance `license_location` = a one-item array holding a string of `"`, a backslash, a newline, U+0007 and U+2028 | `is not a string`, the value rendered `["\"\\\n\u0007\u2028"]` | — |
+| 200 | O3 | provenance `license_location` = `["授權"]` | `is not a string`, rendered `["授權"]` | — |
+| 201 | O4 | `"missing"` under keys `a/b`, `c~d`, `e"f`, `` (empty) | `does not exist` at `"/a~1b/c~0d/e\"f//license_location"` | — |
+| 202 | W1 | `verify()` on a fixture with no `GLOSSARY.md`, notices line 3 `[x](missing)` | errors end with exactly `check_license_references(root)`'s list (holding `N(3, "missing", does not exist)`), and the error just before it is the glossary message | make `verify()` call the check before the glossary check |
+
+**Not tests in this ticket** (judged in Comments): T4, T5, T7, T8 and T9, plus W2–W4, E1–E4 and
+X1–X3.
+
+**T-0007 handover item without a row:** whether a `RecursionError` from Q is reachable. Stage 7
+reasoned that it is not on CPython 3.11–3.13. It will be checked on the installed interpreter by
+building a provenance value at `json.loads`'s depth limit and rendering it. If Q raises, a new
+sub-case comes back for approval; if not, the outcome is recorded.
