@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Check portable project instructions, per-runtime skill trees, native role configs
-and the project glossary convention.
+"""Check portable project instructions, per-runtime skill trees, native role configs,
+the project glossary convention and license references.
 
 Python 3.11+. Read-only and offline; run from any working directory.
 This checks configuration structure, not model-backed workflow behavior.
@@ -11,8 +11,10 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 import tomllib
+import unicodedata
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,6 +127,7 @@ def verify(root):
         errors.append(f"Runtime configuration cannot be checked: {error}")
 
     errors.extend(check_glossary(root))
+    errors.extend(check_license_references(root))
     return names, errors
 
 
@@ -208,13 +211,154 @@ def check_glossary(root):
     return messages
 
 
+# chalkdeck: license-reference check (epic 0005-license-reference-check).
+PROVENANCE = "docs/agents/skill-sources.json"
+PLACEHOLDER = re.compile(r"<[^<>\s]+>")
+SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
+ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
+
+
+def _quoted(value):
+    """Quoted rendering (spec 0005 Q): JSON text with every non-printable character escaped, so a
+    value cannot forge output."""
+    text = json.dumps(value, ensure_ascii=False)
+    return "".join(char if char.isprintable() else char.encode("unicode_escape").decode("ascii") for char in text)
+
+
+def _resolve(root, target):
+    """The path rules: the reason a target does not name a regular file in the repository, or None."""
+    segments = target.split("/")
+    if target.startswith(("/", "\\")) or "\\" in target or ".." in segments:
+        return "is outside the repository"
+    if any(char in target for char in "%?<>") or "" in segments or "." in segments:
+        return "is not a plain repository path"
+    current, walked, mode = root, [], 0
+    try:
+        for segment in segments:
+            names = os.listdir(current)
+            if segment not in names:
+                folded = unicodedata.normalize("NFC", segment).casefold()
+                close = sorted(name for name in names if unicodedata.normalize("NFC", name).casefold() == folded)
+                if close:
+                    return f"differs in case from {_quoted('/'.join(walked + [close[0]]))}"
+                return "does not exist"
+            walked.append(segment)
+            current = current / segment
+            mode = os.lstat(current).st_mode
+            if stat.S_ISLNK(mode):
+                return f"passes through a symlink at {_quoted('/'.join(walked))}"
+    except OSError:
+        return "does not exist"
+    return None if stat.S_ISREG(mode) else "is not a regular file"
+
+
+def _location_reason(root, value):
+    """Steps 1-7 of license reference (a), spec 0005: a reason, or None when the value is valid or
+    skipped."""
+    if not isinstance(value, str):
+        return "is not a string"
+    if value == "":
+        return "is empty"
+    if PLACEHOLDER.search(value) or any(char.isspace() for char in value.strip()):
+        return None
+    if value != value.strip():
+        return "has leading or trailing whitespace"
+    scheme = SCHEME.match(value)
+    if scheme:
+        drive = len(scheme[0]) == 2  # one letter and a colon, such as C:
+        return "is outside the repository" if drive else "uses an unsupported URL scheme"
+    return _resolve(root, value)
+
+
+def _locations(document):
+    """(JSON Pointer, value, holder) for every license_location key, in document order, without
+    recursion; the holder is the object that holds the key."""
+    stack = [(None, document, "", None)]
+    while stack:
+        key, node, pointer, holder = stack.pop()
+        if key == "license_location":
+            yield pointer, node, holder
+        if isinstance(node, dict):
+            children = [(name, value, f"{pointer}/{name.replace('~', '~0').replace('/', '~1')}", node) for name, value in node.items()]
+        elif isinstance(node, list):
+            children = [(None, value, f"{pointer}/{index}", node) for index, value in enumerate(node)]
+        else:
+            continue
+        stack.extend(reversed(children))
+
+
+def _unreadable(reason):
+    return [f"{PROVENANCE}: cannot read license references ({reason})"]
+
+
+def _parse_int(digits):
+    """Reject a JSON integer longer than Python's default 4,300-digit limit, whatever the interpreter allows."""
+    if len(digits.lstrip("-")) > 4300:
+        raise ValueError("integer too long")
+    return int(digits)
+
+
+def _read_input(root, rel):
+    """(text, None) for a readable input file, or (None, reason) for the unreadable-input message."""
+    current, mode = root, 0
+    for segment in rel.split("/"):
+        try:
+            names = os.listdir(current)
+        except (FileNotFoundError, NotADirectoryError):
+            return None, "missing"
+        except OSError:
+            return None, "not readable"
+        if segment not in names:
+            return None, "missing"
+        current = current / segment
+        try:
+            mode = os.lstat(current).st_mode
+        except OSError:
+            return None, "not readable"
+        if stat.S_ISLNK(mode):
+            return None, "a symlink"
+    if not stat.S_ISREG(mode):
+        return None, "not a regular file"
+    try:
+        data = current.read_bytes()
+    except OSError:
+        return None, "not readable"
+    try:
+        return data.decode("utf-8"), None
+    except UnicodeDecodeError:
+        return None, "not UTF-8"
+
+
+def check_license_references(root):
+    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
+    messages = []
+    text, unreadable = _read_input(root, PROVENANCE)
+    if unreadable:
+        return _unreadable(unreadable)
+    try:
+        sources = json.loads(text, parse_int=_parse_int)
+    except (ValueError, RecursionError):
+        return _unreadable("not valid JSON")
+    if not isinstance(sources, dict):
+        return _unreadable("not a JSON object")
+    for pointer, value, holder in _locations(sources):
+        prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
+        reason = _location_reason(root, value)
+        if reason:
+            messages.append(f"{prefix} {reason}")
+        required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
+        if required and "license" in holder and holder["license"] != required:
+            messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
+    return messages
+
+
 def main():
     names, errors = verify(ROOT)
     for error in errors:
         print(f"FAIL: {error}", file=sys.stderr)
     if errors:
         return 1
-    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets, native role configs and the glossary convention")
+    print(f"PASS: shared instructions, {len(names)} skills across Claude/Codex trees, invocation policies, helper assets, native role configs, the glossary convention and license references")
     print("Static/offline checks only; confirm discovery in fresh Claude Code and Codex sessions.")
     return 0
 

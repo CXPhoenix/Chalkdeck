@@ -1,9 +1,11 @@
-"""Tests for the glossary check in verify-project.py (epic 0001-glossary-rename).
+"""Tests for the glossary check and the license-reference check in verify-project.py
+(epics 0001-glossary-rename and 0005-license-reference-check).
 
 Run with: python3 -m unittest discover -s scripts -p 'test_*.py'
 """
 
 import importlib.util
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -270,6 +272,327 @@ class UnreadableFileTest(unittest.TestCase):
         path.chmod(0)
         self.addCleanup(path.chmod, 0o644)
         self.assertEqual(fx.check(), ["docs/agents/locked.md: cannot read as UTF-8"])
+
+
+# chalkdeck: license-reference check, provenance side (epic 0005-license-reference-check, T-0007).
+PROVENANCE = "docs/agents/skill-sources.json"
+DEFAULT_NOTICES = "[CC BY-SA 4.0](LICENSE)\n[MIT](LICENSE-CODE)\n"
+
+
+class LicenseFixture:
+    """Matrix defaults: LICENSE, LICENSE-CODE and the two required notices links, in a realpath root."""
+
+    def __init__(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(os.path.realpath(self._tmp.name))
+        self.write("LICENSE", "CC BY-SA 4.0\n")
+        self.write("LICENSE-CODE", "MIT\n")
+        self.write("THIRD_PARTY_NOTICES.md", DEFAULT_NOTICES)
+        self.write(PROVENANCE, "{}")
+
+    def write(self, rel, text):
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def provenance(self, value):
+        self.write(PROVENANCE, json.dumps(value, ensure_ascii=False))
+
+    def check(self):
+        return verify_project.check_license_references(self.root)
+
+    def close(self):
+        self._tmp.cleanup()
+
+
+def ref(value, pointer, reason):
+    """The provenance-reference message, with value and pointer already rendered."""
+    return f"{PROVENANCE}: license reference {value} at {pointer} {reason}"
+
+
+class LicenseCase(unittest.TestCase):
+    """Shared fixture and assertions for the license-reference tests; it holds no tests itself."""
+
+    def setUp(self):
+        self.fx = LicenseFixture()
+        self.addCleanup(self.fx.close)
+
+    def expect(self, value, messages):
+        self.fx.provenance(value)
+        self.assertEqual(self.fx.check(), messages)
+
+    def loc(self, value, rendered, reason):
+        """Expect exactly one message for a one-key object {"license_location": value}."""
+        self.expect({"license_location": value}, [ref(rendered, '"/license_location"', reason)])
+
+
+class ProvenanceReferenceTest(LicenseCase):
+    """Rows P1-P9 and approved test plan items #1-#30 and #45-#49: provenance license_location values and the path rules."""
+
+    def test_p7_missing_file(self):
+        self.expect({"license_location": "missing.md"}, [ref('"missing.md"', '"/license_location"', "does not exist")])
+
+    def test_p1_valid_top_level(self):
+        self.expect({"license_location": "LICENSE"}, [])
+
+    def test_p8_pointer_through_array(self):
+        self.expect({"x": [{"license_location": "missing"}]}, [ref('"missing"', '"/x/0/license_location"', "does not exist")])
+
+    def test_p9_document_order(self):
+        value = {"b": {"license_location": "missing-b"}, "a": [{"license_location": "missing-1"}, {"license_location": "missing-0"}]}
+        self.expect(value, [
+            ref('"missing-b"', '"/b/license_location"', "does not exist"),
+            ref('"missing-1"', '"/a/0/license_location"', "does not exist"),
+            ref('"missing-0"', '"/a/1/license_location"', "does not exist"),
+        ])
+
+    def test_p1_valid_nested(self):
+        self.expect({"a": {"b": {"c": {"license_location": "LICENSE-CODE"}}}}, [])
+
+    def test_p1_valid_in_array(self):
+        self.expect({"x": [{"license_location": "LICENSE"}]}, [])
+
+    def test_p4_empty(self):
+        self.loc("", '""', "is empty")
+
+    def test_p3_number(self):
+        self.loc(5, "5", "is not a string")
+
+    def test_p3_null(self):
+        self.loc(None, "null", "is not a string")
+
+    def test_p3_true(self):
+        self.loc(True, "true", "is not a string")
+
+    def test_p3_array(self):
+        self.loc(["x"], '["x"]', "is not a string")
+
+    def test_p3_object_with_nested_location(self):
+        self.expect({"license_location": {"license_location": "missing"}}, [
+            ref('{"license_location": "missing"}', '"/license_location"', "is not a string"),
+            ref('"missing"', '"/license_location/license_location"', "does not exist"),
+        ])
+
+    def test_p2_placeholder(self):
+        self.expect({"license_location": ".agents/skills/<skill>/LICENSE"}, [])
+
+    def test_p2_sentence(self):
+        self.expect({"license_location": "Upstream repository root LICENSE; the skill directories ship no LICENSE file."}, [])
+
+    def test_p5_trailing_space(self):
+        self.loc("LICENSE-CODE ", '"LICENSE-CODE "', "has leading or trailing whitespace")
+
+    def test_p2_leading_space_with_placeholder(self):
+        self.expect({"license_location": " <x>"}, [])
+
+    def test_p2_leading_space_with_inner_space(self):
+        self.expect({"license_location": " a b"}, [])
+
+    def test_p5_leading_space(self):
+        self.loc(" LICENSE-CODE", '" LICENSE-CODE"', "has leading or trailing whitespace")
+
+    def test_p5_trailing_newline(self):
+        self.loc("LICENSE-CODE\n", '"LICENSE-CODE\\n"', "has leading or trailing whitespace")
+
+    def test_p5_whitespace_only(self):
+        self.loc("  ", '"  "', "has leading or trailing whitespace")
+
+    def test_p5_trailing_ideographic_space(self):
+        self.loc("LICENSE-CODE\u3000", '"LICENSE-CODE\\u3000"', "has leading or trailing whitespace")
+
+    def test_p6_url_scheme(self):
+        self.loc("https://example.org/LICENSE", '"https://example.org/LICENSE"', "uses an unsupported URL scheme")
+
+    def test_p6_drive(self):
+        self.loc("C:LICENSE", '"C:LICENSE"', "is outside the repository")
+
+    def test_p7_fragment_is_not_stripped(self):
+        self.loc("LICENSE#x", '"LICENSE#x"', "does not exist")
+
+    def test_p7_absolute(self):
+        self.loc("/LICENSE", '"/LICENSE"', "is outside the repository")
+
+    def test_p7_dot_segment(self):
+        self.loc("./LICENSE", '"./LICENSE"', "is not a plain repository path")
+
+    def test_p7_unpaired_angle_bracket(self):
+        self.loc("LICENSE<old", '"LICENSE<old"', "is not a plain repository path")
+
+    def test_p7_case_mismatch(self):
+        self.loc("license", '"license"', 'differs in case from "LICENSE"')
+
+    def test_p7_symlink(self):
+        make_symlink(self, "LICENSE", self.fx.root / "link")
+        self.loc("link", '"link"', 'passes through a symlink at "link"')
+
+    def test_p7_directory(self):
+        (self.fx.root / "adir").mkdir()
+        self.loc("adir", '"adir"', "is not a regular file")
+
+    def test_p7_segment_below_a_regular_file(self):
+        self.loc("LICENSE/x", '"LICENSE/x"', "does not exist")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_p7_unlistable_parent(self):
+        sub = self.fx.root / "sub"
+        self.fx.write("sub/LICENSE", "MIT\n")
+        sub.chmod(0)
+        self.addCleanup(sub.chmod, 0o755)
+        self.loc("sub/LICENSE", '"sub/LICENSE"', "does not exist")
+
+    def test_p7_closing_angle_bracket(self):
+        self.loc("LICENSE>old", '"LICENSE>old"', "is not a plain repository path")
+
+    def test_p7_query(self):
+        self.loc("LICENSE?x", '"LICENSE?x"', "is not a plain repository path")
+
+    def test_p7_percent(self):
+        self.fx.write("a%20b.md", "text\n")
+        self.loc("a%20b.md", '"a%20b.md"', "is not a plain repository path")
+
+
+class LicenseAgreementTest(LicenseCase):
+    """Rows D1-D3, D5 and D6 and approved test plan items #31-#44: a root license file and its recorded license agree."""
+
+    def mismatch(self, location, required, actual, pointer='"/license_location"'):
+        return ref(location, pointer, f"is {required}, not {actual}")
+
+    def test_d1_license_with_mit(self):
+        self.expect({"license": "MIT", "license_location": "LICENSE"}, [self.mismatch('"LICENSE"', "CC-BY-SA-4.0", '"MIT"')])
+
+    def test_d1_license_code_with_cc(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"')])
+
+    def test_d1_license_code_with_null(self):
+        self.expect({"license": None, "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", "null")])
+
+    def test_d1_license_code_with_lowercase(self):
+        self.expect({"license": "mit", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"mit"')])
+
+    def test_d1_license_code_with_trailing_space(self):
+        self.expect({"license": "MIT ", "license_location": "LICENSE-CODE"}, [self.mismatch('"LICENSE-CODE"', "MIT", '"MIT "')])
+
+    def test_d2_license_code_with_mit(self):
+        self.expect({"license": "MIT", "license_location": "LICENSE-CODE"}, [])
+
+    def test_d2_license_with_cc(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "LICENSE"}, [])
+
+    def test_d3_skill_license_path(self):
+        self.fx.write("skills/x/LICENSE", "Apache License 2.0\n")
+        self.expect({"license": "Apache-2.0", "license_location": "skills/x/LICENSE"}, [])
+
+    def test_d3_no_license_key(self):
+        self.expect({"license_location": "LICENSE-CODE"}, [])
+
+    def test_d3_location_with_leading_space(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": " LICENSE-CODE"},
+                    [ref('" LICENSE-CODE"', '"/license_location"', "has leading or trailing whitespace")])
+
+    def test_d3_location_in_other_case(self):
+        self.expect({"license": "CC-BY-SA-4.0", "license_location": "license-code"},
+                    [ref('"license-code"', '"/license_location"', 'differs in case from "LICENSE-CODE"')])
+
+    def test_d5_position_before_nested(self):
+        value = {"license_location": "LICENSE-CODE", "x": {"license_location": "missing"}, "license": "CC-BY-SA-4.0"}
+        self.expect(value, [
+            self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"'),
+            ref('"missing"', '"/x/license_location"', "does not exist"),
+        ])
+
+    def test_d6_nested_object(self):
+        value = {"skills": {"x": {"licensing": {"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}}}}
+        self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/skills/x/licensing/license_location"')])
+
+    def test_d6_object_in_array(self):
+        value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
+        self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
+
+
+class ProvenanceInputTest(LicenseCase):
+    """Rows I1 and I3, provenance side, and approved test plan items #50-#64: an unreadable provenance file."""
+
+    def unreadable(self, reason):
+        self.assertEqual(self.fx.check(), [f"{PROVENANCE}: cannot read license references ({reason})"])
+
+    def test_i1_missing(self):
+        (self.fx.root / PROVENANCE).unlink()
+        self.unreadable("missing")
+
+    def test_i1_symlink(self):
+        target = self.fx.write("docs/agents/real.json", "{}")
+        (self.fx.root / PROVENANCE).unlink()
+        make_symlink(self, target.name, self.fx.root / PROVENANCE)
+        self.unreadable("a symlink")
+
+    def test_i1_symlinked_parent(self):
+        self.fx.write("elsewhere/skill-sources.json", "{}")
+        agents = self.fx.root / "docs/agents"
+        (agents / "skill-sources.json").unlink()
+        agents.rmdir()
+        make_symlink(self, "../elsewhere", agents)
+        self.unreadable("a symlink")
+
+    def test_i1_directory(self):
+        (self.fx.root / PROVENANCE).unlink()
+        (self.fx.root / PROVENANCE).mkdir()
+        self.unreadable("not a regular file")
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "mkfifo unavailable")
+    def test_i1_fifo(self):
+        (self.fx.root / PROVENANCE).unlink()
+        os.mkfifo(self.fx.root / PROVENANCE)
+        self.unreadable("not a regular file")
+
+    def test_i1_docs_is_a_regular_file(self):
+        (self.fx.root / PROVENANCE).unlink()
+        (self.fx.root / "docs/agents").rmdir()
+        (self.fx.root / "docs").rmdir()
+        self.fx.write("docs", "not a directory\n")
+        self.unreadable("missing")
+
+    def test_i1_directory_in_other_case(self):
+        (self.fx.root / "docs").rename(self.fx.root / "Docs")
+        self.unreadable("missing")
+
+    def test_i1_not_utf8(self):
+        (self.fx.root / PROVENANCE).write_bytes(b'{"license_location": "\xff"}')
+        self.unreadable("not UTF-8")
+
+    def test_i1_not_valid_json(self):
+        self.fx.write(PROVENANCE, "{")
+        self.unreadable("not valid JSON")
+
+    def test_i1_utf8_bom(self):
+        (self.fx.root / PROVENANCE).write_bytes(b"\xef\xbb\xbf{}")
+        self.unreadable("not valid JSON")
+
+    def test_i1_deep_nesting(self):
+        self.fx.write(PROVENANCE, "[" * 100000 + "]" * 100000)
+        self.unreadable("not valid JSON")
+
+    def test_i1_long_integer(self):
+        self.fx.write(PROVENANCE, '{"license_location": ' + "9" * 5000 + "}")
+        self.unreadable("not valid JSON")
+
+    def test_i1_top_level_array(self):
+        self.fx.write(PROVENANCE, "[]")
+        self.unreadable("not a JSON object")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unreadable_file(self):
+        path = self.fx.root / PROVENANCE
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.unreadable("not readable")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unsearchable_directory(self):
+        agents = self.fx.root / "docs/agents"
+        agents.chmod(0o444)
+        self.addCleanup(agents.chmod, 0o755)
+        self.unreadable("not readable")
 
 
 if __name__ == "__main__":
