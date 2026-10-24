@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epic 0005 結案報告</title>
+<style>
+:root {
+  --bg: #eef4f5;
+  --surface: #ffffff;
+  --text: #1c2226;
+  --muted: #56646d;
+  --rule: #cfdadd;
+  --accent: #0e5c6b;
+  --accent-soft: #dcebee;
+  --ok: #2f6b3a;
+  --warn: #8a5a12;
+  --code-bg: #e6eef0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12191b;
+    --surface: #1a2326;
+    --text: #e3e8eb;
+    --muted: #9aa7b0;
+    --rule: #2d3a3f;
+    --accent: #6cc3d1;
+    --accent-soft: #163136;
+    --ok: #8fcf98;
+    --warn: #e0b46a;
+    --code-bg: #223035;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  line-height: 1.7;
+  font-size: 16px;
+}
+main { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
+h1 { font-size: 1.9rem; line-height: 1.3; margin: 0 0 6px; letter-spacing: 0.01em; }
+.meta { color: var(--muted); font-size: 0.92rem; margin-bottom: 36px; }
+h2 { font-size: 1.25rem; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; margin: 28px 0 8px; }
+p, li { margin: 0 0 10px; }
+ul, ol { padding-left: 1.4em; }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+.answer { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 18px 22px; margin: 0 0 8px; }
+.answer p:last-child { margin-bottom: 0; }
+.answer strong { color: var(--accent); }
+.scroll { overflow-x: auto; margin: 12px 0 18px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; background: var(--surface); }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.tier { white-space: nowrap; font-weight: 600; }
+.t-v { color: var(--ok); }
+.t-i { color: var(--warn); }
+.t-e { color: var(--accent); }
+.chain { counter-reset: step; list-style: none; padding-left: 0; }
+.chain li { counter-increment: step; position: relative; padding-left: 2.2em; }
+.chain li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 1.6em; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.decision { border: 1px solid var(--rule); background: var(--surface); padding: 16px 20px; }
+.note { color: var(--muted); font-size: 0.92rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Epic 0005 結案報告：verifier 的授權引用檢查</h1>
+<div class="meta">2026-10-24 · 範圍：從 spec 合併（<code>46cfe03</code>）到 T-0008 合併（<code>2c36505</code>），加上 close-out 分支 <code>specs/0005-license-reference-check-closeout</code> 的文件</div>
+
+<div class="answer">
+<p><strong>Epic 0005 已交付，可以結案。</strong>兩張票都已合併進 <code>main</code>（#1、#2）。合併後，<code>python3 scripts/verify-project.py</code> 會檢查 provenance 與 notices 裡的每個授權引用，並印出包含「license references」的 PASS 行（#3、#4）。346 個測試全部通過，epic 程式區塊的 coverage 是 213/216 行（#5、#6）。stage 8 在 detached checkout 上證明：改壞一條 notices 連結，verifier 只會多出一行預期中的 FAIL（#7）。兩張票的安全審查都確認 0 個問題（#8），chain 分析也沒有任何 chain 越過信任邊界（#9）。</p>
+<p>要注意的是：verifier 的 PASS 不等於「GitHub 上看到的 notices 沒問題」。有幾種 Markdown 寫法，verifier 判 PASS，GitHub 卻會渲染成別的樣子（#10）。這已記為 OQ-8，排進 0005 之後的 notices 文法 epic。</p>
+</div>
+
+<h2>要回答的問題</h2>
+<p>epic 0005 是否交付了 spec 要求的檢查？剩下的缺口是否都已經記錄、而且不必在結案前開票？答案決定下一步能不能直接開新的 epic。</p>
+
+<h2>交付了什麼</h2>
+<ul>
+<li><strong>provenance（T-0007）</strong>：<code>docs/agents/skill-sources.json</code> 裡每個 <code>license_location</code> 都必須解析成 repo 內、大小寫完全相符、不經 symlink 的一般檔案；指向根授權檔時，<code>license</code> 必須相符（(a)、(d)）。</li>
+<li><strong>notices（T-0008）</strong>：連結目的地套用同一套路徑規則（(b)）；必須有 <code>[CC BY-SA 4.0](LICENSE)</code> 與 <code>[MIT](LICENSE-CODE)</code>（(c)）；15 種 verifier 判斷不了的 Markdown 寫法附行號回報為 FAIL。</li>
+<li><strong>訊息</strong>：分五組排序，所有來自檔案的值都經過 Q 跳脫，換行與 ESC 無法偽造新的一行。</li>
+<li><strong>文件</strong>：ADR-0008 記錄這份契約；deck 軌改動 notices 的 Assets 列後必須執行 verifier，FAIL 擋下合併（<code>AGENTS.md</code>、<code>workflow.md</code> 第 6 項、ADR-0007 的修訂）。</li>
+</ul>
+
+<h3>各道關卡的結果</h3>
+<div class="scroll">
+<table>
+<thead><tr><th>Stage</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>3 對抗式審查</td><td>兩輪都是 0 個 P0；revision 3 自審後不再送審（#11）</td></tr>
+<tr><td>5 實作</td><td>T-0007 有 64 個子案例，T-0008 有 157 個，每列都有紅燈紀錄（#5、#12）</td></tr>
+<tr><td>6 code review</td><td>每張票兩輪，Standards、Spec 兩軸；所有 finding 都經 owner 裁決（E、H、J 系列）</td></tr>
+<tr><td>7 安全審查</td><td>T-0007 有 13 個候選、T-0008 有 10 個，確認 0 個（#8）</td></tr>
+<tr><td>8 端到端</td><td>E1–E4 在 <code>382ddc3</code> 全部符合預期，驗證對象是 macOS 上的 verifier CLI（#7）</td></tr>
+<tr><td>9 合併</td><td>PR #11、#12、#13 都已合併（#1）</td></tr>
+<tr><td>結案</td><td>chain 分析不必開票（#9）；spec 與 traceability 的 7 處文字更正（#13）；OQ-5 到 OQ-8（#14）；retrospective（#15）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>為什麼可以下這個結論</h2>
+<ol class="chain">
+<li>每一列的預期行為都有子案例，而且每個子案例都有紅燈證據：實作前自然失敗，或在實作後套用事先核准的 mutation 而失敗（#12）。</li>
+<li>最終的測試在 epic 程式區塊上執行到 213/216 行；沒執行到的 3 行是 <code>RecursionError</code> guard，在參考直譯器上觸發不了（#6）。</li>
+<li>端對端的證據來自真正會執行這個行為的地方：在只含已 commit 檔案的 detached worktree 上執行 CLI，結果是 PASS；改壞第 34 行後，輸出只有預期的那一行 FAIL（#7）。這也是這個 epic 唯一一次檢查 committed state。</li>
+<li>兩張票的安全審查都由獨立 reviewer 排除誤報，候選全部低於門檻（#8）。跨票的 chain 分析把 19 條候選合併成 10 組，逐環節查證後沒有一組越過信任邊界（#9）。</li>
+<li>審查中發現的 spec 缺口沒有被吞掉：文字錯誤已在 close-out 更正（#13），需要另開 epic 的缺口寫進 OQ（#14）。</li>
+</ol>
+
+<h2>代價：這個結論放掉了什麼</h2>
+<ul>
+<li><strong>verifier 與 GitHub 的渲染不一致。</strong>以 pandoc 代理實測，fence 收尾行帶 CR、巢狀 list marker、開頭沒有 <code>|</code> 的表格列、跨行的 refdef label，verifier 都判 PASS，渲染結果卻不同（#10）。其中 CRLF 寫法在 commit 時會被 <code>.gitattributes</code> 正規化掉（#16）。這些都要等 L1 的文法 epic 才會修。</li>
+<li><strong>CLI 層的缺口。</strong><code>verify()</code> 在授權引用檢查之前就先讀 provenance 檔：FIFO 會卡住，頂層是陣列會 traceback。「provenance 讀不到時 notices 仍會檢查」只在函式層成立（OQ-6）。</li>
+<li><strong>committed state 不是每次都檢查。</strong>verifier 只看檔案系統，沒 commit 的目標檔也會通過（OQ-4）。</li>
+<li><strong>流程問題重複出現。</strong>「實作跑在測試前」「整批先寫測試」出現了三次，其中一次是在 owner 已經裁決要改之後（#15）。</li>
+<li><strong>成本。</strong>有紀錄的 subagent 用量約 3.34M tokens、26 個 agent；stage 1、2、4、5 沒有記錄（#17）。</li>
+</ul>
+
+<h2>證據表</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>#</th><th>主張</th><th>來源</th><th>分級</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>PR #11、#12、#13 分別以 <code>46cfe03</code>、<code>99ba5ec</code>、<code>2c36505</code> 合併</td><td><code>gh pr view 11</code>、<code>12</code>、<code>13</code>（2026-10-24）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>2</td><td>T-0007、T-0008 的狀態都是 <code>done</code></td><td>兩張票的 frontmatter 與「Landed」Comment（T-0008 的在 close-out 分支 <code>8628ff3</code>）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>3</td><td>PASS 行包含「license references」</td><td><code>scripts/verify-project.py:537</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>4</td><td>verifier 在 T-0008 的 worktree 上 exit 0 並印出 PASS</td><td>T-0008 票「Stage 8 verification, E1–E4」的 E1</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>5</td><td>discover 跑 346 個測試全部 OK；T-0008 有 157 個子案例（#65–#221）</td><td>T-0008 票「Fix-round fixes and final checks at <code>073f843</code>」</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>6</td><td>coverage 213/216 行，未涵蓋的是 guard 的第 372、376、377 行</td><td>T-0008 票的最終 coverage 表；<code>measure8.py</code> 量測 208 個測試</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>7</td><td>E2 exit 0；E3 只輸出 <code>FAIL: THIRD_PARTY_NOTICES.md:34: license reference ".agents/skills/code-review/LICENCE" does not exist</code>；E4 清除完成</td><td>T-0008 票「Stage 8 verification, E1–E4」</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>8</td><td>兩張票的 stage 7 確認的 finding 都是 0 個</td><td><code>review/security-T-0007.md:33</code>；<code>review/security-T-0008.md:36</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>9</td><td>chain 分析：10 組中沒有一組越過信任邊界，不必開票</td><td><code>review/chain-analysis.md</code> 的結論與判定表（K1–K10）</td><td class="tier t-i">推論（兩位 challenger 閱讀檔案推理，加上 parent 的實測）</td></tr>
+<tr><td>10</td><td>C-01–C-04 的寫法 verifier 判 PASS，渲染結果卻不同</td><td><code>review/security-T-0008.md</code> 的實測證據表；pandoc 3.9.0.2 <code>-f gfm</code></td><td class="tier t-v">已驗證（pandoc 代理）</td></tr>
+<tr><td>11</td><td>stage 3 兩輪都是 0 個 P0</td><td><code>review/round-1.md:6</code>；<code>review/round-2.md:6</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>12</td><td>每列都有自然紅燈或核准 mutation 的紅燈紀錄</td><td>兩張票的「Red records」各節；部分 mutation 為事後核准（Ruling H1）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>13</td><td>spec 與 traceability 有 7 處文字更正，行為不變</td><td><code>traceability.md:537</code> 起的「Close-out corrections」；commit <code>4a25ce9</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>14</td><td>OQ-5 到 OQ-8 已寫入</td><td><code>.proj.specs/OPEN-QUESTIONS.md:59</code>、<code>:74</code>、<code>:90</code>、<code>:105</code></td><td class="tier t-v">已驗證</td></tr>
+<tr><td>15</td><td>「實作跑在測試前、整批寫測試」出現三次</td><td>T-0007 M7；T-0008 S-2、S-3、N-2（14 筆紀錄共用 blob <code>a69c3b06…</code>）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>16</td><td>CRLF 會在 <code>git add</code> 時被換成 LF；單獨的 CR 會原樣保存並以文字顯示 diff</td><td>套用本 repo <code>.gitattributes</code> 的暫存 repo 實測（<code>review/chain-analysis.md</code>）</td><td class="tier t-v">已驗證</td></tr>
+<tr><td>17</td><td>有紀錄的 subagent 成本約 3.34M tokens、26 個 agent</td><td><code>retrospective.md</code> 的成本表，各數字取自紀錄與完成通知</td><td class="tier t-i">推論（加總）</td></tr>
+<tr><td>18</td><td>GitHub 本身的渲染與 pandoc 一致</td><td>沒有查證</td><td class="tier t-i">推論（未驗證；只用代理）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>這份報告沒有主張的事</h2>
+<ul>
+<li>GitHub 本身怎麼渲染這些寫法：所有渲染判斷都來自 pandoc 代理（#18）。</li>
+<li>notices 與 provenance 的授權內容在法律上是否正確：verifier 只檢查引用是否指向存在的檔案。</li>
+<li>Assets 列的路徑、holder 與 terms：它們寫在 code span 裡，verifier 不解析。</li>
+<li>「確認 0 個問題」只涵蓋這個 epic 的 diff，不代表整個專案是安全的。</li>
+<li><code>retrospective.md</code> 裡的改法只是提議，還沒經過你決定。</li>
+</ul>
+
+<h2>要你決定的事</h2>
+<div class="decision">
+<p><strong>epic 0005 就此結案，接著從 D3（純文件票的流程）和 L1（notices 文法）之中，先開哪一個 epic？</strong><code>retrospective.md</code> 的「交給 owner 的決定」另有四件不影響結案的事。</p>
+</div>
+
+</main>
+</body>
+</html>
