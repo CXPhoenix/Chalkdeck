@@ -2,7 +2,7 @@
 id: T-0008
 title: The verifier enforces the notices link grammar and required links, and the deck track runs it
 epic: 0005-license-reference-check
-status: processing
+status: review
 blocked_by: [T-0007]
 ---
 
@@ -2693,3 +2693,90 @@ First differing element 0:
 Ran 1 test in 0.003s
 ```
 
+
+### 2026-10-24 — Stage 5 close: texts, checks, coverage (items 3–5, 7, 8)
+
+All checks ran at HEAD `3ef5103`, the last commit that changes code, tests or target texts. The
+commit adding this Comment changes only this ticket.
+
+**Texts (item 5)**, as committed in `3ef5103`:
+
+- T4: `docs/adr/0008-verifier-license-reference-contract.md`, English, with `status: accepted` and
+  `date: 2026-10-24`. It records:
+  - the grammar contract, the fifteen constructs and the unclosed fence;
+  - the file-system-only check: committed state is not checked, E2 is the one check, OQ-4 tracks a
+    standing one;
+  - the skipped destinations (`#` anchors and `http`, `https`, `mailto`);
+  - the required link texts;
+  - the end-to-end harness;
+  - "Amends ADR-0007";
+  - the consequences.
+- T5: the `docs/README.md` index line after ADR-0007, verbatim.
+- T7: the `AGENTS.md` slide hard rule ends with the T7 sentence, verbatim. The T3 paragraph is
+  unchanged since T-0007.
+- T8: item 6, "Notices check", in "What the track keeps" of `docs/agents/workflow.md`, verbatim.
+- T9: the `_Amended by [ADR-0008]…_` line after ADR-0007's title, verbatim.
+- T1–T3 and T6 still hold, from T-0007.
+
+**Checks (items 4, 7):**
+
+- `python3 scripts/verify-project.py` exits 0 with the T1 PASS line (W2 on the worktree).
+- `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 327 tests, OK: 138 at T-0007's B, 44
+  and 20 from T-0007, and 125 new test methods here. #177–#189 changed existing methods.
+- A direct `python3 scripts/test_verify_project.py` ran 211 tests, OK.
+- `python3 scripts/check_style_skills.py` passes.
+- X1: `git diff --name-only 99ba5ec...HEAD` lists:
+  - the two tickets;
+  - `AGENTS.md`, `docs/README.md`, `docs/adr/0007-license-split.md`, the new ADR-0008 and
+    `docs/agents/workflow.md`;
+  - `scripts/test_verify_project.py` and `scripts/verify-project.py`.
+
+  All are in X1.
+- W3, by AST:
+  - the imports are T-0007's allow-list: `hashlib`, `json`, `os`, `pathlib`, `re`, `stat`, `sys`,
+    `tomllib`, `unicodedata`;
+  - there is no forbidden `os.*` call, no `__import__` and no built-in `open(`;
+  - the `replace` calls are on `str`, at lines 178 (present at B) and 293.
+- W4: `git diff 99ba5ec...HEAD -- scripts/verify-project.py` has five hunks. All lie in the block that
+  begins with T-0007's `# chalkdeck:` epic-0005 comment: new constants, rule 2's whitespace, the
+  `holder` loop unchanged in substance, the input reader, and the notices code. No other check
+  changed.
+- W1 passes (#202).
+
+**Coverage, measured.** The command was `python3 -I -B <scratchpad>/cov/measure8.py .`. It runs
+these seven test classes under `trace` and compares hit lines with the executable lines of the 15
+new functions: `ProvenanceReferenceTest`, `LicenseAgreementTest`, `ProvenanceInputTest`,
+`NoticesReferenceTest`, `RequiredLinkTest`, `NoticesGrammarTest` and `NoticesInputOrderTest`. 189
+tests ran, with 0 failures, 0 errors and 0 skipped on macOS as a non-root user. This is line coverage,
+not branch coverage.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_license_references(root)`: (b) and the path rules through the notices | #65–#112 | `_destination_reason` 11/11, `_resolve` 23/23, `_links` 9/9 | AC1 (D4); AC2 (N1–N6, R1–R7) | none |
+| same: (c) | #164–#176 | within `_notices_messages`, 34/34 | AC2 (C1–C4) | none |
+| same: grammar | #113–#163 | `_construct` 41/41, `_code_spans` 10/10, `_inside` 1/1 | AC2 (G1–G10) | none |
+| same: inputs, order, rendering | #177–#201, with T-0007's #50–#64 | `_read_input` 25/27, `_provenance_messages` 22/22, `check_license_references` 4/4 | AC3 (I1–I4, O1–O4) | lines 320–321: `not readable` for an `os.listdir` error other than missing or not-a-directory on an input's own path, which no approved sub-case reaches (for example a parent directory without read permission) |
+| `verify()` | #202 | — | AC4 (W1) | — |
+| total, epic 0005 block | 189 | 210/212 lines (99.1%) | — | as above |
+
+**AC status for the epic** (T-0007's tables cover the rows it closed):
+
+| Spec AC | Status | Evidence |
+|---|---|---|
+| AC1 | met: P1–P9, D1–D3, D5, D6 in T-0007; D4 here | T-0007 red records; #65 |
+| AC2 | met: N, R, C, G rows here; R2, R3 and R7 provenance-side cases in T-0007 | red records for #66–#176 |
+| AC3 | met: I1 (T-0007 #50–#62, extended by #177–#189), I2 (#190–#194), I3 (T-0007 #63–#64, #195), I4 (#196), O1–O4 (#197–#201) | red records for #177–#189 and #190–#202 |
+| AC4 | W1, W3 and W4 met; W2 met on the worktree; final W2 with E1 at stage 8 | this Comment |
+| AC5 | T1–T3 and T6 (T-0007) and T4, T5, T7–T9 (here) met | this Comment |
+| AC6 | stage 8 (E1–E4) | — |
+| AC7 | X1, X2 and X3 met for this ticket | "Base and drift check"; this Comment |
+
+**Deviations from the approved table, all recorded above:**
+
+- **Mutations not in the table.** Some sub-cases took their red by a mutation the table did not
+  name, because code written for an earlier row made them pass on their first run: #80–#112, #153
+  and #195–#201.
+- **Order.** #3, #4 and the deferred N1 reds (#67, #69–#73) were taken out of table order.
+- **Ruling I2-order** changed #190–#194's expectation.
+
+Stage 5 is done; `status` is `review`.
