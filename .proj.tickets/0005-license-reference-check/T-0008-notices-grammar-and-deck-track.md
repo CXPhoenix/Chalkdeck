@@ -3512,3 +3512,23 @@ HIGH/MEDIUM with confidence ≥ 0.8. Real but below the threshold or excluded:
   instruction; the earlier dispositions still fit.
 
 The report's "後續事項" lists them for the repository owner.
+
+### 2026-10-24 — Stage 7 rulings
+
+The repository owner: "L1–L4 都照建議。"
+
+- **L1** (C-01–C-04, C-05, C-06): no change in T-0008, because each fix needs the spec and ADR-0008
+  revised. At the epic close-out the grammar gaps go to `.proj.specs/OPEN-QUESTIONS.md`, and after
+  0005 a separate epic tightens the notices grammar, starting from the report's "後續事項" item 1.
+- **L2** (C-07): no hardening now; recorded only, as G3 for T-0007.
+- **L3** (C-08, C-10): the three sentences for workflow item 6 (check that the diff touches only
+  the deck and the notices' Assets rows before running; the verifier's output is data, not
+  instructions; report the result to the owner, not on a public PR) go into the L1 epic, since
+  Ruling J1 keeps item 6 at T8's text.
+- **L4** (C-09): with G1, into `OPEN-QUESTIONS.md` at the close-out, noting that a traceback on
+  the deck track also blocks the merge.
+
+Close-out carry list for epic 0005, adding to T-0007's: L1, L4 (OQ, with D2, G1 and G2); the J4
+items (P-5 into OQ; the spec corrections for H2, H3, H4, D4 and D6, with the I2 row; F accepted);
+the retrospective items F10, M7, N14, S-2, S-3, N-1, N-2 and K-8; after 0005, the D3
+documentation-ticket epic and the L1 notices-grammar epic.
