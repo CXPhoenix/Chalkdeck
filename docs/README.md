@@ -40,5 +40,6 @@ ADR 保存已採用的決策與理由，方便後續修改時判斷影響。
 - [ADR-0005](adr/0005-retire-template-branch.md)：退役長期存在的 `template` 分支。
 - [ADR-0006](adr/0006-characterization-tests-for-equivalence-rewrites.md)：不改行為的改寫，以 characterization 加突變檢查取代 red 步驟。
 - [ADR-0007](adr/0007-license-split.md)：內容採 CC BY-SA 4.0、程式採 MIT，依目錄劃分授權。
+- [ADR-0008](adr/0008-verifier-license-reference-contract.md)：verifier 只做檔案系統檢查，notices 的連結須符合窄文法。
 
 [Archify 依賴處理與可執行測試](security/archify-dependencies.md)。

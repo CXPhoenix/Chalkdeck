@@ -182,7 +182,7 @@ You are authoring **slides** in this repo. Every slide is arbitrary React code t
 - Put slide-specific images/videos/fonts under `slides/<id>/assets/`. For assets reused across decks or themes (logos, avatars), use the global `assets/` folder and import via `@assets/...`.
 - Do **not** touch `package.json`, `open-slide.config.ts`, or other slides.
 - Do not add dependencies. Use only `react` and standard web APIs.
-- When a deck adds, removes or renames a file under its own `slides/<id>/assets/` that is someone else's work, update that file's row in the Assets table of `THIRD_PARTY_NOTICES.md` in the same change. Name the holder as the file's license requires, and no one else, such as people shown in it. ADR-0007 lets this one edit ride on the deck track; any other change to the notices, or a third-party file in the global `assets/`, is template work.
+- When a deck adds, removes or renames a file under its own `slides/<id>/assets/` that is someone else's work, update that file's row in the Assets table of `THIRD_PARTY_NOTICES.md` in the same change. Name the holder as the file's license requires, and no one else, such as people shown in it. ADR-0007 lets this one edit ride on the deck track; any other change to the notices, or a third-party file in the global `assets/`, is template work. After adding, updating or removing an Assets row, run `python3 scripts/verify-project.py`: a FAIL blocks the merge, and a FAIL outside the deck's own rows goes to the repository owner instead of being fixed on the deck track (ADR-0008).
 
 ### Which slide skill to use
 
