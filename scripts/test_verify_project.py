@@ -627,6 +627,177 @@ class NoticesReferenceTest(LicenseCase):
             notices_ref(1, '"LICENSE"', "does not exist"),
         ])
 
+    def none(self, *lines):
+        self.expect_notices(lines, [])
+
+    def one(self, line_text, destination, reason, line=3):
+        self.expect_notices([line_text], [notices_ref(line, destination, reason)])
+
+    def test_n1_plain(self):
+        self.none("[x](LICENSE)")
+
+    def test_n1_image(self):
+        self.none("![x](LICENSE)")
+
+    def test_n1_angle(self):
+        self.none("[x](<LICENSE>)")
+
+    def test_n1_title_double(self):
+        self.none('[x](LICENSE "t")')
+
+    def test_n1_title_single(self):
+        self.none("[x](LICENSE 't')")
+
+    def test_n1_title_paren(self):
+        self.none("[x](LICENSE (t))")
+
+    def test_n1_after_code_span(self):
+        self.none("`code` [x](LICENSE)")
+
+    def test_n1_two_space_indent(self):
+        self.none("  [x](LICENSE)")
+
+    def test_n2_https(self):
+        self.none("[x](https://example.org)")
+
+    def test_n2_http(self):
+        self.none("[x](http://example.org)")
+
+    def test_n2_mailto_upper(self):
+        self.none("[x](MAILTO:a@example.org)")
+
+    def test_n2_anchor(self):
+        self.none("[x](#anchor)")
+
+    def test_n2_fragment(self):
+        self.none("[x](LICENSE#section)")
+
+    def test_n2_fragment_before_rule2(self):
+        self.none("[x](LICENSE#a%20b)")
+
+    def test_n3_empty(self):
+        self.one("[x]()", '""', "is empty")
+
+    def test_n3_empty_angle(self):
+        self.one("[x](<>)", '""', "is empty")
+
+    def test_n4_scheme(self):
+        self.one("[x](ab:c)", '"ab:c"', "uses an unsupported URL scheme")
+
+    def test_n4_ftp(self):
+        self.one("[x](ftp://host/x)", '"ftp://host/x"', "uses an unsupported URL scheme")
+
+    def test_n4_drive(self):
+        self.one("[x](C:x)", '"C:x"', "is outside the repository")
+
+    def test_n5_fragment_in_message(self):
+        self.fx.write("docs/missing.md", "x\n")
+        self.one("[x](docs/Missing.md#top)", '"docs/Missing.md#top"', 'differs in case from "docs/missing.md"')
+
+    def test_n6_line_number(self):
+        self.expect_notices(["text", "[x](missing)"], [notices_ref(4, '"missing"', "does not exist")])
+
+    def test_r1_absolute(self):
+        self.one("[x](/LICENSE)", '"/LICENSE"', "is outside the repository")
+
+    def test_r1_leading_backslash(self):
+        self.one(r"[x](\LICENSE)", r'"\\LICENSE"', "is outside the repository")
+
+    def test_r1_inner_backslash(self):
+        self.one(r"[x](a\LICENSE)", r'"a\\LICENSE"', "is outside the repository")
+
+    def test_r1_parent(self):
+        self.one("[x](../LICENSE)", '"../LICENSE"', "is outside the repository")
+
+    def test_r1_parent_inside(self):
+        (self.fx.root / "a").mkdir()
+        self.one("[x](a/../LICENSE)", '"a/../LICENSE"', "is outside the repository")
+
+    def test_r1_network(self):
+        self.one("[x](//host/x)", '"//host/x"', "is outside the repository")
+
+    def test_r1_before_rule2(self):
+        self.one("[x](../a%20b)", '"../a%20b"', "is outside the repository")
+
+    def test_r2_percent(self):
+        self.fx.write("a%20b.md", "x\n")
+        self.one("[x](a%20b.md)", '"a%20b.md"', "is not a plain repository path")
+
+    def test_r2_query(self):
+        self.one("[x](LICENSE?plain=1)", '"LICENSE?plain=1"', "is not a plain repository path")
+
+    def test_r2_dot_segment(self):
+        self.one("[x](./LICENSE)", '"./LICENSE"', "is not a plain repository path")
+
+    def test_r2_empty_segment(self):
+        self.one("[x](a//b)", '"a//b"', "is not a plain repository path")
+
+    def test_r2_trailing_slash(self):
+        self.one("[x](docs/)", '"docs/"', "is not a plain repository path")
+
+    def test_r2_whitespace(self):
+        self.fx.write("docs/my file.md", "x\n")
+        self.one("[x](<docs/my file.md>)", '"docs/my file.md"', "is not a plain repository path")
+
+    def test_r3_missing(self):
+        self.one("[x](missing)", '"missing"', "does not exist")
+
+    def test_r3_below_a_file(self):
+        self.one("[x](LICENSE/x)", '"LICENSE/x"', "does not exist")
+
+    def test_r3_three_dots(self):
+        self.one("[x](.../LICENSE)", '".../LICENSE"', "does not exist")
+
+    def test_r4_case(self):
+        self.one("[x](license)", '"license"', 'differs in case from "LICENSE"')
+
+    def test_r4_directory_case(self):
+        self.fx.write("docs/x.md", "x\n")
+        self.one("[x](Docs/x.md)", '"Docs/x.md"', 'differs in case from "docs"')
+
+    def test_r4_normalization(self):
+        nfd, nfc = "e\u0301.md", "\u00e9.md"
+        self.fx.write(nfd, "x\n")
+        if nfd not in os.listdir(self.fx.root):
+            self.skipTest("the file system does not keep NFD names")
+        self.one(f"[x]({nfc})", f'"{nfc}"', f'differs in case from "{nfd}"')
+
+    def test_r5_final_symlink(self):
+        make_symlink(self, "LICENSE", self.fx.root / "link")
+        self.one("[x](link)", '"link"', 'passes through a symlink at "link"')
+
+    def test_r5_parent_symlink(self):
+        self.fx.write("real/LICENSE", "x\n")
+        make_symlink(self, "real", self.fx.root / "sub")
+        self.one("[x](sub/LICENSE)", '"sub/LICENSE"', 'passes through a symlink at "sub"')
+
+    def test_r5_symlink_case(self):
+        make_symlink(self, "LICENSE", self.fx.root / "link")
+        self.one("[x](LINK)", '"LINK"', 'differs in case from "link"')
+
+    def test_r6_directory(self):
+        (self.fx.root / "adir").mkdir()
+        self.one("[x](adir)", '"adir"', "is not a regular file")
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "mkfifo unavailable")
+    def test_r6_fifo(self):
+        os.mkfifo(self.fx.root / "fifo")
+        self.one("[x](fifo)", '"fifo"', "is not a regular file")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_r7_unlistable(self):
+        sub = self.fx.write("sub/LICENSE", "x\n").parent
+        sub.chmod(0)
+        self.addCleanup(sub.chmod, 0o755)
+        self.one("[x](sub/LICENSE)", '"sub/LICENSE"', "does not exist")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_r7_unsearchable(self):
+        sub = self.fx.write("sub/LICENSE", "x\n").parent
+        sub.chmod(0o444)
+        self.addCleanup(sub.chmod, 0o755)
+        self.one("[x](sub/LICENSE)", '"sub/LICENSE"', "does not exist")
+
 
 if __name__ == "__main__":
     unittest.main()

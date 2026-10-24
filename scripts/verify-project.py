@@ -235,7 +235,7 @@ def _resolve(root, target):
     segments = target.split("/")
     if target.startswith(("/", "\\")) or "\\" in target or ".." in segments:
         return "is outside the repository"
-    if any(char in target for char in "%?<>") or "" in segments or "." in segments:
+    if any(char in "%?<>" or char.isspace() for char in target) or "" in segments or "." in segments:
         return "is not a plain repository path"
     current, walked, mode = root, [], 0
     try:

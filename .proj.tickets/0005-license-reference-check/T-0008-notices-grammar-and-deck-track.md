@@ -575,3 +575,728 @@ Ran 1 test in 0.003s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Red records for #66–#112 (N and R rows), committed with their green
+
+- **Natural red:** #99 (R2 whitespace, the T-0007 handover). It failed until rule 2 learned
+  whitespace.
+- **Passed on their first run:** the other 46 sub-cases, because the notices reader of the previous
+  cycle already recognized links and applied (b). For #66–#79 the table's mutation was used. #80–#112
+  had "—" in the table (a natural red was expected), so each mutation recorded below is a deviation,
+  named in its label.
+- **Test literals:** #88 and #89 first failed because of a backslash error in the test itself; they
+  were fixed to raw strings before any record.
+- **Deferred until the grammar exists:** #67, #69–#71 and #73 take their red by mutation only once an
+  unrecognized `](` is reported; #72 only once code spans are found. Today these mutations leave no
+  message, so the tests pass. Their records follow the G rows.
+- **Tooling:** several first mutation attempts had wrong anchors (no run) or a wrong `-k` pattern (no
+  test ran). Those runs are not records; they were dropped and re-run.
+
+#### #99 R2 whitespace through an angle-bracket destination (T-0007 handover) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `0d2770d626e813f9b3a60e0477567136d8eda5f8`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_whitespace` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_whitespace (test_verify_project.NoticesReferenceTest.test_r2_whitespace)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[49 chars]ath']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "docs/my file.md" is not a plain '
++  'repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #66 N1 plain link (passed on first run; mutation: report every resolved destination as does not exist) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `902fbbcfe32e9f3fe496e6a05c2e3f2740fd5c66`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_plain` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_plain (test_verify_project.NoticesReferenceTest.test_n1_plain)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:1: license refere[174 chars]ist'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:1: license reference "LICENSE" does not exist',
+-  'THIRD_PARTY_NOTICES.md:2: license reference "LICENSE-CODE" does not exist',
+-  'THIRD_PARTY_NOTICES.md:3: license reference "LICENSE" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #68 N1 angle-bracket destination (passed on first run; mutation: keep the angle brackets in the destination) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `d375d1cf351a024418c39560908ad9383f96e162`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_angle` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_angle (test_verify_project.NoticesReferenceTest.test_n1_angle)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[43 chars]ath'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "<LICENSE>" is not a plain '
+-  'repository path']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #74 N2 https (passed on first run; mutation: do not skip https) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `54b06d31fd36b8e15014f85a80e235ce6b340440`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n2_https` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_https (test_verify_project.NoticesReferenceTest.test_n2_https)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[53 chars]eme'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "https://example.org" uses an '
+-  'unsupported URL scheme']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #75 N2 http (passed on first run; mutation: do not skip http) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `b063333dcafa06819f50ecb1b6ceaf3051372d9b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n2_http` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_http (test_verify_project.NoticesReferenceTest.test_n2_http)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[52 chars]eme'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "http://example.org" uses an '
+-  'unsupported URL scheme']
+Ran 2 tests in 0.004s
+FAILED (failures=1)
+```
+
+#### #76 N2 MAILTO (passed on first run; mutation: compare schemes case-sensitively) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `88d30cb43e5d16c9698cf84525fc70531870fc24`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n2_mailto` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_mailto_upper (test_verify_project.NoticesReferenceTest.test_n2_mailto_upper)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[54 chars]eme'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "MAILTO:a@example.org" uses an '
+-  'unsupported URL scheme']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #77 N2 anchor (passed on first run; mutation: do not skip # destinations) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `b8b48ad01a93f6a22b47d8c95719d054926beaeb`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n2_anchor` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_anchor (test_verify_project.NoticesReferenceTest.test_n2_anchor)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[41 chars]ath'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "#anchor" is not a plain '
+-  'repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #79 N2 fragment before rule 2 (passed on first run; mutation: apply rule 2 before removing the fragment) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `0df7cfcc259488c55d1f888a211f0dd888bddf98`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n2_fragment_before` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_fragment_before_rule2 (test_verify_project.NoticesReferenceTest.test_n2_fragment_before_rule2)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license refere[47 chars]ath'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "LICENSE#a%20b" is not a plain '
+-  'repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #81 N3 empty angle (passed on first run; mutation: drop the empty check (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `231dcae898b2303ed353e31bd3afcf5be043ef1e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n3_empty_angle` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n3_empty_angle (test_verify_project.NoticesReferenceTest.test_n3_empty_angle)
+AssertionError: Lists differ: ['THI[13 chars]CES.md:3: license reference "" is not a plain repository path'] != ['THI[13 chars]CES.md:3: license reference "" is empty']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "" is not a plain repository '
+?                                                     ^^ ------------------ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "" is empty']
+?                                                     ^^^   +
+-  'path']
+Ran 1 test in 0.008s
+FAILED (failures=1)
+```
+
+#### #82 N4 scheme ab:c (passed on first run; mutation: skip every scheme (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `a446b23b2ae3534e549b1f8a471bf21354924230`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n4_scheme` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n4_scheme (test_verify_project.NoticesReferenceTest.test_n4_scheme)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[38 chars]eme']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "ab:c" uses an unsupported URL '
++  'scheme']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #83 N4 ftp (passed on first run; mutation: skip every scheme (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `a446b23b2ae3534e549b1f8a471bf21354924230`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n4_ftp` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n4_ftp (test_verify_project.NoticesReferenceTest.test_n4_ftp)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[46 chars]eme']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "ftp://host/x" uses an '
++  'unsupported URL scheme']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #84 N4 drive (passed on first run; mutation: treat one-letter schemes as unsupported (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `b7a493b893bd6610e507fe0c8e0708b137a8153e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n4_drive` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n4_drive (test_verify_project.NoticesReferenceTest.test_n4_drive)
+AssertionError: Lists differ: ['THI[16 chars].md:3: license reference "C:x" uses an unsupported URL scheme'] != ['THI[16 chars].md:3: license reference "C:x" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "C:x" uses an unsupported URL '
+?                                                        ^^^^^^^^^^   ^^^^^^^^
++ ['THIRD_PARTY_NOTICES.md:3: license reference "C:x" is outside the repository']
+?                                                     ++++ + ++ ^^^^^^^  ++++ ^ +
+-  'scheme']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #85 N5 fragment in the message (passed on first run; mutation: print the destination without its fragment (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `144c0fcfef4781ae4301436919f27b67011b122c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n5` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n5_fragment_in_message (test_verify_project.NoticesReferenceTest.test_n5_fragment_in_message)
+AssertionError: Lists differ: ['THI[40 chars] "docs/Missing.md" differs in case from "docs/missing.md"'] != ['THI[40 chars] "docs/Missing.md#top" differs in case from "docs/missing.md"']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "docs/Missing.md" differs in '
++ ['THIRD_PARTY_NOTICES.md:3: license reference "docs/Missing.md#top" differs in '
+?                                                               ++++
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #87 R1 absolute (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_absolute` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_absolute (test_verify_project.NoticesReferenceTest.test_r1_absolute)
+AssertionError: Lists differ: ['THI[21 chars]: license reference "/LICENSE" is not a plain repository path'] != ['THI[21 chars]: license reference "/LICENSE" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "/LICENSE" is not a plain '
+?                                                             -  ^^^^^^ ^
++ ['THIRD_PARTY_NOTICES.md:3: license reference "/LICENSE" is outside the '
+?                                                              + ^ ^^^^^^
+-  'repository path']
+?             -----
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #88 R1 leading backslash (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_leading` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_leading_backslash (test_verify_project.NoticesReferenceTest.test_r1_leading_backslash)
+AssertionError: Lists differ: ['THI[19 chars]:3: license reference "\\\\LICENSE" does not exist'] != ['THI[19 chars]:3: license reference "\\\\LICENSE" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "\\\\LICENSE" does not exist']
+?                                                             -----------    -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "\\\\LICENSE" is outside the '
+?                                                               +++ +++++++++
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #89 R1 inner backslash (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_inner` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_inner_backslash (test_verify_project.NoticesReferenceTest.test_r1_inner_backslash)
+AssertionError: Lists differ: ['THI[20 chars]3: license reference "a\\\\LICENSE" does not exist'] != ['THI[20 chars]3: license reference "a\\\\LICENSE" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "a\\\\LICENSE" does not exist']
+?                                                              -----------    -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "a\\\\LICENSE" is outside the '
+?                                                                +++ +++++++++
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #91 R1 parent inside (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_parent_inside` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_parent_inside (test_verify_project.NoticesReferenceTest.test_r1_parent_inside)
+AssertionError: Lists differ: ['THI[20 chars]3: license reference "a/../LICENSE" does not exist'] != ['THI[20 chars]3: license reference "a/../LICENSE" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "a/../LICENSE" does not exist']
+?                                                              -----------    -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "a/../LICENSE" is outside the '
+?                                                                +++ +++++++++
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #92 R1 network path (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_network` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_network (test_verify_project.NoticesReferenceTest.test_r1_network)
+AssertionError: Lists differ: ['THI[21 chars]: license reference "//host/x" is not a plain repository path'] != ['THI[21 chars]: license reference "//host/x" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "//host/x" is not a plain '
+?                                                             -  ^^^^^^ ^
++ ['THIRD_PARTY_NOTICES.md:3: license reference "//host/x" is outside the '
+?                                                              + ^ ^^^^^^
+-  'repository path']
+?             -----
++  'repository']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #93 R1 rule 1 before rule 2 (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r1_before_rule2` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_before_rule2 (test_verify_project.NoticesReferenceTest.test_r1_before_rule2)
+AssertionError: Lists differ: ['THI[21 chars]: license reference "../a%20b" is not a plain repository path'] != ['THI[21 chars]: license reference "../a%20b" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "../a%20b" is not a plain '
+?                                                             -  ^^^^^^ ^
++ ['THIRD_PARTY_NOTICES.md:3: license reference "../a%20b" is outside the '
+?                                                              + ^ ^^^^^^
+-  'repository path']
+?             -----
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #94 R2 percent (passed on first run; mutation: drop path rule 2 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `9f935d4c4e95f8f3b316fe06b8398df99b1c45c1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_percent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_percent (test_verify_project.NoticesReferenceTest.test_r2_percent)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[42 chars]ath']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "a%20b.md" is not a plain '
++  'repository path']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #95 R2 query (passed on first run; mutation: drop path rule 2 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `9f935d4c4e95f8f3b316fe06b8398df99b1c45c1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_query` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_query (test_verify_project.NoticesReferenceTest.test_r2_query)
+AssertionError: Lists differ: ['THI[28 chars]se reference "LICENSE?plain=1" does not exist'] != ['THI[28 chars]se reference "LICENSE?plain=1" is not a plain repository path']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "LICENSE?plain=1" does not exist']
+?                                                                 ^^^      ^^ ^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "LICENSE?plain=1" is not a plain '
+?                                                                 ^      ^^^^^ ^^
++  'repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #96 R2 dot segment (passed on first run; mutation: drop path rule 2 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `9f935d4c4e95f8f3b316fe06b8398df99b1c45c1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_dot` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_dot_segment (test_verify_project.NoticesReferenceTest.test_r2_dot_segment)
+AssertionError: Lists differ: ['THI[22 chars] license reference "./LICENSE" does not exist'] != ['THI[22 chars] license reference "./LICENSE" is not a plain repository path']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "./LICENSE" does not exist']
+?                                                           ^^^      ^^ ^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "./LICENSE" is not a plain '
+?                                                           ^      ^^^^^ ^^
++  'repository path']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #97 R2 empty segment (passed on first run; mutation: drop path rule 2 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `9f935d4c4e95f8f3b316fe06b8398df99b1c45c1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_empty_segment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_empty_segment (test_verify_project.NoticesReferenceTest.test_r2_empty_segment)
+AssertionError: Lists differ: ['THI[17 chars]md:3: license reference "a//b" does not exist'] != ['THI[17 chars]md:3: license reference "a//b" is not a plain repository path']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "a//b" does not exist']
+?                                                      ^^^       ^ -  -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "a//b" is not a plain repository '
+?                                                      ^      +++++++++ ^^^  ++++
++  'path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #98 R2 trailing slash (passed on first run; mutation: drop path rule 2 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `9f935d4c4e95f8f3b316fe06b8398df99b1c45c1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r2_trailing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r2_trailing_slash (test_verify_project.NoticesReferenceTest.test_r2_trailing_slash)
+AssertionError: Lists differ: ['THI[18 chars]d:3: license reference "docs/" does not exist'] != ['THI[18 chars]d:3: license reference "docs/" is not a plain repository path']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "docs/" does not exist']
+?                                                       ^^^      ^^ ^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "docs/" is not a plain '
+?                                                       ^      ^^^^^ ^^
++  'repository path']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #100 R3 missing (passed on first run; mutation: accept a missing segment (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `42fd32e05e08d81f8839b5670a1ac22d42693865`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r3_missing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r3_missing (test_verify_project.NoticesReferenceTest.test_r3_missing)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #101 R3 below a file (passed on first run; mutation: let resolution errors propagate (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `c764a7a91312ada21b8c1cdfc765e2bb43b2f72f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r3_below` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_r3_below_a_file (test_verify_project.NoticesReferenceTest.test_r3_below_a_file)
+NotADirectoryError: [Errno 20] Not a directory: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpstrtz_c2/LICENSE'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #102 R3 three dots (passed on first run; mutation: accept a missing segment (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `42fd32e05e08d81f8839b5670a1ac22d42693865`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r3_three` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r3_three_dots (test_verify_project.NoticesReferenceTest.test_r3_three_dots)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license reference ".../LICENSE" does not exist']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference ".../LICENSE" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #103 R4 case (passed on first run; mutation: report a case-only match as does not exist (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `832e8cd9f915f7ff0f427663c14d5ce9c7a44c16`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r4_case` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r4_case (test_verify_project.NoticesReferenceTest.test_r4_case)
+AssertionError: Lists differ: ['THI[20 chars]3: license reference "license" does not exist'] != ['THI[20 chars]3: license reference "license" differs in case from "LICENSE"']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "license" does not exist']
+?                                                           ^^^^^^^^^^^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "license" differs in case from '
+?                                                          +++++++++++++++++ ^^
++  '"LICENSE"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #104 R4 directory case (passed on first run; mutation: report a case-only match as does not exist (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `832e8cd9f915f7ff0f427663c14d5ce9c7a44c16`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r4_directory` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r4_directory_case (test_verify_project.NoticesReferenceTest.test_r4_directory_case)
+AssertionError: Lists differ: ['THI[19 chars]:3: license reference "Docs/x.md" does not exist'] != ['THI[19 chars]:3: license reference "Docs/x.md" differs in case from "docs"']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "Docs/x.md" does not exist']
+?                                                             ^^^^^^^^^^^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "Docs/x.md" differs in case from '
+?                                                            +++++++++++++++++ ^^
++  '"docs"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #108 R5 symlink case (passed on first run; mutation: report a symlink found by a case-only match (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `3206cce284ff3ed879968fd88e2d8f692d892586`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r5_symlink_case` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r5_symlink_case (test_verify_project.NoticesReferenceTest.test_r5_symlink_case)
+AssertionError: Lists differ: ['THI[21 chars]: license reference "LINK" passes through a symlink at "link"'] != ['THI[21 chars]: license reference "LINK" differs in case from "link"']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "LINK" passes through a symlink '
+?                                                      ^  - ^^^^  -------- ----
++ ['THIRD_PARTY_NOTICES.md:3: license reference "LINK" differs in case from '
+?                                                      ^^^^^^^^^^^^   ^^
+-  'at "link"']
+?   ---
++  '"link"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #109 R6 directory (passed on first run; mutation: drop the regular-file check (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5f5b07888ddb13cbc70f52b2036715c4608f3f89`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r6_directory` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r6_directory (test_verify_project.NoticesReferenceTest.test_r6_directory)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license reference "adir" is not a regular file']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "adir" is not a regular file']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #110 R6 FIFO (passed on first run; mutation: drop the regular-file check (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5f5b07888ddb13cbc70f52b2036715c4608f3f89`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r6_fifo` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r6_fifo (test_verify_project.NoticesReferenceTest.test_r6_fifo)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license reference "fifo" is not a regular file']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "fifo" is not a regular file']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #111 R7 unlistable (passed on first run; mutation: let resolution errors propagate (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `c764a7a91312ada21b8c1cdfc765e2bb43b2f72f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r7_unlistable` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_r7_unlistable (test_verify_project.NoticesReferenceTest.test_r7_unlistable)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmp51v3mx76/sub'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #112 R7 unsearchable (passed on first run; mutation: let resolution errors propagate (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `c764a7a91312ada21b8c1cdfc765e2bb43b2f72f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r7_unsearchable` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_r7_unsearchable (test_verify_project.NoticesReferenceTest.test_r7_unsearchable)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpzy08fvmf/sub/LICENSE'
+Ran 1 test in 0.003s
+FAILED (errors=1)
+```
+
+#### #78 N2 fragment (passed on first run; mutation: keep the fragment) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `6aa41ae903f73b7d078bf82e4a7db7c6cb6b1276`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_n2_fragment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n2_fragment (test_verify_project.NoticesReferenceTest.test_n2_fragment)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license reference "LICENSE#section" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "LICENSE#section" does not exist']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #80 N3 empty (passed on first run; mutation: drop the empty check (deviation: the table expected a natural red)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `231dcae898b2303ed353e31bd3afcf5be043ef1e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_n3_empty` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n3_empty (test_verify_project.NoticesReferenceTest.test_n3_empty)
+AssertionError: Lists differ: ['THI[13 chars]CES.md:3: license reference "" is not a plain repository path'] != ['THI[13 chars]CES.md:3: license reference "" is empty']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "" is not a plain repository '
+?                                                     ^^ ------------------ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "" is empty']
+?                                                     ^^^   +
+-  'path']
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #90 R1 parent (passed on first run; mutation: drop path rule 1 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `5e77c2a7e25e81d980f3c910c66c86efd1a8a7f1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_r1_parent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r1_parent (test_verify_project.NoticesReferenceTest.test_r1_parent)
+AssertionError: Lists differ: ['THI[18 chars]d:3: license reference "../LICENSE" does not exist'] != ['THI[18 chars]d:3: license reference "../LICENSE" is outside the repository']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "../LICENSE" does not exist']
+?                                                            -----------    -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "../LICENSE" is outside the '
+?                                                              +++ +++++++++
++  'repository']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #105 R4 normalization (passed on first run; mutation: drop NFC normalization of the listed names (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `8cffd7a31f1ffcd55c614362a026c2c9b7bc6a9a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r4_normalization` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r4_normalization (test_verify_project.NoticesReferenceTest.test_r4_normalization)
+AssertionError: Lists differ: ['THI[15 chars]S.md:3: license reference "é.md" does not exist'] != ['THI[15 chars]S.md:3: license reference "é.md" differs in case from "é.md"']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "é.md" does not exist']
+?                                                        ^^^^^^^^^^^^ -
++ ['THIRD_PARTY_NOTICES.md:3: license reference "é.md" differs in case from '
+?                                                       +++++++++++++++++ ^^
++  '"é.md"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #106 R5 final symlink (passed on first run; mutation: use os.stat instead of os.lstat (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `8e19ca9047454dba32da58133b791aee11c7035c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r5_final` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r5_final_symlink (test_verify_project.NoticesReferenceTest.test_r5_final_symlink)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[42 chars]nk"']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "link" passes through a symlink '
++  'at "link"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #107 R5 parent symlink (passed on first run; mutation: use os.stat instead of os.lstat (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `8e19ca9047454dba32da58133b791aee11c7035c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_r5_parent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_r5_parent_symlink (test_verify_project.NoticesReferenceTest.test_r5_parent_symlink)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: license refere[48 chars]ub"']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: license reference "sub/LICENSE" passes through a '
++  'symlink at "sub"']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #86 N6 line number (passed on first run; mutation: count lines from 0 (deviation)) — red
+
+- HEAD: `262bbf64857040cbba4d06567757294756e39239`
+- test file blob: `3681681cdee53ae94c67a04c48b137702cd23d36`; verifier blob: `d5eb836f0dd31fa5ab9f35239b1967d84f4a03dc`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n6` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n6_line_number (test_verify_project.NoticesReferenceTest.test_n6_line_number)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist'] != ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+?                          ^
++ ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
+?                          ^
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
