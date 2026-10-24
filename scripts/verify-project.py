@@ -220,7 +220,7 @@ REQUIRED_LINKS = (("CC BY-SA 4.0", "LICENSE"), ("MIT", "LICENSE-CODE"))
 FENCE = re.compile(r"(`{3,}|~{3,})(.*)")
 INDENTED_FENCE = re.compile(r" {1,3}(?:`{3,}|~{3,})")
 BLOCKQUOTE = re.compile(r" {0,3}>")
-LIST_BLOCK = re.compile(r" {0,3}(?:[-*+]|\d{1,9}[.)])(?: {4,}| +(?:`{3,}|~{3,}|>|\[[^\]]+\]:))")
+LIST_BLOCK = re.compile(r" {0,3}(?:[-*+]|[0-9]{1,9}[.)])(?: {4,}| +(?:`{3,}|~{3,}|>|\[[^\]]+\]:))")
 REFERENCE_DEFINITION = re.compile(r" {0,3}\[[^\]]+\]:")
 NOTICES = "THIRD_PARTY_NOTICES.md"
 LINK = re.compile(
@@ -424,7 +424,7 @@ def _construct(number, line, spans, unmatched, links):
         return "indented fence"
     if unmatched:
         return "unmatched backtick"
-    if line.lstrip().startswith("|") and any("|" in line[start:end] for start, end in cells):
+    if line.lstrip(" ").startswith("|") and any("|" in line[start:end] for start, end in cells):
         return "pipe inside a table cell element"
     if any(position not in exempt for position in outside("<")):
         return "raw HTML or autolink"
@@ -432,7 +432,7 @@ def _construct(number, line, spans, unmatched, links):
         return "blockquote"
     if LIST_BLOCK.match(line):
         return "block inside a list item"
-    if "\t" in re.match(r"[ \t]*", line)[0]:
+    if "\t" in line[:len(line) - len(line.lstrip())]:
         return "tab indentation"
     if REFERENCE_DEFINITION.match(line):
         return "link reference definition"

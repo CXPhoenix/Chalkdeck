@@ -1029,6 +1029,50 @@ class NoticesGrammarTest(NoticesCase):
     def test_g10_code_span_in_destination(self):
         self.construct(["[x](a`b`)"], "unrecognized link")
 
+    def test_g5_angle_bracket_in_title(self):
+        self.none('[x](LICENSE "a<b")')
+
+    def test_g8_pipe_in_link_text(self):
+        self.construct(["| [a|b](LICENSE) |"], "pipe inside a table cell element")
+
+    def test_g8_pipe_in_destination(self):
+        self.fx.write("a|b", "x\n")
+        self.construct(["| [x](a|b) |"], "pipe inside a table cell element")
+
+    def test_g3_escaped_closing_bracket(self):
+        self.construct([r"a\]b"], "backslash escape")
+
+    def test_g3_escaped_closing_paren(self):
+        self.construct([r"a\)b"], "backslash escape")
+
+    def test_g3_escaped_greater_than(self):
+        self.construct([r"a\>b"], "backslash escape")
+
+    def test_g9_star_marker(self):
+        self.construct(["* ~~~"], "block inside a list item")
+
+    def test_g9_plus_marker(self):
+        self.construct(["+ > q"], "block inside a list item")
+
+    def test_g9_paren_marker(self):
+        self.construct(["1) [lc]: LICENSE"], "block inside a list item")
+
+    def test_g5_byte_order_mark_after_line_1(self):
+        self.none(chr(0xFEFF) + "text")
+
+    def test_n1_tab_before_title(self):
+        self.none('[x](LICENSE\t"t")')
+
+    def test_g3_unicode_space_then_tab(self):
+        self.construct([chr(0x3000) + "\ttext"], "tab indentation")
+
+    def test_g3_tab_before_table_row(self):
+        self.construct(["\t| `a|b` |"], "tab indentation")
+
+    def test_g9_non_ascii_digit_marker(self):
+        self.none("١. > quote")
+
+
 class NoticesInputOrderTest(NoticesCase):
     """T-0008 approved test plan items #190-#202: unreadable notices, message order, rendering and wiring."""
 

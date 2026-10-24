@@ -2868,3 +2868,269 @@ condensed per axis; none is dropped.
 
 Worst per axis: Standards S-4 (about 41 unapproved mutations); Spec B (the `RecursionError`
 handling the spec defines is missing).
+
+### 2026-10-24 — Stage 6 rulings and amended test plan
+
+The repository owner: "H1–H5 都照建議，#203–#216 核准。"
+
+- **H1** (S-4, D1): the mutations used for #80–#112, #153 and #195–#201, each recorded with its red,
+  are approved after the fact. Two process faults go to the epic retrospective: implementation that
+  ran ahead of its tests (S-3), and writing a batch of tests up front (S-2).
+- **H2** (Spec B): a guard implements traceability:83–85. A `RecursionError` raised while the
+  provenance file is walked or rendered by Q gives `not valid JSON` and drops the messages already
+  collected for that file. It cannot be triggered on the reference interpreter, so it has no test;
+  the coverage table names its lines.
+- **H3** (E, A1–A3): rows #203–#216 are approved as shown to the owner. The last column is the
+  mutation for a first-run pass, fixed here before the tests run. #214–#216 change the
+  implementation: leading whitespace by `str.isspace()`, "first non-space" meaning U+0020 only, and
+  ASCII digits in list markers.
+- **H4** (C, D5): W4 is judged by intent: every changed line lies in the epic-0005 `# chalkdeck:`
+  block, T-0007 code in it included. `test_r4_normalization`'s skip, when a file system does not keep
+  NFD names, is an allowed platform skip; APFS keeps them.
+- **H5** (S-13): ADR-0004 gets no "Amended by ADR-0008" line. ADR-0008 amends the notices exception
+  that ADR-0007 already added to the deck track.
+
+| # | Row | Sub-case (line 3) | Expected | Mutation if the first run passes |
+|---|---|---|---|---|
+| 203 | G5 | `[x](LICENSE "a<b")` | `[]` | drop the title exemption for `<` |
+| 204 | G8 | `\| [a\|b](LICENSE) \|` | `M(3, pipe inside a table cell element)` | leave link text out of the pipe check |
+| 205 | G8 | `\| [x](a\|b) \|` | `M(3, pipe inside a table cell element)` | leave destinations out of the pipe check |
+| 206 | G3 | `a\]b` | `M(3, backslash escape)` | drop `]` from the escape set |
+| 207 | G3 | `a\)b` | `M(3, backslash escape)` | drop `)` from the escape set |
+| 208 | G3 | `a\>b` | `M(3, backslash escape)` | drop `>` from the escape set |
+| 209 | G9 | `* ~~~` | `M(3, block inside a list item)` | accept only `-` as a bullet |
+| 210 | G9 | `+ > q` | `M(3, block inside a list item)` | drop `+` as a bullet |
+| 211 | G9 | `1) [lc]: LICENSE` | `M(3, block inside a list item)` | accept only `.` after an ordered marker |
+| 212 | G5 | U+FEFF, then `text` | `[]` | report a BOM on any line |
+| 213 | N1 | `[x](LICENSE` + tab + `"t")` | `[]` | allow only spaces before a title |
+| 214 | G3 | U+3000, tab, `text` | `M(3, tab indentation)` | natural red expected |
+| 215 | G3 | tab, `` \| `a\|b` \| `` | `M(3, tab indentation)` | natural red expected |
+| 216 | G9 | `١. > quote` | `[]` | natural red expected |
+
+### 2026-10-24 — Red records for #203–#216, committed with their green
+
+- **Natural reds:** #214–#216, as the table expected. They turned green with the A1–A3 fixes:
+  - leading whitespace by `str.isspace()`;
+  - the table-row test uses `lstrip(" ")`;
+  - ASCII `[0-9]` in list markers.
+- **Passed on their first run:** #203–#213, which took the table's mutations.
+- **#205:** the first run failed because the destination `a|b` did not exist, which added a
+  `does not exist` reference that the approved expectation omits. The fixture now creates `a|b`; the
+  expectation is unchanged. That first run is not a red record.
+
+#### #214 G3 U+3000 then tab — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `48c5806ca77ad50911e9d61464450b8a3d98d29b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_unicode_space` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_unicode_space_then_tab (test_verify_project.NoticesGrammarTest.test_g3_unicode_space_then_tab)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #215 G3 tab before a table row — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `48c5806ca77ad50911e9d61464450b8a3d98d29b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_tab_before_table` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_tab_before_table_row (test_verify_project.NoticesGrammarTest.test_g3_tab_before_table_row)
+AssertionError: Lists differ: ['THI[17 chars]md:3: unsupported Markdown (pipe inside a table cell element)'] != ['THI[17 chars]md:3: unsupported Markdown (tab indentation)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
+?                                                   --------------   ^ ^^^^^^
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+?                                                      ^^^^ ^^^^^^^^ +
+-  'element)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #216 G9 non-ASCII digit marker — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `48c5806ca77ad50911e9d61464450b8a3d98d29b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_non_ascii` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_non_ascii_digit_marker (test_verify_project.NoticesGrammarTest.test_g9_non_ascii_digit_marker)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #203 G5 < in a title (passed on first run; mutation: drop the title exemption for <) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `fabe7b566a809456702ef5302fc62035993a5b1e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_angle_bracket_in_title` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_angle_bracket_in_title (test_verify_project.NoticesGrammarTest.test_g5_angle_bracket_in_title)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
++ []
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #204 G8 | in link text (passed on first run; mutation: leave link text out of the pipe check) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `c19a926c9778daf43a24fb150c4ec8692338ddc2`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g8_pipe_in_link_text` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_pipe_in_link_text (test_verify_project.NoticesGrammarTest.test_g8_pipe_in_link_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
++  'element)']
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #205 G8 | in a destination (passed on first run; mutation: leave destinations out of the pipe check) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `255c93f97d87c12ad3fbc34c9128ae6dad335a42`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g8_pipe_in_destination` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_pipe_in_destination (test_verify_project.NoticesGrammarTest.test_g8_pipe_in_destination)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
++  'element)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #206 G3 escaped ] (passed on first run; mutation: drop ] from the escape set) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `0096521bb9088a7e69e6e0efb552dc7743af6da1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_escaped_closing_bracket` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_closing_bracket (test_verify_project.NoticesGrammarTest.test_g3_escaped_closing_bracket)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #207 G3 escaped ) (passed on first run; mutation: drop ) from the escape set) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `597445bcc1ca46486dd795cf9072b05aae1b5931`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_escaped_closing_paren` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_closing_paren (test_verify_project.NoticesGrammarTest.test_g3_escaped_closing_paren)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #208 G3 escaped > (passed on first run; mutation: drop > from the escape set) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `34175f6260ae3a79dd190c6c37e559417b4c62f3`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_escaped_greater` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_greater_than (test_verify_project.NoticesGrammarTest.test_g3_escaped_greater_than)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #209 G9 * marker (passed on first run; mutation: accept only - as a bullet) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `06e8456e16bce8eb910f0cb9bd6174bdc7b98a0c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_star` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_star_marker (test_verify_project.NoticesGrammarTest.test_g9_star_marker)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #210 G9 + marker (passed on first run; mutation: drop + as a bullet) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `26a8630d0b6bbf7c5ff5a4cb1b6af76f15e0acbe`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_plus` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_plus_marker (test_verify_project.NoticesGrammarTest.test_g9_plus_marker)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #211 G9 1) marker (passed on first run; mutation: accept only . after an ordered marker) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `e69acb5e3ae88871208cfb0c8210ed4cf9e9dfb1`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_paren_marker` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_paren_marker (test_verify_project.NoticesGrammarTest.test_g9_paren_marker)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #212 G5 BOM after line 1 (passed on first run; mutation: report a BOM on any line) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `509e7539159503bdc5b5e287e321dbb232256088`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_byte_order_mark_after` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_byte_order_mark_after_line_1 (test_verify_project.NoticesGrammarTest.test_g5_byte_order_mark_after_line_1)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (byte order mark)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (byte order mark)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #213 N1 tab before a title (passed on first run; mutation: allow only spaces before a title) — red
+
+- HEAD: `1dfc146dddc87b457d966c46783af6348d474e02`
+- test file blob: `a69c3b06d765d620d15a64d6e3e184ed31c08180`; verifier blob: `2132921fac536cebe7119c7fee8e1afc6bb3de45`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_tab_before_title` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_tab_before_title (test_verify_project.NoticesGrammarTest.test_n1_tab_before_title)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.012s
+FAILED (failures=1)
+```
+
