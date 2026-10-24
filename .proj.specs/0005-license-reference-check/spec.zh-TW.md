@@ -1,6 +1,6 @@
 ---
 synced_from: spec.en.md
-synced_from_sha: 29e982bfe4685a445426625453b4c3d629a2ad9d
+synced_from_sha: 6c68bdc5aefd3976d4c2a335f2e44cf1b998881f
 ---
 
 # Spec 0005：verifier 檢查授權引用
@@ -19,7 +19,7 @@ synced_from_sha: 29e982bfe4685a445426625453b4c3d629a2ad9d
 
 Epic 0005 是 epic 0003 拆分後的 verifier 那一半；0003 在第 2 輪審查後拆分。文件那一半是 epic 0004，已包含在 B0（`2577b504fa5f22fcef047a95f6d9c2afc9a2daf4`）裡，B0 的檔案就是本 spec 核對的事實。
 
-Revision 2 套用第 1 輪的 Rulings R1–R8 與隨附的 parent 修正。Revision 3 是審查後修補：套用第 2 輪的 Rulings S1–S3 與隨附的 parent 修正，已自審，不再送審（Ruling S4）。
+Revision 2 套用第 1 輪的 Rulings R1–R8 與隨附的 parent 修正。Revision 3 是審查後修補：套用第 2 輪的 Rulings S1–S3 與隨附的 parent 修正，已自審，不再送審（Ruling S4）。2026-10-24 的 close-out 更正列在 `traceability.md` 最後一節，把各票的裁決套用到文字上，不另跑審查。
 
 ## 問題陳述
 
@@ -103,7 +103,7 @@ Epic 0004 為 repo 加了兩份根目錄授權檔：`LICENSE`（CC BY-SA 4.0）�
   - 還原實作。
 
   test plan 表格逐項寫出 mutation。這是把 ADR-0006 的 mutation 手法延伸到該 ADR 的適用範圍（禁止改變行為的票）之外；延伸是明示的，只適用於本 epic（grill Q6、Ruling R7）。
-- **平台 skip。** symlink、FIFO 與權限類子案例，只有在平台做不出 fixture 或以 root 執行時才能 skip。在參考平台（macOS、非 root 使用者）上一律不 skip。其他平台上的 skip 要記錄，而且不算通過。
+- **平台 skip。** symlink、FIFO 與權限類子案例，只有在平台做不出 fixture 或以 root 執行時才能 skip。在參考平台（macOS、非 root 使用者）上一律不 skip。檔案系統不保留分解形式（NFD）檔名時，正規化子案例也可以 skip；APFS 會保留。其他平台上的 skip 要記錄，而且不算通過。
 - **接線。** 一個測試在同時會讓 glossary 檢查失敗的 fixture 上呼叫 `verify()`，斷言回傳的錯誤以授權引用訊息結尾，並緊接在 glossary 訊息之後（W1）。
 - **多張票。** 如果 stage 4 把 epic 拆成多張票，每張票寫明自己關閉哪些 row 與 AC；W2、E1–E4 與 X3 以最後落地那張票的 HEAD 判定。
 - **在 Comments 裡人工核對的項目。** 以下用閱讀核對，不寫測試：
@@ -130,7 +130,7 @@ Epic 0004 為 repo 加了兩份根目錄授權檔：`LICENSE`（CC BY-SA 4.0）�
 - **AC6.** end-to-end 執行 E1–E4 得到各自 matrix row 寫明的結果；指令與輸出記在 Comments，並寫明 surface 是 verifier CLI。
 - **AC7.**
   - 以最新記錄的 B 執行 `git diff <B SHA>...HEAD --name-only`，只列出 row X1 的路徑。
-  - B 是第一則 Comment；任何重新記錄的 B 都引用 repository owner 的同意（X2）。
+  - B 是這張票寫下的第一則 Comment，在任何程式碼或測試變更之前；任何重新記錄的 B 都引用 repository owner 的同意（X2）。
   - row X3 的三個指令在 HEAD 都以 exit 0 結束。
 
 ## 範圍外

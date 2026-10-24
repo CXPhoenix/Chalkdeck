@@ -2,7 +2,7 @@
 id: T-0008
 title: The verifier enforces the notices link grammar and required links, and the deck track runs it
 epic: 0005-license-reference-check
-status: review
+status: done
 blocked_by: [T-0007]
 ---
 
@@ -3554,3 +3554,12 @@ tickets"). They ran at HEAD `382ddc3`. Code and tests are unchanged since `073f8
   worktrees are unchanged.
 
 AC6 is met. Stage 8 is done; next is stage 9, push and a PR described with `/tw-emoji-pr-note`.
+
+### 2026-10-24 — Landed
+
+PR #13 merged into `main` at 2026-10-24T13:02:49Z as merge commit
+`2c36505711a0810d8645c1015bc0a87d11008003`, head `e28a662`, confirmed with `gh pr view 13`.
+`status` is now `done`. This change is committed on the epic 0005 close-out branch
+(`specs/0005-license-reference-check-closeout`, from `2c36505`) and reaches `main` with the
+close-out's PR. With T-0007 and T-0008 done, every ticket of epic 0005 has landed; the close-out
+follows `docs/agents/workflow.md` ("Epic close-out") and the carry list in "Stage 7 rulings".
