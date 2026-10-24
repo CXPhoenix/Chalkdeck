@@ -302,3 +302,276 @@ X1–X3.
 reasoned that it is not on CPython 3.11–3.13. It will be checked on the installed interpreter by
 building a provenance value at `json.loads`'s depth limit and rendering it. If Q raises, a new
 sub-case comes back for approval; if not, the outcome is recorded.
+
+### 2026-10-24 — Test plan approved (hard rule 2)
+
+The repository owner: "T-0008 的 test plan 表格核准，開始 /tdd。" Red records follow the table's
+numbering. Each record is committed with the green it precedes, and runs use T-0007's command:
+`rm -rf scripts/__pycache__ && python3 -I -B -m unittest discover -s scripts -p test_verify_project.py -k <name>`.
+
+### 2026-10-24 — Red records for #65 and #177–#189, committed with their green
+
+#177–#189 extend T-0007's #50–#62 with the notices line 3 `[x](missing)` (helper `unreadable_then_notices`); each failed because the check returned after the provenance message without reading the notices.
+
+#### #65 D4 both kinds on one object — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_d4_both` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_d4_both_kinds_on_one_object (test_verify_project.NoticesReferenceTest.test_d4_both_kinds_on_one_object)
+AssertionError: Lists differ: ['doc[203 chars]MIT"'] != ['doc[203 chars]MIT"', 'THIRD_PARTY_NOTICES.md:1: license refe[27 chars]ist']
+-  '"/license_location" is CC-BY-SA-4.0, not "MIT"']
+?                                                  ^
++  '"/license_location" is CC-BY-SA-4.0, not "MIT"',
+?                                                  ^
++  'THIRD_PARTY_NOTICES.md:1: license reference "LICENSE" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_missing (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_missing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_missing (test_verify_project.ProvenanceInputTest.test_i1_missing)
+AssertionError: Lists differ: ['doc[65 chars]ing)'] != ['doc[65 chars]ing)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (missing)']
+?                                                                            ^
++ ['docs/agents/skill-sources.json: cannot read license references (missing)',
+?                                                                            ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_symlink (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_symlink` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_symlink (test_verify_project.ProvenanceInputTest.test_i1_symlink)
+AssertionError: Lists differ: ['doc[67 chars]ink)'] != ['doc[67 chars]ink)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+?                                                                              ^
++ ['docs/agents/skill-sources.json: cannot read license references (a symlink)',
+?                                                                              ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+FAIL: test_i1_symlinked_parent (test_verify_project.ProvenanceInputTest.test_i1_symlinked_parent)
+AssertionError: Lists differ: ['doc[67 chars]ink)'] != ['doc[67 chars]ink)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+?                                                                              ^
++ ['docs/agents/skill-sources.json: cannot read license references (a symlink)',
+?                                                                              ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+```
+
+#### I1 ext test_i1_symlinked_parent (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_symlinked_parent` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_symlinked_parent (test_verify_project.ProvenanceInputTest.test_i1_symlinked_parent)
+AssertionError: Lists differ: ['doc[67 chars]ink)'] != ['doc[67 chars]ink)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (a symlink)']
+?                                                                              ^
++ ['docs/agents/skill-sources.json: cannot read license references (a symlink)',
+?                                                                              ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_directory (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_directory` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_directory (test_verify_project.ProvenanceInputTest.test_i1_directory)
+AssertionError: Lists differ: ['doc[76 chars]ile)'] != ['doc[76 chars]ile)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'regular file)']
+?                 ^
++  'regular file)',
+?                 ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+FAIL: test_i1_directory_in_other_case (test_verify_project.ProvenanceInputTest.test_i1_directory_in_other_case)
+AssertionError: Lists differ: ['doc[65 chars]ing)'] != ['doc[65 chars]ing)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (missing)']
+?                                                                            ^
++ ['docs/agents/skill-sources.json: cannot read license references (missing)',
+?                                                                            ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+```
+
+#### I1 ext test_i1_fifo (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_fifo` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_fifo (test_verify_project.ProvenanceInputTest.test_i1_fifo)
+AssertionError: Lists differ: ['doc[76 chars]ile)'] != ['doc[76 chars]ile)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'regular file)']
+?                 ^
++  'regular file)',
+?                 ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_docs_is (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_docs_is` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_docs_is_a_regular_file (test_verify_project.ProvenanceInputTest.test_i1_docs_is_a_regular_file)
+AssertionError: Lists differ: ['doc[65 chars]ing)'] != ['doc[65 chars]ing)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (missing)']
+?                                                                            ^
++ ['docs/agents/skill-sources.json: cannot read license references (missing)',
+?                                                                            ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_directory_in_other (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_directory_in_other` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_directory_in_other_case (test_verify_project.ProvenanceInputTest.test_i1_directory_in_other_case)
+AssertionError: Lists differ: ['doc[65 chars]ing)'] != ['doc[65 chars]ing)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (missing)']
+?                                                                            ^
++ ['docs/agents/skill-sources.json: cannot read license references (missing)',
+?                                                                            ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_not_utf8 (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_not_utf8` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_not_utf8 (test_verify_project.ProvenanceInputTest.test_i1_not_utf8)
+AssertionError: Lists differ: ['doc[67 chars]F-8)'] != ['doc[67 chars]F-8)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+- ['docs/agents/skill-sources.json: cannot read license references (not UTF-8)']
+?                                                                              ^
++ ['docs/agents/skill-sources.json: cannot read license references (not UTF-8)',
+?                                                                              ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_not_valid_json (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_not_valid_json` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_not_valid_json (test_verify_project.ProvenanceInputTest.test_i1_not_valid_json)
+AssertionError: Lists differ: ['doc[72 chars]SON)'] != ['doc[72 chars]SON)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'JSON)']
+?         ^
++  'JSON)',
+?         ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_utf8_bom (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_utf8_bom` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_utf8_bom (test_verify_project.ProvenanceInputTest.test_i1_utf8_bom)
+AssertionError: Lists differ: ['doc[72 chars]SON)'] != ['doc[72 chars]SON)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'JSON)']
+?         ^
++  'JSON)',
+?         ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_deep_nesting (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_deep_nesting` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_deep_nesting (test_verify_project.ProvenanceInputTest.test_i1_deep_nesting)
+AssertionError: Lists differ: ['doc[72 chars]SON)'] != ['doc[72 chars]SON)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'JSON)']
+?         ^
++  'JSON)',
+?         ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_long_integer (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_long_integer` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_long_integer (test_verify_project.ProvenanceInputTest.test_i1_long_integer)
+AssertionError: Lists differ: ['doc[72 chars]SON)'] != ['doc[72 chars]SON)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'JSON)']
+?         ^
++  'JSON)',
+?         ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### I1 ext test_i1_top_level_array (T-0008 #177-#189) — red
+
+- HEAD: `4bd317690842c9d54b23c217dc8d542aea0b761e`
+- test file blob: `ac2c05f06adbb1d39ef4880ddf4ce55d422f5aed`; verifier blob: `626570ab339b057837b11b843d03dd06b498083b`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i1_top_level_array` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i1_top_level_array (test_verify_project.ProvenanceInputTest.test_i1_top_level_array)
+AssertionError: Lists differ: ['doc[75 chars]ect)'] != ['doc[75 chars]ect)', 'THIRD_PARTY_NOTICES.md:3: license refe[27 chars]ist']
+-  'object)']
+?           ^
++  'object)',
+?           ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+

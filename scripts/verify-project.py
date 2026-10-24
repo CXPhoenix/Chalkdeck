@@ -216,6 +216,11 @@ PROVENANCE = "docs/agents/skill-sources.json"
 PLACEHOLDER = re.compile(r"<[^<>\s]+>")
 SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
+NOTICES = "THIRD_PARTY_NOTICES.md"
+LINK = re.compile(
+    r"!?\[(?P<text>[^\[\]\n]*)\]\([ \t]*(?P<destination><[^<>\n]*>|[^\s()<>]*)"
+    r"(?P<title>[ \t]+(?:\"[^\"\n]*\"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*\)"
+)
 
 
 def _quoted(value):
@@ -287,8 +292,8 @@ def _locations(document):
         stack.extend(reversed(children))
 
 
-def _unreadable(reason):
-    return [f"{PROVENANCE}: cannot read license references ({reason})"]
+def _unreadable(rel, reason):
+    return f"{rel}: cannot read license references ({reason})"
 
 
 def _parse_int(digits):
@@ -329,18 +334,21 @@ def _read_input(root, rel):
         return None, "not UTF-8"
 
 
-def check_license_references(root):
-    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
-    messages = []
+def _provenance_messages(root, inputs):
+    """Messages for the provenance file: (a) and (d) in document order, or one unreadable-input message."""
     text, unreadable = _read_input(root, PROVENANCE)
     if unreadable:
-        return _unreadable(unreadable)
+        inputs.append(_unreadable(PROVENANCE, unreadable))
+        return []
     try:
         sources = json.loads(text, parse_int=_parse_int)
     except (ValueError, RecursionError):
-        return _unreadable("not valid JSON")
+        inputs.append(_unreadable(PROVENANCE, "not valid JSON"))
+        return []
     if not isinstance(sources, dict):
-        return _unreadable("not a JSON object")
+        inputs.append(_unreadable(PROVENANCE, "not a JSON object"))
+        return []
+    messages = []
     for pointer, value, holder in _locations(sources):
         prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
         reason = _location_reason(root, value)
@@ -350,6 +358,60 @@ def check_license_references(root):
         if required and "license" in holder and holder["license"] != required:
             messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
     return messages
+
+
+def _links(line):
+    """Recognized links and images on one line, left to right without overlap."""
+    found, index = [], 0
+    while index < len(line):
+        match = LINK.match(line, index)
+        if match:
+            found.append(match)
+            index = match.end()
+        else:
+            index += 1
+    return found
+
+
+def _destination_reason(root, destination):
+    """Steps 1-5 of license reference (b), spec 0005: a reason, or None when valid or skipped."""
+    if destination == "":
+        return "is empty"
+    if destination.startswith("#"):
+        return None
+    target = destination.split("#", 1)[0]
+    scheme = SCHEME.match(target)
+    if scheme:
+        if scheme[0][:-1].lower() in ("http", "https", "mailto"):
+            return None
+        return "is outside the repository" if len(scheme[0]) == 2 else "uses an unsupported URL scheme"
+    return _resolve(root, target)
+
+
+def _notices_messages(root, inputs):
+    """Messages for the notices: references by line and column, or one unreadable-input message."""
+    text, unreadable = _read_input(root, NOTICES)
+    if unreadable:
+        inputs.append(_unreadable(NOTICES, unreadable))
+        return []
+    references = []
+    for number, line in enumerate(text.split("\n"), start=1):
+        for match in _links(line):
+            destination = match["destination"]
+            if destination.startswith("<"):
+                destination = destination[1:-1]
+            reason = _destination_reason(root, destination)
+            if reason:
+                references.append(f"{NOTICES}:{number}: license reference {_quoted(destination)} {reason}")
+    return references
+
+
+def check_license_references(root):
+    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
+    inputs = []
+    provenance = _provenance_messages(root, inputs)
+    notices = _notices_messages(root, inputs)
+    return inputs + provenance + notices
 
 
 def main():

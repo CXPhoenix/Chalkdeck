@@ -509,6 +509,13 @@ class LicenseAgreementTest(LicenseCase):
         value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
         self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
 
+NOTICES = "THIRD_PARTY_NOTICES.md"
+
+
+def notices_ref(line, destination, reason):
+    """The notices-reference message, with the destination already rendered."""
+    return f"{NOTICES}:{line}: license reference {destination} {reason}"
+
 
 class ProvenanceInputTest(LicenseCase):
     """Rows I1 and I3, provenance side, and approved test plan items #50-#64: an unreadable provenance file."""
@@ -516,15 +523,23 @@ class ProvenanceInputTest(LicenseCase):
     def unreadable(self, reason):
         self.assertEqual(self.fx.check(), [f"{PROVENANCE}: cannot read license references ({reason})"])
 
+    def unreadable_then_notices(self, reason):
+        """Row I1: the provenance message, then the notices are still checked (T-0008 #177-#189)."""
+        self.fx.write(NOTICES, DEFAULT_NOTICES + "[x](missing)\n")
+        self.assertEqual(self.fx.check(), [
+            f"{PROVENANCE}: cannot read license references ({reason})",
+            notices_ref(3, '"missing"', "does not exist"),
+        ])
+
     def test_i1_missing(self):
         (self.fx.root / PROVENANCE).unlink()
-        self.unreadable("missing")
+        self.unreadable_then_notices("missing")
 
     def test_i1_symlink(self):
         target = self.fx.write("docs/agents/real.json", "{}")
         (self.fx.root / PROVENANCE).unlink()
         make_symlink(self, target.name, self.fx.root / PROVENANCE)
-        self.unreadable("a symlink")
+        self.unreadable_then_notices("a symlink")
 
     def test_i1_symlinked_parent(self):
         self.fx.write("elsewhere/skill-sources.json", "{}")
@@ -532,53 +547,53 @@ class ProvenanceInputTest(LicenseCase):
         (agents / "skill-sources.json").unlink()
         agents.rmdir()
         make_symlink(self, "../elsewhere", agents)
-        self.unreadable("a symlink")
+        self.unreadable_then_notices("a symlink")
 
     def test_i1_directory(self):
         (self.fx.root / PROVENANCE).unlink()
         (self.fx.root / PROVENANCE).mkdir()
-        self.unreadable("not a regular file")
+        self.unreadable_then_notices("not a regular file")
 
     @unittest.skipUnless(hasattr(os, "mkfifo"), "mkfifo unavailable")
     def test_i1_fifo(self):
         (self.fx.root / PROVENANCE).unlink()
         os.mkfifo(self.fx.root / PROVENANCE)
-        self.unreadable("not a regular file")
+        self.unreadable_then_notices("not a regular file")
 
     def test_i1_docs_is_a_regular_file(self):
         (self.fx.root / PROVENANCE).unlink()
         (self.fx.root / "docs/agents").rmdir()
         (self.fx.root / "docs").rmdir()
         self.fx.write("docs", "not a directory\n")
-        self.unreadable("missing")
+        self.unreadable_then_notices("missing")
 
     def test_i1_directory_in_other_case(self):
         (self.fx.root / "docs").rename(self.fx.root / "Docs")
-        self.unreadable("missing")
+        self.unreadable_then_notices("missing")
 
     def test_i1_not_utf8(self):
         (self.fx.root / PROVENANCE).write_bytes(b'{"license_location": "\xff"}')
-        self.unreadable("not UTF-8")
+        self.unreadable_then_notices("not UTF-8")
 
     def test_i1_not_valid_json(self):
         self.fx.write(PROVENANCE, "{")
-        self.unreadable("not valid JSON")
+        self.unreadable_then_notices("not valid JSON")
 
     def test_i1_utf8_bom(self):
         (self.fx.root / PROVENANCE).write_bytes(b"\xef\xbb\xbf{}")
-        self.unreadable("not valid JSON")
+        self.unreadable_then_notices("not valid JSON")
 
     def test_i1_deep_nesting(self):
         self.fx.write(PROVENANCE, "[" * 100000 + "]" * 100000)
-        self.unreadable("not valid JSON")
+        self.unreadable_then_notices("not valid JSON")
 
     def test_i1_long_integer(self):
         self.fx.write(PROVENANCE, '{"license_location": ' + "9" * 5000 + "}")
-        self.unreadable("not valid JSON")
+        self.unreadable_then_notices("not valid JSON")
 
     def test_i1_top_level_array(self):
         self.fx.write(PROVENANCE, "[]")
-        self.unreadable("not a JSON object")
+        self.unreadable_then_notices("not a JSON object")
 
     @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
     def test_i3_unreadable_file(self):
@@ -593,6 +608,24 @@ class ProvenanceInputTest(LicenseCase):
         agents.chmod(0o444)
         self.addCleanup(agents.chmod, 0o755)
         self.unreadable("not readable")
+
+class NoticesReferenceTest(LicenseCase):
+    """T-0008 approved test plan items #65-#112: notices destinations (b) and the path rules through them."""
+
+    def notices(self, *lines):
+        self.fx.write(NOTICES, DEFAULT_NOTICES + "".join(line + "\n" for line in lines))
+
+    def expect_notices(self, lines, messages):
+        self.notices(*lines)
+        self.assertEqual(self.fx.check(), messages)
+
+    def test_d4_both_kinds_on_one_object(self):
+        (self.fx.root / "LICENSE").unlink()
+        self.expect({"license": "MIT", "license_location": "LICENSE"}, [
+            ref('"LICENSE"', '"/license_location"', "does not exist"),
+            ref('"LICENSE"', '"/license_location"', 'is CC-BY-SA-4.0, not "MIT"'),
+            notices_ref(1, '"LICENSE"', "does not exist"),
+        ])
 
 
 if __name__ == "__main__":
