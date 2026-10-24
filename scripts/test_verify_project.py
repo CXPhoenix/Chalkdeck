@@ -274,8 +274,9 @@ class UnreadableFileTest(unittest.TestCase):
         self.assertEqual(fx.check(), ["docs/agents/locked.md: cannot read as UTF-8"])
 
 
-# chalkdeck: license-reference check, provenance side (epic 0005-license-reference-check, T-0007).
+# chalkdeck: license-reference check (epic 0005-license-reference-check, T-0007 and T-0008).
 PROVENANCE = "docs/agents/skill-sources.json"
+NOTICES = "THIRD_PARTY_NOTICES.md"
 DEFAULT_NOTICES = "[CC BY-SA 4.0](LICENSE)\n[MIT](LICENSE-CODE)\n"
 
 
@@ -287,7 +288,7 @@ class LicenseFixture:
         self.root = Path(os.path.realpath(self._tmp.name))
         self.write("LICENSE", "CC BY-SA 4.0\n")
         self.write("LICENSE-CODE", "MIT\n")
-        self.write("THIRD_PARTY_NOTICES.md", DEFAULT_NOTICES)
+        self.write(NOTICES, DEFAULT_NOTICES)
         self.write(PROVENANCE, "{}")
 
     def write(self, rel, text):
@@ -509,8 +510,6 @@ class LicenseAgreementTest(LicenseCase):
         value = {"list": [{"license": "CC-BY-SA-4.0", "license_location": "LICENSE-CODE"}]}
         self.expect(value, [self.mismatch('"LICENSE-CODE"', "MIT", '"CC-BY-SA-4.0"', '"/list/0/license_location"')])
 
-NOTICES = "THIRD_PARTY_NOTICES.md"
-
 
 def notices_ref(line, destination, reason):
     """The notices-reference message, with the destination already rendered."""
@@ -609,6 +608,7 @@ class ProvenanceInputTest(LicenseCase):
         self.addCleanup(agents.chmod, 0o755)
         self.unreadable("not readable")
 
+
 class NoticesCase(LicenseCase):
     """Shared helpers for the notices tests: the default two links, then the row's lines from line 3."""
 
@@ -618,6 +618,16 @@ class NoticesCase(LicenseCase):
     def expect_notices(self, lines, messages):
         self.notices(*lines)
         self.assertEqual(self.fx.check(), messages)
+
+    def expect_text(self, text, messages):
+        self.fx.write(NOTICES, text)
+        self.assertEqual(self.fx.check(), messages)
+
+    def none(self, *lines):
+        self.expect_notices(lines, [])
+
+    def construct(self, lines, name, line=3, extra=()):
+        self.expect_notices(lines, [markdown(line, name), *extra])
 
 
 class NoticesReferenceTest(NoticesCase):
@@ -630,9 +640,6 @@ class NoticesReferenceTest(NoticesCase):
             ref('"LICENSE"', '"/license_location"', 'is CC-BY-SA-4.0, not "MIT"'),
             notices_ref(1, '"LICENSE"', "does not exist"),
         ])
-
-    def none(self, *lines):
-        self.expect_notices(lines, [])
 
     def one(self, line_text, destination, reason, line=3):
         self.expect_notices([line_text], [notices_ref(line, destination, reason)])
@@ -802,18 +809,15 @@ class NoticesReferenceTest(NoticesCase):
         self.addCleanup(sub.chmod, 0o755)
         self.one("[x](sub/LICENSE)", '"sub/LICENSE"', "does not exist")
 
+
 MISSING_LINK = {
     "LICENSE": f"{NOTICES}: no inline link [CC BY-SA 4.0](LICENSE)",
     "LICENSE-CODE": f"{NOTICES}: no inline link [MIT](LICENSE-CODE)",
 }
 
 
-class RequiredLinkTest(LicenseCase):
+class RequiredLinkTest(NoticesCase):
     """T-0008 approved test plan items #164-#176: the two required links (c)."""
-
-    def expect_text(self, text, messages):
-        self.fx.write(NOTICES, text)
-        self.assertEqual(self.fx.check(), messages)
 
     def test_c1_no_license_link(self):
         self.expect_text("[MIT](LICENSE-CODE)\n", [MISSING_LINK["LICENSE"]])
@@ -858,6 +862,7 @@ class RequiredLinkTest(LicenseCase):
     def test_c4_lowercase_text(self):
         self.expect_text("[CC BY-SA 4.0](LICENSE)\n[mit](LICENSE-CODE)\n", [MISSING_LINK["LICENSE-CODE"]])
 
+
 def markdown(line, construct):
     """The unsupported-construct message."""
     return f"{NOTICES}:{line}: unsupported Markdown ({construct})"
@@ -865,12 +870,6 @@ def markdown(line, construct):
 
 class NoticesGrammarTest(NoticesCase):
     """T-0008 approved test plan items #113-#163: fences, code spans and the fifteen constructs."""
-
-    def none(self, *lines):
-        self.expect_notices(lines, [])
-
-    def construct(self, lines, name, line=3, extra=()):
-        self.expect_notices(lines, [markdown(line, name), *extra])
 
     def test_g1_code_span(self):
         self.none("`[x](missing)`")
@@ -997,7 +996,7 @@ class NoticesGrammarTest(NoticesCase):
 
     def test_g7_link_text_in_title(self):
         self.fx.write(NOTICES, '[CC BY-SA 4.0](LICENSE)\n[x](LICENSE "[MIT](LICENSE-CODE)")\n')
-        self.assertEqual(self.fx.check(), [f"{NOTICES}: no inline link [MIT](LICENSE-CODE)"])
+        self.assertEqual(self.fx.check(), [MISSING_LINK["LICENSE-CODE"]])
 
     def test_g8_pipe_in_title(self):
         self.construct(['| a | [MIT](LICENSE-CODE "MIT | code") |'], "pipe inside a table cell element")
@@ -1129,16 +1128,16 @@ class NoticesInputOrderTest(NoticesCase):
             ref('"missing"', '"/license_location"', "does not exist"),
             markdown(3, "raw HTML or autolink"),
             notices_ref(2, '"missing"', "does not exist"),
-            f"{NOTICES}: no inline link [MIT](LICENSE-CODE)",
+            MISSING_LINK["LICENSE-CODE"],
         ])
 
     def test_o2_column_order(self):
         self.expect_notices(["[a](zz) [b](aa)"], [notices_ref(3, '"zz"', "does not exist"), notices_ref(3, '"aa"', "does not exist")])
 
     def test_o3_control_characters(self):
-        b = chr(92)
-        value = ['"' + b + "\n" + chr(7) + chr(0x2028)]
-        rendered = '["' + b + '"' + b + b + b + "n" + b + "u0007" + b + 'u2028"]'
+        backslash = chr(92)
+        value = ['"' + backslash + "\n" + chr(7) + chr(0x2028)]
+        rendered = '["' + backslash + '"' + backslash + backslash + backslash + "n" + backslash + "u0007" + backslash + 'u2028"]'
         self.expect({"license_location": value}, [ref(rendered, '"/license_location"', "is not a string")])
 
     def test_o3_printable_non_ascii(self):
@@ -1150,11 +1149,11 @@ class NoticesInputOrderTest(NoticesCase):
 
     def test_w1_wiring(self):
         self.notices("[x](missing)")
-        names, errors = verify_project.verify(self.fx.root)
-        licence_messages = self.fx.check()
-        self.assertIn(notices_ref(3, '"missing"', "does not exist"), licence_messages)
-        self.assertEqual(errors[-len(licence_messages):], licence_messages)
-        self.assertEqual(errors[-len(licence_messages) - 1], "GLOSSARY.md is missing, not a regular file, or blank")
+        _, errors = verify_project.verify(self.fx.root)
+        license_messages = self.fx.check()
+        self.assertIn(notices_ref(3, '"missing"', "does not exist"), license_messages)
+        self.assertEqual(errors[-len(license_messages):], license_messages)
+        self.assertEqual(errors[-len(license_messages) - 1], "GLOSSARY.md is missing, not a regular file, or blank")
 
 
 if __name__ == "__main__":

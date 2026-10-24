@@ -19,10 +19,10 @@ or the verifier has to respect.
   (opened in column 1), and recognizes links left to right without overlap. Fifteen constructs it
   cannot judge fail with their line number rather than being guessed: a byte order mark, a carriage
   return, a backtick fence opener with a backtick in its info string, an indented fence opener, an
-  unmatched backtick, a `|` inside a code span, link text or title on a table row, raw HTML or an
-  autolink, a blockquote, a list item holding a block, a tab in leading whitespace, a link reference
-  definition, an indented line holding a link, a backslash escape of a link character, empty link
-  text, and a `](` that belongs to no recognized link. An unclosed fence fails too. Full CommonMark
+  unmatched backtick, a `|` inside a code span, link text, destination or title on a table row, raw
+  HTML or an autolink, a blockquote, a list item holding a block, a tab in leading whitespace, a link
+  reference definition, an indented line holding a link, a backslash escape of a link character,
+  empty link text, and a `](` that belongs to no recognized link. An unclosed fence fails too. Full CommonMark
   conformance is not a goal: a construct that would render differently from what the verifier sees
   is rejected instead of interpreted.
 - **The check is file-system only.** Epic 0003 had required every target to be tracked by Git; that

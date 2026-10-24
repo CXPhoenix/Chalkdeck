@@ -263,6 +263,12 @@ def _resolve(root, target):
     return None if stat.S_ISREG(mode) else "is not a regular file"
 
 
+def _scheme_reason(target):
+    """The reason for a target that starts with a URL scheme no rule skips."""
+    drive = len(SCHEME.match(target)[0]) == 2  # one letter and a colon, such as C:
+    return "is outside the repository" if drive else "uses an unsupported URL scheme"
+
+
 def _location_reason(root, value):
     """Steps 1-7 of license reference (a), spec 0005: a reason, or None when the value is valid or
     skipped."""
@@ -274,10 +280,8 @@ def _location_reason(root, value):
         return None
     if value != value.strip():
         return "has leading or trailing whitespace"
-    scheme = SCHEME.match(value)
-    if scheme:
-        drive = len(scheme[0]) == 2  # one letter and a colon, such as C:
-        return "is outside the repository" if drive else "uses an unsupported URL scheme"
+    if SCHEME.match(value):
+        return _scheme_reason(value)
     return _resolve(root, value)
 
 
@@ -341,7 +345,8 @@ def _read_input(root, rel):
 
 
 def _provenance_messages(root, inputs):
-    """Messages for the provenance file: (a) and (d) in document order, or one unreadable-input message."""
+    """Messages for the provenance file, (a) and (d) in document order. An unreadable file adds one
+    message to `inputs` instead and returns none."""
     text, unreadable = _read_input(root, PROVENANCE)
     if unreadable:
         inputs.append(_unreadable(PROVENANCE, unreadable))
@@ -355,15 +360,28 @@ def _provenance_messages(root, inputs):
         inputs.append(_unreadable(PROVENANCE, "not a JSON object"))
         return []
     messages = []
-    for pointer, value, holder in _locations(sources):
-        prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
-        reason = _location_reason(root, value)
-        if reason:
-            messages.append(f"{prefix} {reason}")
-        required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
-        if required and "license" in holder and holder["license"] != required:
-            messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
+    try:
+        for pointer, value, holder in _locations(sources):
+            prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
+            reason = _location_reason(root, value)
+            if reason:
+                messages.append(f"{prefix} {reason}")
+            required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
+            if required and "license" in holder and holder["license"] != required:
+                messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
+    except RecursionError:
+        # Spec 0005: a RecursionError from Q counts as `not valid JSON`, and the file gives no other
+        # message. CPython 3.13 cannot reach it once json.loads has accepted the value (T-0008).
+        inputs.append(_unreadable(PROVENANCE, "not valid JSON"))
+        return []
     return messages
+
+
+def _fence_opener(line):
+    """The match for a fence opener in column 1, or None; a backtick opener whose info string holds a
+    backtick opens no fence."""
+    opener = FENCE.match(line)
+    return None if opener and opener[1].startswith("`") and "`" in opener[2] else opener
 
 
 def _code_spans(line):
@@ -393,8 +411,7 @@ def _links(line, spans):
     found, index = [], 0
     while index < len(line):
         match = None if _inside(index, spans) else LINK.match(line, index)
-        tail = match and match.end("text")
-        if match and not any(start < match.end() and tail < end for start, end in spans):
+        if match and not any(start < match.end() and match.end("text") < end for start, end in spans):
             found.append(match)
             index = match.end()
         else:
@@ -404,7 +421,9 @@ def _links(line, spans):
 
 def _construct(number, line, spans, unmatched, links):
     """The first unsupported construct on a line outside fences, in the spec's order, or None."""
-    outside = lambda pattern: [hit.start() for hit in re.finditer(pattern, line) if not _inside(hit.start(), spans)]
+    def outside(pattern):
+        return [hit.start() for hit in re.finditer(pattern, line) if not _inside(hit.start(), spans)]
+
     exempt = set()
     for match in links:
         if match["destination"].startswith("<"):
@@ -418,7 +437,7 @@ def _construct(number, line, spans, unmatched, links):
         return "byte order mark"
     if "\r" in line:
         return "carriage return"
-    if FENCE.match(line) and FENCE.match(line)[1].startswith("`") and "`" in FENCE.match(line)[2]:
+    if FENCE.match(line) and not _fence_opener(line):
         return "backtick in fence info string"
     if INDENTED_FENCE.match(line):
         return "indented fence"
@@ -456,14 +475,14 @@ def _destination_reason(root, destination):
     target = destination.split("#", 1)[0]
     scheme = SCHEME.match(target)
     if scheme:
-        if scheme[0][:-1].lower() in ("http", "https", "mailto"):
-            return None
-        return "is outside the repository" if len(scheme[0]) == 2 else "uses an unsupported URL scheme"
+        return None if scheme[0][:-1].lower() in ("http", "https", "mailto") else _scheme_reason(target)
     return _resolve(root, target)
 
 
 def _notices_messages(root, inputs):
-    """Messages for the notices: references by line and column, or one unreadable-input message."""
+    """(unsupported constructs by line, then references by line and column followed by missing
+    required links) for the notices. An unreadable file adds one message to `inputs` instead and
+    returns two empty lists."""
     text, unreadable = _read_input(root, NOTICES)
     if unreadable:
         inputs.append(_unreadable(NOTICES, unreadable))
@@ -475,8 +494,8 @@ def _notices_messages(root, inputs):
             if re.fullmatch(rf" {{0,3}}{re.escape(char)}{{{length},}}[ \t]*", line):
                 fence = None
             continue
-        opener = FENCE.match(line)
-        if opener and not (opener[1].startswith("`") and "`" in opener[2]):
+        opener = _fence_opener(line)
+        if opener:
             fence = (opener[1][0], len(opener[1]), number)
             continue
         spans, unmatched = _code_spans(line)
