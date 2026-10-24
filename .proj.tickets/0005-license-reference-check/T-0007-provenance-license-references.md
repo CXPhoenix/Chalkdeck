@@ -1600,3 +1600,92 @@ Ran 1 test in 0.004s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Final records after the fix round (items 2, 4–8)
+
+All checks below ran at HEAD `abf9f40`, the last commit that changes code or tests. The commit
+that adds this Comment changes only this ticket.
+
+**Record corrections:**
+
+- N8: the exact command of every red record is
+  `rm -rf scripts/__pycache__ && python3 -I -B -m unittest discover -s scripts -p test_verify_project.py -k <name>`.
+  Before the bytecode-cache fix it was the same without `-B` and the removal. The
+  `python3 -m unittest …` shown in each record is an abbreviation of it.
+- N13/F-R15: the deviation note in "Red records, natural" should read: "#5 and #6 ran before #3
+  and #4, because the mutations for #3 and #4 need the walk that #5 and #6 drove into existence."
+- F-R12: the outputs of #45, #46, #50, #53, #55, #57, #58, #60 and #61 keep only the exception or
+  first differing line. Each run's exit code (1) is on its command line, and the test and verifier
+  blobs let the run be repeated.
+- N5/F-R8: AC2 is partly met here (R2, R3 and R7 behaviour reachable from provenance values). AC3
+  is met here for a subset: the provenance-side reasons of I1 and I3, each asserted without the
+  notices line that row I1 adds, which T-0008 supplies.
+- N6/F-R3: rule 2's whitespace is not implemented. The earlier coverage note that called it part of
+  one expression is wrong. It is handed to T-0008 (Ruling E3).
+
+**Test plan in workflow columns** (N1/F-R4; the approved rows themselves are unchanged):
+
+| Seam | Test intent | Scope | Acceptance criterion | Boundary conditions |
+|---|---|---|---|---|
+| `check_license_references(root)` on a `LicenseFixture` | walk, steps 1–7 of (a), path rules | #1–#30, #45–#49 | AC1 (P1–P9); AC2 in part (R2, R3, R7) | top level, nested, array, placeholder, sentence, surrounding whitespace, scheme, drive, outside, not plain, case, symlink, directory, segment below a file, unlistable parent |
+| same | license agreement (d) | #31–#44 | AC1 (D1–D3, D5, D6) | mismatch, agreement, not applicable, position before nested, nested and array objects |
+| same | unreadable provenance | #50–#64 | AC3 in part (I1, I3, provenance side) | missing, symlink, symlinked parent, directory, FIFO, parent a file, case, not UTF-8, invalid JSON, BOM, deep nesting, long integer, top-level array, mode 000, unsearchable directory |
+
+**Checks at `abf9f40`:**
+
+- X3:
+  - `python3 scripts/verify-project.py` exits 0 with the T1 PASS line;
+  - `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 202 tests, OK (138 at B plus 64
+    new);
+  - a direct `python3 scripts/test_verify_project.py` ran 86 tests, OK;
+  - `python3 scripts/check_style_skills.py` passes.
+- #61 also passes under `python3 -X int_max_str_digits=0` (Ruling E4).
+- X1: `git diff --name-only 46cfe03...HEAD` lists:
+  - `AGENTS.md`, `scripts/test_verify_project.py`, `scripts/verify-project.py`;
+  - the T-0007 ticket, and the T-0008 ticket for the handover.
+
+  All are in X1.
+- W3, by identifier: an AST walk shows these imports, none outside the W allow-list: `hashlib`,
+  `json`, `os`, `pathlib`, `re`, `stat`, `sys`, `tomllib`, `unicodedata`. It finds:
+  - no forbidden `os.*` call, no `__import__` and no built-in `open(`;
+  - `replace` only on `str`, at lines 178 (present at B) and 282.
+- W4: `git diff 46cfe03...HEAD -- scripts/verify-project.py` has four hunks:
+  - T2;
+  - `+import stat` and `+import unicodedata`;
+  - the `verify()` call;
+  - the new block, which begins with the `# chalkdeck:` epic-0005 comment, and the T1 line.
+
+  W4 holds.
+- CLI demonstration on a `git archive` copy outside the repository, removed afterwards: with the
+  provenance file at mode 000, the verifier printed the existing
+  `FAIL: Skill provenance cannot be checked: [Errno 13] …` and
+  `FAIL: docs/agents/skill-sources.json: cannot read license references (not readable)`, with no
+  traceback.
+
+**Coverage, measured** (C3, N4). The command was
+`python3 -I -B <scratchpad>/cov/measure.py .`. It runs `ProvenanceReferenceTest`,
+`LicenseAgreementTest` and `ProvenanceInputTest` under `trace.Trace(count=1)` and compares the lines
+hit with each new function's executable lines (`co_lines`). Results at `abf9f40`: 64 tests, 0
+failures, 0 errors, 0 skipped. This is line coverage, not branch coverage.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_license_references(root)`: `_locations`, `_location_reason`, `_quoted` | #1–#30 | 11/11, 13/13, 2/2 lines | AC1 (P1–P9) | none |
+| same: `_resolve` | #1–#30, #45–#49 | 23/23 lines | AC1 (P7); AC2 in part | the `os.lstat` error branch shares a `try` with `os.listdir` and has no sub-case of its own (handed to T-0008, R7); whitespace in rule 2 is not implemented (T-0008, R2) |
+| same: (d) | #31–#44 | within `check_license_references`, 19/19 lines | AC1 (D1–D3, D5, D6) | D4 in T-0008 |
+| same: `_read_input`, `_parse_int`, `_unreadable` | #50–#64 | 25/27, 3/3, 1/1 lines | AC3 in part | lines 309–310, `not readable` for an `os.listdir` error other than missing or not-a-directory: no approved sub-case reaches it (a parent without read permission). A `RecursionError` from Q is unhandled (T-0008) |
+| total, new block | 64 | 97/99 lines (98.0%) | — | as above |
+
+**AC status, with evidence:**
+
+| Spec AC | Status for this ticket | Evidence (Comment) |
+|---|---|---|
+| AC1 | met for P1–P9, D1–D3, D5, D6; D4 in T-0008 | red records (natural; by mutation; for #45–#64); "Checks at `abf9f40`" |
+| AC2 | in part: R2, R3, R7 behaviour from provenance values; the rest in T-0008 | "Red records for #45–#49"; this Comment |
+| AC3 | in part: I1 and I3, provenance side, without the notices line | "Red records for #50–#62"; "Red records for #54 (redone), #61 (redone), #63 and #64" |
+| AC4 | W2 on the worktree, W3 and W4 met; W1 in T-0008 | this Comment, "Checks at `abf9f40`" |
+| AC5 | T1, T2, T3, T6 met; T4, T5, T7–T9 in T-0008 | "Wiring, texts, module checks and scope"; the T6 docstring at `abf9f40` |
+| AC6 | T-0008 | — |
+| AC7 | X1, X2, X3 met for this ticket | "Base and drift check"; this Comment |
+
+Stage 6 closes under Ruling E5. Next: stage 7, the security review.
