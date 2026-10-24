@@ -3134,3 +3134,89 @@ Ran 1 test in 0.012s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Stage 6 fixes: corrections, checks and coverage at `3e0d609`
+
+The code and texts after the stage-6 rulings are in `967a227` (#203–#216 and A1–A3) and `3e0d609`
+(the H2 guard, refactors, ADR-0008 wording and the `workflow.md` rewrap). Every check below ran at
+`3e0d609`; the commit adding this Comment changes only this ticket.
+
+**Record corrections:**
+
+- S-8/D3: in "Stage 5 close", read the order deviation as "the deferred N1 reds (#67, #69–#73)".
+  "#3, #4" belong to T-0007.
+- S-9: the thirteen records headed "I1 ext test_i1_<name> (T-0008 #177-#189)" map in table order to
+  #177–#189: `missing`, `symlink`, `symlinked_parent`, `directory`, `fifo`, `docs_is…`,
+  `directory_in_other…`, `not_utf8`, `not_valid_json`, `utf8_bom`, `deep_nesting`, `long_integer`,
+  `top_level_array`.
+- S-10: the records listed after the "T-0007 handover: a `RecursionError` from Q" heading are the
+  #190–#202 records announced under "Red records for #190–#202".
+- S-5: some records' `-k` patterns also matched other tests:
+  - `test_i1_symlink` also ran `…symlinked_parent`, and `test_i1_directory` also ran
+    `…directory_in_other_case`;
+  - #75's `test_n2_http` also ran #74's `https` test.
+
+  Every test in those runs was expected to fail, and each did so on its own record's line as well.
+  Seven records keep only the first differing lines, without the `FAILED (…)` summary; their exit
+  code is on the command line.
+- D2: as in T-0007, every run used `python3 -I -B` after removing `scripts/__pycache__`. The
+  command lines show the unittest part only.
+- D4/S-11: the first branch commit (`b391a96`) only set T-0007 to `done`. This ticket's `processing`
+  status and its B Comment came in the second commit (`f943f09`), before any code or test change. The
+  "Handed over from T-0007" section precedes the B Comment because T-0007 wrote it. X2 holds in
+  substance.
+- S-18: W4's hunks are now listed below.
+
+**Test plan in workflow columns** (S-1; the approved rows are unchanged):
+
+| Seam | Test intent | Scope | Acceptance criterion | Boundary conditions |
+|---|---|---|---|---|
+| `check_license_references(root)` on a `LicenseFixture`, notices from line 3 | (b) and the path rules through notices | #65–#112, #213 | AC1 (D4); AC2 (N1–N6, R1–R7) | link forms, skipped schemes and anchors, empty, scheme, fragment, line, outside, not plain, missing, case, normalization, symlink, not a file, unlistable, unsearchable, tab before a title |
+| same | (c) | #164–#176 | AC2 (C1–C4) | absent, only in skipped regions, fragment, angle, title, wrong text, swapped, image, `./`, case, padded and lower-case text |
+| same | the grammar | #113–#163, #203–#212, #214–#216 | AC2 (G1–G10) | fences, code spans, each of the fifteen constructs, priority pairs, link-like text in titles, table rows, list items, code spans in links, `<` in titles, `|` in link text and destinations, the other escapes, other list markers, BOM after line 1, Unicode leading whitespace, tab before a table row, non-ASCII digits |
+| same | inputs, order, rendering | #177–#201 | AC3 (I1–I4, O1–O4) | unreadable provenance with notices, unreadable notices, both, group order, column order, control and non-ASCII characters, pointer escapes |
+| `verify()` | wiring | #202 | AC4 (W1) | glossary message right before the license messages |
+
+**Checks** (W2, X1, X3):
+
+- `python3 scripts/verify-project.py` exits 0 with the T1 PASS line.
+- `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 341 tests, OK.
+- A direct `python3 scripts/test_verify_project.py` ran 225 tests, OK.
+- `python3 scripts/check_style_skills.py` passes.
+- `git diff --name-only 99ba5ec...HEAD` lists only X1 paths: the two tickets, `AGENTS.md`,
+  `docs/README.md`, ADR-0007, ADR-0008, `docs/agents/workflow.md` and the two scripts.
+
+**W3, by AST:**
+
+- imports: `hashlib`, `json`, `os`, `pathlib`, `re`, `stat`, `sys`, `tomllib`, `unicodedata`;
+- no forbidden `os.*` call, no `__import__` and no built-in `open(`;
+- `replace` only on `str`, at lines 178 and 297.
+
+**W4, judged by intent (Ruling H4).** `git diff 99ba5ec...HEAD -- scripts/verify-project.py` has six
+hunks:
+
+1. new constants;
+2. rule 2's whitespace in `_resolve`;
+3. the new `_scheme_reason`;
+4. `_location_reason` using it;
+5. `_unreadable`'s new signature;
+6. the provenance and notices code.
+
+All lie after the epic-0005 `# chalkdeck:` comment at line 214, and no other check changed.
+
+**Coverage, measured.** Command: `python3 -I -B <scratchpad>/cov/measure8.py .`, with the seven
+license test classes under `trace`. 203 tests ran, with 0 failures, 0 errors and 0 skipped.
+
+| Seam | Tests | Measured coverage | Acceptance criterion | Uncovered, and why |
+|---|---|---|---|---|
+| `check_license_references(root)`: provenance (`_locations`, `_location_reason`, `_scheme_reason`, `_quoted`, `_parse_int`, `_unreadable`) | T-0007 #1–#64; #65, #199–#201 | 11/11, 11/11, 2/2, 2/2, 3/3, 1/1 | AC1, AC3 | none |
+| same: `_provenance_messages` | as above | 23/26 | AC1, AC3 | lines 372 and 375–376: the H2 `RecursionError` guard, which cannot be triggered on CPython 3.13.11 (Ruling H2) |
+| same: `_read_input` | #50–#64, #177–#196 | 25/27 | AC3 | lines 324–325: `not readable` for an `os.listdir` error other than missing or not-a-directory on an input's own path; no approved sub-case reaches it |
+| same: (b) and paths (`_destination_reason`, `_resolve`, `_links`) | #65–#112, #213 | 9/9, 23/23, 8/8 | AC2 | none |
+| same: grammar (`_construct`, `_code_spans`, `_inside`, `_fence_opener`) | #113–#163, #203–#216 | 42/42, 10/10, 1/1, 2/2 | AC2 | none |
+| same: `_notices_messages`, `check_license_references` | all notices rows | 34/34, 4/4 | AC2, AC3 | none |
+| `verify()` | #202 | not measured (outside the epic block) | AC4 | `verify()` was changed by one call in T-0007 |
+| total, epic 0005 block (17 functions) | 203 | 211/216 lines (97.7%) | — | as above |
+
+**AC status for the epic** is unchanged from "Stage 5 close", with #203–#216 added to AC2. AC6
+(E1–E4) remains for stage 8.
