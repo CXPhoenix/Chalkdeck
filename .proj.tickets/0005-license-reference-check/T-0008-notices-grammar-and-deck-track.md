@@ -2,7 +2,7 @@
 id: T-0008
 title: The verifier enforces the notices link grammar and required links, and the deck track runs it
 epic: 0005-license-reference-check
-status: todo
+status: processing
 blocked_by: [T-0007]
 ---
 
@@ -102,3 +102,24 @@ Written on the T-0007 branch, so that these items land with it.
 - **`_resolve`'s `os.lstat` error branch (F-R10).** It shares one `try` with `os.listdir` and has no
   sub-case of its own. R7's notices sub-cases should include a directory that is readable but not
   searchable.
+
+### 2026-10-24 — Base and drift check (item 1)
+
+- B: `99ba5ecc5a3853ad2cf3e0a335874ec96104c0fe`, the branch's starting commit. It is the T-0007
+  merge (PR #12, merged 2026-10-24T04:14:02Z, confirmed with `gh pr view 12`).
+- Worktree: `.worktrees/T-0008`, branch `tickets/T-0008/notices-grammar-and-deck-track`.
+- Drift. `git diff --name-only 2577b504fa5f22fcef047a95f6d9c2afc9a2daf4 99ba5ec -- THIRD_PARTY_NOTICES.md docs/agents/skill-sources.json docs/agents/workflow.md docs/adr/ docs/README.md AGENTS.md scripts/`
+  lists `AGENTS.md`, `scripts/test_verify_project.py` and `scripts/verify-project.py`. Those are
+  exactly the paths T-0007 changed, the same command between `46cfe03` and `99ba5ec`, so there is
+  no drift.
+- Facts at B0 about the notices, re-checked at B:
+  - 183 `\n` characters, LF only, no BOM;
+  - 33 inline links, every `](` part of one, on lines 10, 11, 34–56, 67, 75, 80, 82, 84, 85, 93 and
+    95;
+  - line 10 ends `[CC BY-SA 4.0](LICENSE) |`, line 11 ends `[MIT](LICENSE-CODE) |`, and line 34 is
+    `- [code-review](.agents/skills/code-review/LICENSE)`;
+  - no `<`, tab, backslash, fence or blockquote;
+  - 23 table rows and 26 list items, none of them in the S1 or S2 shapes.
+- Baseline at B: `python3 scripts/verify-project.py` exits 0 with the T1 PASS line;
+  `python3 -m unittest discover -s scripts -p 'test_*.py'` ran 202 tests, OK.
+- T-0007's status is set to `done` in this branch's first commit (`b391a96`).
