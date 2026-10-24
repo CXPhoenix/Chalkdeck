@@ -2,7 +2,7 @@
 id: T-0007
 title: The verifier reports bad license references in the provenance file
 epic: 0005-license-reference-check
-status: review
+status: done
 blocked_by: []
 ---
 
@@ -1748,3 +1748,10 @@ the same CLI checks at HEAD `91283ef`. Code and tests are unchanged since `abf9f
   were removed.
 
 Stage 8 is done for this ticket. Next: stage 9, push and a PR described with `/tw-emoji-pr-note`.
+
+### 2026-10-24 — Landed
+
+PR #12 merged into `main` at 2026-10-24T04:14:02Z as merge commit
+`99ba5ecc5a3853ad2cf3e0a335874ec96104c0fe`, head `99b62fd`, confirmed with `gh pr view 12`.
+`status` is now `done`. This status change is committed on the T-0008 branch, whose X1 includes the
+epic's ticket files, so no separate close-out PR is needed.
