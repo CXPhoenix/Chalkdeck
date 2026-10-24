@@ -5,6 +5,8 @@ date: 2026-10-22
 
 # License content under CC BY-SA 4.0 and code under MIT, split by directory
 
+_Amended by [ADR-0008](0008-verifier-license-reference-contract.md): a deck change that edits the notices' Assets-table rows also runs the verifier, and a FAIL blocks the merge._
+
 The repository is public and needs a license. Content, meaning decks, themes, assets and most
 documentation, is licensed under CC BY-SA 4.0 so teachers and students can reuse and adapt it with
 attribution. Code and agent tooling stay under MIT, because Creative Commons recommends against its

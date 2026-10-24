@@ -216,6 +216,17 @@ PROVENANCE = "docs/agents/skill-sources.json"
 PLACEHOLDER = re.compile(r"<[^<>\s]+>")
 SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
+REQUIRED_LINKS = (("CC BY-SA 4.0", "LICENSE"), ("MIT", "LICENSE-CODE"))
+FENCE = re.compile(r"(`{3,}|~{3,})(.*)")
+INDENTED_FENCE = re.compile(r" {1,3}(?:`{3,}|~{3,})")
+BLOCKQUOTE = re.compile(r" {0,3}>")
+LIST_BLOCK = re.compile(r" {0,3}(?:[-*+]|[0-9]{1,9}[.)])(?: {4,}| +(?:`{3,}|~{3,}|>|\[[^\]]+\]:))")
+REFERENCE_DEFINITION = re.compile(r" {0,3}\[[^\]]+\]:")
+NOTICES = "THIRD_PARTY_NOTICES.md"
+LINK = re.compile(
+    r"!?\[(?P<text>[^\[\]\n]*)\]\([ \t]*(?P<destination><[^<>\n]*>|[^\s()<>]*)"
+    r"(?P<title>[ \t]+(?:\"[^\"\n]*\"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*\)"
+)
 
 
 def _quoted(value):
@@ -230,7 +241,7 @@ def _resolve(root, target):
     segments = target.split("/")
     if target.startswith(("/", "\\")) or "\\" in target or ".." in segments:
         return "is outside the repository"
-    if any(char in target for char in "%?<>") or "" in segments or "." in segments:
+    if any(char in "%?<>" or char.isspace() for char in target) or "" in segments or "." in segments:
         return "is not a plain repository path"
     current, walked, mode = root, [], 0
     try:
@@ -252,6 +263,12 @@ def _resolve(root, target):
     return None if stat.S_ISREG(mode) else "is not a regular file"
 
 
+def _scheme_reason(target):
+    """The reason for a target that starts with a URL scheme no rule skips."""
+    drive = len(SCHEME.match(target)[0]) == 2  # one letter and a colon, such as C:
+    return "is outside the repository" if drive else "uses an unsupported URL scheme"
+
+
 def _location_reason(root, value):
     """Steps 1-7 of license reference (a), spec 0005: a reason, or None when the value is valid or
     skipped."""
@@ -263,10 +280,8 @@ def _location_reason(root, value):
         return None
     if value != value.strip():
         return "has leading or trailing whitespace"
-    scheme = SCHEME.match(value)
-    if scheme:
-        drive = len(scheme[0]) == 2  # one letter and a colon, such as C:
-        return "is outside the repository" if drive else "uses an unsupported URL scheme"
+    if SCHEME.match(value):
+        return _scheme_reason(value)
     return _resolve(root, value)
 
 
@@ -287,8 +302,8 @@ def _locations(document):
         stack.extend(reversed(children))
 
 
-def _unreadable(reason):
-    return [f"{PROVENANCE}: cannot read license references ({reason})"]
+def _unreadable(rel, reason):
+    return f"{rel}: cannot read license references ({reason})"
 
 
 def _parse_int(digits):
@@ -329,27 +344,188 @@ def _read_input(root, rel):
         return None, "not UTF-8"
 
 
-def check_license_references(root):
-    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
-    messages = []
+def _provenance_messages(root, inputs):
+    """A list of messages for the provenance file, (a) and (d) in document order. An unreadable file
+    adds one message to `inputs` instead and returns an empty list."""
     text, unreadable = _read_input(root, PROVENANCE)
     if unreadable:
-        return _unreadable(unreadable)
+        inputs.append(_unreadable(PROVENANCE, unreadable))
+        return []
     try:
         sources = json.loads(text, parse_int=_parse_int)
     except (ValueError, RecursionError):
-        return _unreadable("not valid JSON")
+        inputs.append(_unreadable(PROVENANCE, "not valid JSON"))
+        return []
     if not isinstance(sources, dict):
-        return _unreadable("not a JSON object")
-    for pointer, value, holder in _locations(sources):
-        prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
-        reason = _location_reason(root, value)
-        if reason:
-            messages.append(f"{prefix} {reason}")
-        required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
-        if required and "license" in holder and holder["license"] != required:
-            messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
+        inputs.append(_unreadable(PROVENANCE, "not a JSON object"))
+        return []
+    messages = []
+    try:
+        for pointer, value, holder in _locations(sources):
+            prefix = f"{PROVENANCE}: license reference {_quoted(value)} at {_quoted(pointer)}"
+            reason = _location_reason(root, value)
+            if reason:
+                messages.append(f"{prefix} {reason}")
+            required = ROOT_LICENSES.get(value) if isinstance(value, str) else None
+            if required and "license" in holder and holder["license"] != required:
+                messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
+    except RecursionError:
+        # Spec 0005: a RecursionError while the value is walked or rendered by Q counts as `not valid
+        # JSON`, and the file gives no other message. A probe on CPython 3.13.11 could not reach it
+        # once json.loads had accepted the value; other versions may differ, so keep the guard.
+        inputs.append(_unreadable(PROVENANCE, "not valid JSON"))
+        return []
     return messages
+
+
+def _fence_opener(line):
+    """The match for a fence opener in column 1, or None; a backtick opener whose info string holds a
+    backtick opens no fence."""
+    opener = FENCE.match(line)
+    return None if opener and opener[1].startswith("`") and "`" in opener[2] else opener
+
+
+def _code_spans(line):
+    """(spans, unmatched): code spans as (start, end) pairs, found left to right, and whether a
+    backtick run has no closing run of the same length on the line."""
+    runs = [(run.start(), run.end()) for run in re.finditer(r"`+", line)]
+    spans, unmatched, index = [], False, 0
+    while index < len(runs):
+        start, end = runs[index]
+        closer = next((j for j in range(index + 1, len(runs)) if runs[j][1] - runs[j][0] == end - start), None)
+        if closer is None:
+            unmatched, index = True, index + 1
+        else:
+            spans.append((start, runs[closer][1]))
+            index = closer + 1
+    return spans, unmatched
+
+
+def _inside(position, spans):
+    return any(start <= position < end for start, end in spans)
+
+
+def _links(line, spans):
+    """Recognized links and images on one line, left to right without overlap. A link may hold
+    whole code spans in its text, but must not start, end, or have its `](`, destination or title
+    inside one."""
+    found, index = [], 0
+    while index < len(line):
+        match = None if _inside(index, spans) else LINK.match(line, index)
+        if match and not any(start < match.end() and match.end("text") < end for start, end in spans):
+            found.append(match)
+            index = match.end()
+        else:
+            index += 1
+    return found
+
+
+def _construct(number, line, spans, unmatched, links):
+    """The first unsupported construct on a line outside fences, in the spec's order, or None."""
+    def outside(pattern):
+        return [hit.start() for hit in re.finditer(pattern, line) if not _inside(hit.start(), spans)]
+
+    exempt = set()
+    for match in links:
+        if match["destination"].startswith("<"):
+            exempt.add(match.start("destination"))
+        if match["title"]:
+            exempt.update(range(match.start("title"), match.end("title")))
+    owned = [(match.start(), match.end()) for match in links]
+    cells = spans + [(match.start("text"), match.end("text")) for match in links] + [
+        (match.start("destination"), match.end("title") if match["title"] else match.end("destination")) for match in links]
+    if number == 1 and line.startswith("\N{ZERO WIDTH NO-BREAK SPACE}"):
+        return "byte order mark"
+    if "\r" in line:
+        return "carriage return"
+    if FENCE.match(line) and not _fence_opener(line):
+        return "backtick in fence info string"
+    if INDENTED_FENCE.match(line):
+        return "indented fence"
+    if unmatched:
+        return "unmatched backtick"
+    if line.lstrip(" ").startswith("|") and any("|" in line[start:end] for start, end in cells):
+        return "pipe inside a table cell element"
+    if any(position not in exempt for position in outside("<")):
+        return "raw HTML or autolink"
+    if BLOCKQUOTE.match(line):
+        return "blockquote"
+    if LIST_BLOCK.match(line):
+        return "block inside a list item"
+    if "\t" in line[:len(line) - len(line.lstrip())]:
+        return "tab indentation"
+    if REFERENCE_DEFINITION.match(line):
+        return "link reference definition"
+    if line.startswith("    ") and outside(r"\]\("):
+        return "indented line with a link"
+    if outside(r"\\[\[\]()<>`]"):
+        return "backslash escape"
+    if any(match["text"].strip() == "" for match in links):
+        return "empty link text"
+    if any(not any(start <= position < end for start, end in owned) for position in outside(r"\]\(")):
+        return "unrecognized link"
+    return None
+
+
+def _destination_reason(root, destination):
+    """Steps 1-5 of license reference (b), spec 0005: a reason, or None when valid or skipped."""
+    if destination == "":
+        return "is empty"
+    if destination.startswith("#"):
+        return None
+    target = destination.split("#", 1)[0]
+    scheme = SCHEME.match(target)
+    if scheme:
+        return None if scheme[0][:-1].lower() in ("http", "https", "mailto") else _scheme_reason(target)
+    return _resolve(root, target)
+
+
+def _notices_messages(root, inputs):
+    """A pair of message lists for the notices: the unsupported constructs by line, and the
+    references by line and column followed by the missing required links. An unreadable file adds
+    one message to `inputs` instead and returns two empty lists."""
+    text, unreadable = _read_input(root, NOTICES)
+    if unreadable:
+        inputs.append(_unreadable(NOTICES, unreadable))
+        return [], []
+    constructs, references, linked, fence = {}, [], set(), None
+    for number, line in enumerate(text.split("\n"), start=1):
+        if fence:
+            char, length, _ = fence
+            if re.fullmatch(rf" {{0,3}}{re.escape(char)}{{{length},}}[ \t]*", line):
+                fence = None
+            continue
+        opener = _fence_opener(line)
+        if opener:
+            fence = (opener[1][0], len(opener[1]), number)
+            continue
+        spans, unmatched = _code_spans(line)
+        links = _links(line, spans)
+        construct = _construct(number, line, spans, unmatched, links)
+        if construct:
+            constructs[number] = construct
+        for match in links:
+            destination = match["destination"]
+            if destination.startswith("<"):
+                destination = destination[1:-1]
+            reason = _destination_reason(root, destination)
+            if reason:
+                references.append(f"{NOTICES}:{number}: license reference {_quoted(destination)} {reason}")
+            if not match[0].startswith("!"):
+                linked.add((match["text"], destination.split("#", 1)[0]))
+    if fence:
+        constructs[fence[2]] = "unclosed code fence"
+    unsupported = [f"{NOTICES}:{number}: unsupported Markdown ({name})" for number, name in sorted(constructs.items())]
+    missing = [f"{NOTICES}: no inline link [{text}]({target})" for text, target in REQUIRED_LINKS if (text, target) not in linked]
+    return unsupported, references + missing
+
+
+def check_license_references(root):
+    """Return one message per bad license reference, in the order the epic 0005 spec defines."""
+    inputs = []
+    provenance = _provenance_messages(root, inputs)
+    unsupported, notices = _notices_messages(root, inputs)
+    return inputs + provenance + unsupported + notices
 
 
 def main():
