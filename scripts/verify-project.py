@@ -345,8 +345,8 @@ def _read_input(root, rel):
 
 
 def _provenance_messages(root, inputs):
-    """Messages for the provenance file, (a) and (d) in document order. An unreadable file adds one
-    message to `inputs` instead and returns none."""
+    """A list of messages for the provenance file, (a) and (d) in document order. An unreadable file
+    adds one message to `inputs` instead and returns an empty list."""
     text, unreadable = _read_input(root, PROVENANCE)
     if unreadable:
         inputs.append(_unreadable(PROVENANCE, unreadable))
@@ -370,8 +370,9 @@ def _provenance_messages(root, inputs):
             if required and "license" in holder and holder["license"] != required:
                 messages.append(f"{prefix} is {required}, not {_quoted(holder['license'])}")
     except RecursionError:
-        # Spec 0005: a RecursionError from Q counts as `not valid JSON`, and the file gives no other
-        # message. CPython 3.13 cannot reach it once json.loads has accepted the value (T-0008).
+        # Spec 0005: a RecursionError while the value is walked or rendered by Q counts as `not valid
+        # JSON`, and the file gives no other message. A probe on CPython 3.13.11 could not reach it
+        # once json.loads had accepted the value; other versions may differ, so keep the guard.
         inputs.append(_unreadable(PROVENANCE, "not valid JSON"))
         return []
     return messages
@@ -480,9 +481,9 @@ def _destination_reason(root, destination):
 
 
 def _notices_messages(root, inputs):
-    """(unsupported constructs by line, then references by line and column followed by missing
-    required links) for the notices. An unreadable file adds one message to `inputs` instead and
-    returns two empty lists."""
+    """A pair of message lists for the notices: the unsupported constructs by line, and the
+    references by line and column followed by the missing required links. An unreadable file adds
+    one message to `inputs` instead and returns two empty lists."""
     text, unreadable = _read_input(root, NOTICES)
     if unreadable:
         inputs.append(_unreadable(NOTICES, unreadable))

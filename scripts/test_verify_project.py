@@ -517,7 +517,8 @@ def notices_ref(line, destination, reason):
 
 
 class ProvenanceInputTest(LicenseCase):
-    """Rows I1 and I3, provenance side, and approved test plan items #50-#64: an unreadable provenance file."""
+    """Rows I1 and I3, provenance side, approved test plan items #50-#64 and T-0008 #221: an unreadable provenance
+    file."""
 
     def unreadable(self, reason):
         self.assertEqual(self.fx.check(), [f"{PROVENANCE}: cannot read license references ({reason})"])
@@ -638,7 +639,8 @@ class NoticesCase(LicenseCase):
 
 
 class NoticesReferenceTest(NoticesCase):
-    """T-0008 approved test plan items #65-#112: notices destinations (b) and the path rules through them."""
+    """T-0008 approved test plan items #65-#112, #213, #217 and #218: notices destinations (b) and the path rules
+    through them."""
 
     def test_d4_both_kinds_on_one_object(self):
         (self.fx.root / "LICENSE").unlink()
@@ -680,6 +682,9 @@ class NoticesReferenceTest(NoticesCase):
 
     def test_n1_tab_before_closing_paren(self):
         self.none("[x](LICENSE\t)")
+
+    def test_n1_tab_before_title(self):
+        self.none('[x](LICENSE\t"t")')
 
     def test_n2_https(self):
         self.none("[x](https://example.org)")
@@ -882,7 +887,8 @@ def markdown(line, construct):
 
 
 class NoticesGrammarTest(NoticesCase):
-    """T-0008 approved test plan items #113-#163: fences, code spans and the fifteen constructs."""
+    """T-0008 approved test plan items #113-#163, #203-#212, #214-#216, #219 and #220: fences, code spans and the
+    fifteen constructs."""
 
     def test_g1_code_span(self):
         self.none("`[x](missing)`")
@@ -1078,9 +1084,6 @@ class NoticesGrammarTest(NoticesCase):
     def test_g5_byte_order_mark_after_line_1(self):
         self.none(chr(0xFEFF) + "text")
 
-    def test_n1_tab_before_title(self):
-        self.none('[x](LICENSE\t"t")')
-
     def test_g3_unicode_space_then_tab(self):
         self.construct([chr(0x3000) + "\ttext"], "tab indentation")
 
@@ -1156,7 +1159,10 @@ class NoticesInputOrderTest(NoticesCase):
     def test_o3_control_characters(self):
         backslash = chr(92)
         value = ['"' + backslash + "\n" + chr(7) + chr(0x2028)]
-        rendered = '["' + backslash + '"' + backslash + backslash + backslash + "n" + backslash + "u0007" + backslash + 'u2028"]'
+        rendered = (
+            '["' + backslash + '"' + backslash + backslash + backslash + "n"
+            + backslash + "u0007" + backslash + 'u2028"]'
+        )
         self.expect({"license_location": value}, [ref(rendered, '"/license_location"', "is not a string")])
 
     def test_o3_printable_non_ascii(self):
