@@ -3532,3 +3532,25 @@ Close-out carry list for epic 0005, adding to T-0007's: L1, L4 (OQ, with D2, G1 
 items (P-5 into OQ; the spec corrections for H2, H3, H4, D4 and D6, with the I2 row; F accepted);
 the retrospective items F10, M7, N14, S-2, S-3, N-1, N-2 and K-8; after 0005, the D3
 documentation-ticket epic and the L1 notices-grammar epic.
+
+### 2026-10-24 — Stage 8 verification, E1–E4 (surface: the verifier CLI on macOS)
+
+The epic's E1–E4 are judged on this ticket's HEAD, the last ticket of epic 0005 (spec, "Several
+tickets"). They ran at HEAD `382ddc3`. Code and tests are unchanged since `073f843`:
+`git diff --name-only 073f843 HEAD` lists only the security report, this ticket, ADR-0008 and
+`workflow.md` (J1, N-5). Every run used `python3 -I -B` after removing `scripts/__pycache__`.
+
+- **E1** (the work tree): `scripts/verify-project.py` in `.worktrees/T-0008` exits 0 with the T1
+  PASS line.
+- **E2** (committed state): `git worktree add --detach <scratchpad>/e2e/t0008-head HEAD`;
+  `git worktree list` shows it as `382ddc3 (detached HEAD)`. That checkout's own
+  `scripts/verify-project.py` exits 0 with the same PASS line.
+- **E3** (one broken link): in that checkout, line 34's destination was changed from
+  `.agents/skills/code-review/LICENSE` to `.agents/skills/code-review/LICENCE` (`git diff --stat`:
+  one line in `THIRD_PARTY_NOTICES.md`). Its script exits 1, and its whole output is one line:
+  `FAIL: THIRD_PARTY_NOTICES.md:34: license reference ".agents/skills/code-review/LICENCE" does not exist`.
+- **E4** (cleanup): `git worktree list` showed the checkout as detached at `382ddc3`;
+  `git worktree remove --force` removed it, and `git worktree list` no longer shows it. The other
+  worktrees are unchanged.
+
+AC6 is met. Stage 8 is done; next is stage 9, push and a PR described with `/tw-emoji-pr-note`.
