@@ -609,8 +609,8 @@ class ProvenanceInputTest(LicenseCase):
         self.addCleanup(agents.chmod, 0o755)
         self.unreadable("not readable")
 
-class NoticesReferenceTest(LicenseCase):
-    """T-0008 approved test plan items #65-#112: notices destinations (b) and the path rules through them."""
+class NoticesCase(LicenseCase):
+    """Shared helpers for the notices tests: the default two links, then the row's lines from line 3."""
 
     def notices(self, *lines):
         self.fx.write(NOTICES, DEFAULT_NOTICES + "".join(line + "\n" for line in lines))
@@ -618,6 +618,10 @@ class NoticesReferenceTest(LicenseCase):
     def expect_notices(self, lines, messages):
         self.notices(*lines)
         self.assertEqual(self.fx.check(), messages)
+
+
+class NoticesReferenceTest(NoticesCase):
+    """T-0008 approved test plan items #65-#112: notices destinations (b) and the path rules through them."""
 
     def test_d4_both_kinds_on_one_object(self):
         (self.fx.root / "LICENSE").unlink()
@@ -797,6 +801,233 @@ class NoticesReferenceTest(LicenseCase):
         sub.chmod(0o444)
         self.addCleanup(sub.chmod, 0o755)
         self.one("[x](sub/LICENSE)", '"sub/LICENSE"', "does not exist")
+
+MISSING_LINK = {
+    "LICENSE": f"{NOTICES}: no inline link [CC BY-SA 4.0](LICENSE)",
+    "LICENSE-CODE": f"{NOTICES}: no inline link [MIT](LICENSE-CODE)",
+}
+
+
+class RequiredLinkTest(LicenseCase):
+    """T-0008 approved test plan items #164-#176: the two required links (c)."""
+
+    def expect_text(self, text, messages):
+        self.fx.write(NOTICES, text)
+        self.assertEqual(self.fx.check(), messages)
+
+    def test_c1_no_license_link(self):
+        self.expect_text("[MIT](LICENSE-CODE)\n", [MISSING_LINK["LICENSE"]])
+
+    def test_c1_no_license_code_link(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n", [MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c2_only_in_skipped_regions(self):
+        self.expect_text("`[CC BY-SA 4.0](LICENSE)`\n```\n[MIT](LICENSE-CODE)\n```\n",
+                         [MISSING_LINK["LICENSE"], MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c3_fragment(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE#section)\n[MIT](LICENSE-CODE)\n", [])
+
+    def test_c3_angle(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n[MIT](<LICENSE-CODE>)\n", [])
+
+    def test_c3_title(self):
+        self.expect_text('[CC BY-SA 4.0](LICENSE)\n[MIT](LICENSE-CODE "t")\n', [])
+
+    def test_c4_wrong_text(self):
+        self.expect_text("[CC-BY-SA](LICENSE)\n[MIT](LICENSE-CODE)\n", [MISSING_LINK["LICENSE"]])
+
+    def test_c4_swapped(self):
+        self.expect_text("[MIT](LICENSE)\n[CC BY-SA 4.0](LICENSE-CODE)\n",
+                         [MISSING_LINK["LICENSE"], MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c4_image(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n![MIT](LICENSE-CODE)\n", [MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c4_dot_path(self):
+        self.expect_text("[CC BY-SA 4.0](./LICENSE)\n[MIT](LICENSE-CODE)\n",
+                         [notices_ref(1, '"./LICENSE"', "is not a plain repository path"), MISSING_LINK["LICENSE"]])
+
+    def test_c4_case(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n[MIT](license-code)\n",
+                         [notices_ref(2, '"license-code"', 'differs in case from "LICENSE-CODE"'), MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c4_padded_text(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n[ MIT ](LICENSE-CODE)\n", [MISSING_LINK["LICENSE-CODE"]])
+
+    def test_c4_lowercase_text(self):
+        self.expect_text("[CC BY-SA 4.0](LICENSE)\n[mit](LICENSE-CODE)\n", [MISSING_LINK["LICENSE-CODE"]])
+
+def markdown(line, construct):
+    """The unsupported-construct message."""
+    return f"{NOTICES}:{line}: unsupported Markdown ({construct})"
+
+
+class NoticesGrammarTest(NoticesCase):
+    """T-0008 approved test plan items #113-#163: fences, code spans and the fifteen constructs."""
+
+    def none(self, *lines):
+        self.expect_notices(lines, [])
+
+    def construct(self, lines, name, line=3, extra=()):
+        self.expect_notices(lines, [markdown(line, name), *extra])
+
+    def test_g1_code_span(self):
+        self.none("`[x](missing)`")
+
+    def test_g1_backtick_fence(self):
+        self.none("```", "[x](missing)", "```")
+
+    def test_g1_tilde_fence(self):
+        self.none("~~~", "[x](missing)", "~~~")
+
+    def test_g1_longer_closer(self):
+        self.none("```", "[x](missing)", "````")
+
+    def test_g1_indented_closer(self):
+        self.none("```", "[x](missing)", "   ```")
+
+    def test_g1_info_string(self):
+        self.none("```python", "[x](missing)", "```")
+
+    def test_g2_four_space_backticks(self):
+        self.construct(["    ```"], "unmatched backtick")
+
+    def test_g2_closed_by_other_character(self):
+        self.construct(["```", "~~~", "[x](missing)"], "unclosed code fence")
+
+    def test_g2_shorter_closer(self):
+        self.construct(["````", "```", "[x](missing)"], "unclosed code fence")
+
+    def test_g2_closer_with_text(self):
+        self.construct(["```", "``` x", "[x](missing)"], "unclosed code fence")
+
+    def test_g2_indented_opener(self):
+        self.construct(["  ~~~", "[x](missing)"], "indented fence", extra=[notices_ref(4, '"missing"', "does not exist")])
+
+    def test_g3_byte_order_mark(self):
+        self.fx.write(NOTICES, chr(0xFEFF) + DEFAULT_NOTICES)
+        self.assertEqual(self.fx.check(), [markdown(1, "byte order mark")])
+
+    def test_g3_carriage_return(self):
+        self.construct(["text\r"], "carriage return")
+
+    def test_g3_backtick_in_info_string(self):
+        self.construct(["```x```"], "backtick in fence info string")
+
+    def test_g3_unmatched_backtick(self):
+        self.construct(["a ` b"], "unmatched backtick")
+
+    def test_g3_html_comment(self):
+        self.construct(["<!-- -->"], "raw HTML or autolink")
+
+    def test_g3_html_block(self):
+        self.construct(["<div>"], "raw HTML or autolink")
+
+    def test_g3_autolink(self):
+        self.construct(["<https://example.org>"], "raw HTML or autolink")
+
+    def test_g3_blockquote(self):
+        self.construct(["> quote"], "blockquote")
+
+    def test_g3_tab_indented(self):
+        self.construct(["\ttext"], "tab indentation")
+
+    def test_g3_spaces_then_tab(self):
+        self.construct(["  \t[x](LICENSE)"], "tab indentation")
+
+    def test_g3_reference_definition(self):
+        self.construct(["[x]: LICENSE"], "link reference definition")
+
+    def test_g3_indented_reference_definition(self):
+        self.construct(["   [x]: LICENSE"], "link reference definition")
+
+    def test_g3_indented_line_with_link(self):
+        self.construct(["    [x](LICENSE)"], "indented line with a link")
+
+    def test_g3_escaped_bracket(self):
+        self.construct([r"a\[b"], "backslash escape")
+
+    def test_g3_escaped_paren(self):
+        self.construct([r"a\(b"], "backslash escape")
+
+    def test_g3_empty_link_text(self):
+        self.construct(["[](LICENSE)"], "empty link text")
+
+    def test_g3_blank_link_text(self):
+        self.construct(["[ ](LICENSE)"], "empty link text")
+
+    def test_g3_nested_image(self):
+        self.fx.write("a.png", "x\n")
+        self.construct(["[![a](a.png)](LICENSE)"], "unrecognized link")
+
+    def test_g3_space_in_destination(self):
+        self.construct(["[a](b c)"], "unrecognized link")
+
+    def test_g3_link_text_over_two_lines(self):
+        self.construct(["[a", "b](LICENSE)"], "unrecognized link", line=4)
+
+    def test_g4_comment_beats_backslash(self):
+        self.construct([r"<!-- a\[b -->"], "raw HTML or autolink")
+
+    def test_g4_carriage_return_beats_html(self):
+        self.construct(["a<b\r"], "carriage return")
+
+    def test_g5_comment_in_fence(self):
+        self.none("```", "<!--", "```")
+
+    def test_g5_four_spaces_without_link(self):
+        self.none("    text")
+
+    def test_g5_comment_in_code_span(self):
+        self.none("`<!--`")
+
+    def test_g5_other_backslash(self):
+        self.none(r"a\x")
+
+    def test_g5_angle_destination(self):
+        self.none("[x](<LICENSE>)")
+
+    def test_g6_link_on_construct_line(self):
+        self.construct(["<b>[x](missing)</b>"], "raw HTML or autolink", extra=[notices_ref(3, '"missing"', "does not exist")])
+
+    def test_g6_required_link_in_comment(self):
+        self.fx.write(NOTICES, "[CC BY-SA 4.0](LICENSE)\n<!-- [MIT](LICENSE-CODE) -->\n")
+        self.assertEqual(self.fx.check(), [markdown(2, "raw HTML or autolink")])
+
+    def test_g7_link_text_in_title(self):
+        self.fx.write(NOTICES, '[CC BY-SA 4.0](LICENSE)\n[x](LICENSE "[MIT](LICENSE-CODE)")\n')
+        self.assertEqual(self.fx.check(), [f"{NOTICES}: no inline link [MIT](LICENSE-CODE)"])
+
+    def test_g8_pipe_in_title(self):
+        self.construct(['| a | [MIT](LICENSE-CODE "MIT | code") |'], "pipe inside a table cell element")
+
+    def test_g8_pipe_in_code_span(self):
+        self.construct(["| `x | y` |"], "pipe inside a table cell element")
+
+    def test_g8_plain_table_row(self):
+        self.none("| a | `b` | [x](LICENSE) |")
+
+    def test_g9_fence_in_list_item(self):
+        self.construct(["- ~~~"], "block inside a list item")
+
+    def test_g9_indented_code_in_list_item(self):
+        self.construct(["-     [MIT](LICENSE-CODE)"], "block inside a list item")
+
+    def test_g9_reference_definition_in_list_item(self):
+        self.construct(["- [lc]: LICENSE"], "block inside a list item")
+
+    def test_g9_blockquote_in_list_item(self):
+        self.construct(["1. > quote"], "block inside a list item")
+
+    def test_g9_plain_list_item(self):
+        self.none("- [x](LICENSE)")
+
+    def test_g10_code_span_in_link_text(self):
+        self.none("[`x`](LICENSE)")
+
+    def test_g10_code_span_in_destination(self):
+        self.construct(["[x](a`b`)"], "unrecognized link")
 
 
 if __name__ == "__main__":

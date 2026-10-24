@@ -216,6 +216,12 @@ PROVENANCE = "docs/agents/skill-sources.json"
 PLACEHOLDER = re.compile(r"<[^<>\s]+>")
 SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 ROOT_LICENSES = {"LICENSE": "CC-BY-SA-4.0", "LICENSE-CODE": "MIT"}
+REQUIRED_LINKS = (("CC BY-SA 4.0", "LICENSE"), ("MIT", "LICENSE-CODE"))
+FENCE = re.compile(r"(`{3,}|~{3,})(.*)")
+INDENTED_FENCE = re.compile(r" {1,3}(?:`{3,}|~{3,})")
+BLOCKQUOTE = re.compile(r" {0,3}>")
+LIST_BLOCK = re.compile(r" {0,3}(?:[-*+]|\d{1,9}[.)])(?: {4,}| +(?:`{3,}|~{3,}|>|\[[^\]]+\]:))")
+REFERENCE_DEFINITION = re.compile(r" {0,3}\[[^\]]+\]:")
 NOTICES = "THIRD_PARTY_NOTICES.md"
 LINK = re.compile(
     r"!?\[(?P<text>[^\[\]\n]*)\]\([ \t]*(?P<destination><[^<>\n]*>|[^\s()<>]*)"
@@ -360,17 +366,85 @@ def _provenance_messages(root, inputs):
     return messages
 
 
-def _links(line):
-    """Recognized links and images on one line, left to right without overlap."""
+def _code_spans(line):
+    """(spans, unmatched): code spans as (start, end) pairs, found left to right, and whether a
+    backtick run has no closing run of the same length on the line."""
+    runs = [(run.start(), run.end()) for run in re.finditer(r"`+", line)]
+    spans, unmatched, index = [], False, 0
+    while index < len(runs):
+        start, end = runs[index]
+        closer = next((j for j in range(index + 1, len(runs)) if runs[j][1] - runs[j][0] == end - start), None)
+        if closer is None:
+            unmatched, index = True, index + 1
+        else:
+            spans.append((start, runs[closer][1]))
+            index = closer + 1
+    return spans, unmatched
+
+
+def _inside(position, spans):
+    return any(start <= position < end for start, end in spans)
+
+
+def _links(line, spans):
+    """Recognized links and images on one line, left to right without overlap. A link may hold
+    whole code spans in its text, but must not start, end, or have its `](`, destination or title
+    inside one."""
     found, index = [], 0
     while index < len(line):
-        match = LINK.match(line, index)
-        if match:
+        match = None if _inside(index, spans) else LINK.match(line, index)
+        tail = match and match.end("text")
+        if match and not any(start < match.end() and tail < end for start, end in spans):
             found.append(match)
             index = match.end()
         else:
             index += 1
     return found
+
+
+def _construct(number, line, spans, unmatched, links):
+    """The first unsupported construct on a line outside fences, in the spec's order, or None."""
+    outside = lambda pattern: [hit.start() for hit in re.finditer(pattern, line) if not _inside(hit.start(), spans)]
+    exempt = set()
+    for match in links:
+        if match["destination"].startswith("<"):
+            exempt.add(match.start("destination"))
+        if match["title"]:
+            exempt.update(range(match.start("title"), match.end("title")))
+    owned = [(match.start(), match.end()) for match in links]
+    cells = spans + [(match.start("text"), match.end("text")) for match in links] + [
+        (match.start("destination"), match.end("title") if match["title"] else match.end("destination")) for match in links]
+    if number == 1 and line.startswith("\N{ZERO WIDTH NO-BREAK SPACE}"):
+        return "byte order mark"
+    if "\r" in line:
+        return "carriage return"
+    if FENCE.match(line) and FENCE.match(line)[1].startswith("`") and "`" in FENCE.match(line)[2]:
+        return "backtick in fence info string"
+    if INDENTED_FENCE.match(line):
+        return "indented fence"
+    if unmatched:
+        return "unmatched backtick"
+    if line.lstrip().startswith("|") and any("|" in line[start:end] for start, end in cells):
+        return "pipe inside a table cell element"
+    if any(position not in exempt for position in outside("<")):
+        return "raw HTML or autolink"
+    if BLOCKQUOTE.match(line):
+        return "blockquote"
+    if LIST_BLOCK.match(line):
+        return "block inside a list item"
+    if "\t" in re.match(r"[ \t]*", line)[0]:
+        return "tab indentation"
+    if REFERENCE_DEFINITION.match(line):
+        return "link reference definition"
+    if line.startswith("    ") and outside(r"\]\("):
+        return "indented line with a link"
+    if outside(r"\\[\[\]()<>`]"):
+        return "backslash escape"
+    if any(match["text"].strip() == "" for match in links):
+        return "empty link text"
+    if any(not any(start <= position < end for start, end in owned) for position in outside(r"\]\(")):
+        return "unrecognized link"
+    return None
 
 
 def _destination_reason(root, destination):
@@ -393,25 +467,45 @@ def _notices_messages(root, inputs):
     text, unreadable = _read_input(root, NOTICES)
     if unreadable:
         inputs.append(_unreadable(NOTICES, unreadable))
-        return []
-    references = []
+        return [], []
+    constructs, references, linked, fence = {}, [], set(), None
     for number, line in enumerate(text.split("\n"), start=1):
-        for match in _links(line):
+        if fence:
+            char, length, _ = fence
+            if re.fullmatch(rf" {{0,3}}{re.escape(char)}{{{length},}}[ \t]*", line):
+                fence = None
+            continue
+        opener = FENCE.match(line)
+        if opener and not (opener[1].startswith("`") and "`" in opener[2]):
+            fence = (opener[1][0], len(opener[1]), number)
+            continue
+        spans, unmatched = _code_spans(line)
+        links = _links(line, spans)
+        construct = _construct(number, line, spans, unmatched, links)
+        if construct:
+            constructs[number] = construct
+        for match in links:
             destination = match["destination"]
             if destination.startswith("<"):
                 destination = destination[1:-1]
             reason = _destination_reason(root, destination)
             if reason:
                 references.append(f"{NOTICES}:{number}: license reference {_quoted(destination)} {reason}")
-    return references
+            if not match[0].startswith("!"):
+                linked.add((match["text"], destination.split("#", 1)[0]))
+    if fence:
+        constructs[fence[2]] = "unclosed code fence"
+    unsupported = [f"{NOTICES}:{number}: unsupported Markdown ({name})" for number, name in sorted(constructs.items())]
+    missing = [f"{NOTICES}: no inline link [{text}]({target})" for text, target in REQUIRED_LINKS if (text, target) not in linked]
+    return unsupported, references + missing
 
 
 def check_license_references(root):
     """Return one message per bad license reference, in the order the epic 0005 spec defines."""
     inputs = []
     provenance = _provenance_messages(root, inputs)
-    notices = _notices_messages(root, inputs)
-    return inputs + provenance + notices
+    unsupported, notices = _notices_messages(root, inputs)
+    return inputs + provenance + unsupported + notices
 
 
 def main():

@@ -1300,3 +1300,1099 @@ Ran 1 test in 0.003s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Red records for #113–#176 (G and C rows) and the deferred #67, #69–#73, committed with their green
+
+- **Written before the code.** Tests were written before the (c) and grammar code this time, so 52
+  sub-cases have natural reds:
+  - #164–#166 and #170–#176 (C rows);
+  - #113–#145, #151, #152, #154, #155, #157–#160 and #163 (G rows).
+
+  The G1 rows also failed first, because links inside code spans and fences were still checked.
+- **#166 (C2)** stayed red after (c) until code spans and fences were skipped; it turned green with
+  the grammar.
+- **Passed on their first run and took the table's mutation:**
+  - #167–#169 (C3);
+  - #146–#150 (G5);
+  - #156, #161 and #162.
+
+  #153 (G7) also passed on its first run, because a recognized link's title is never scanned
+  again. Its table entry was "—", so the mutation used, "scan the title again", is a deviation.
+- **The deferred N1 reds** (#67, #69–#73) were taken here, once an unrecognized `](` was reported
+  and code spans were found.
+
+#### #164 C1 no LICENSE link — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c1_no_license_link` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c1_no_license_link (test_verify_project.RequiredLinkTest.test_c1_no_license_link)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #165 C1 no LICENSE-CODE link — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c1_no_license_code` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c1_no_license_code_link (test_verify_project.RequiredLinkTest.test_c1_no_license_code_link)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #166 C2 only in skipped regions — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c2` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c2_only_in_skipped_regions (test_verify_project.RequiredLinkTest.test_c2_only_in_skipped_regions)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [[81 chars]DE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)',
++  'THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #170 C4 wrong text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_wrong` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_wrong_text (test_verify_project.RequiredLinkTest.test_c4_wrong_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #171 C4 swapped — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_swapped` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_swapped (test_verify_project.RequiredLinkTest.test_c4_swapped)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [[81 chars]DE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)',
++  'THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #172 C4 image — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_image` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_image (test_verify_project.RequiredLinkTest.test_c4_image)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #173 C4 dot path — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_dot` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_dot_path (test_verify_project.RequiredLinkTest.test_c4_dot_path)
+AssertionError: Lists differ: ['THI[79 chars]path'] != ['THI[79 chars]path', 'THIRD_PARTY_NOTICES.md: no inline link[21 chars]SE)']
+-  'repository path']
+?                   ^
++  'repository path',
+?                   ^
++  'THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #174 C4 case — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_case` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_case (test_verify_project.RequiredLinkTest.test_c4_case)
+AssertionError: Lists differ: ['THI[87 chars]ODE"'] != ['THI[87 chars]ODE"', 'THIRD_PARTY_NOTICES.md: no inline link[17 chars]DE)']
+-  'from "LICENSE-CODE"']
+?                       ^
++  'from "LICENSE-CODE"',
+?                       ^
++  'THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #175 C4 padded text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_padded` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_padded_text (test_verify_project.RequiredLinkTest.test_c4_padded_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #176 C4 lowercase text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `850135bacc3a818887175b2fd73a43e8d6d21b96`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c4_lowercase` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c4_lowercase_text (test_verify_project.RequiredLinkTest.test_c4_lowercase_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #167 C3 required link with a fragment (passed on first run; mutation: require an exact destination before removing the fragment) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `7ab076c4880981a90cca461968c422d7cd50fa68`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c3_fragment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c3_fragment (test_verify_project.RequiredLinkTest.test_c3_fragment)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)'] != []
+- ['THIRD_PARTY_NOTICES.md: no inline link [CC BY-SA 4.0](LICENSE)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #168 C3 required link in angle brackets (passed on first run; mutation: keep angle brackets for (c)) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `4f0e8246449db50a92cdaa123685be04fd50100d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c3_angle` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c3_angle (test_verify_project.RequiredLinkTest.test_c3_angle)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)'] != []
+- ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #169 C3 required link with a title (passed on first run; mutation: links with titles do not count) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `6a468749098e0c85c0503c0977a3b1cfd1434da3`; verifier blob: `b33b14cb9afff04bc088bc4106758ac780fd7033`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_c3_title` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_c3_title (test_verify_project.RequiredLinkTest.test_c3_title)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)'] != []
+- ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #113 G1 code span — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_code_span` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_code_span (test_verify_project.NoticesGrammarTest.test_g1_code_span)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #114 G1 backtick fence — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_backtick_fence` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_backtick_fence (test_verify_project.NoticesGrammarTest.test_g1_backtick_fence)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #115 G1 tilde fence — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_tilde_fence` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_tilde_fence (test_verify_project.NoticesGrammarTest.test_g1_tilde_fence)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #116 G1 longer closer — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_longer_closer` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_longer_closer (test_verify_project.NoticesGrammarTest.test_g1_longer_closer)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #117 G1 indented closer — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_indented_closer` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_indented_closer (test_verify_project.NoticesGrammarTest.test_g1_indented_closer)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #118 G1 info string — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g1_info_string` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g1_info_string (test_verify_project.NoticesGrammarTest.test_g1_info_string)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist'] != []
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #119 G2 four-space backticks — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g2_four_space` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g2_four_space_backticks (test_verify_project.NoticesGrammarTest.test_g2_four_space_backticks)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unmatched backtick)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unmatched backtick)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #120 G2 closed by the other character — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g2_closed_by` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g2_closed_by_other_character (test_verify_project.NoticesGrammarTest.test_g2_closed_by_other_character)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist'] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist']
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #121 G2 shorter closer — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g2_shorter` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g2_shorter_closer (test_verify_project.NoticesGrammarTest.test_g2_shorter_closer)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist'] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist']
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #122 G2 closer with text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g2_closer_with` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g2_closer_with_text (test_verify_project.NoticesGrammarTest.test_g2_closer_with_text)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist'] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:5: license reference "missing" does not exist']
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unclosed code fence)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #123 G2 indented opener — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g2_indented_opener` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g2_indented_opener (test_verify_project.NoticesGrammarTest.test_g2_indented_opener)
+AssertionError: Lists differ: ['THI[15 chars]S.md:4: license reference "missing" does not exist'] != ['THI[15 chars]S.md:3: unsupported Markdown (indented fence)'[68 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented fence)',
+- ['THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
+? ^
++  'THIRD_PARTY_NOTICES.md:4: license reference "missing" does not exist']
+? ^
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #124 G3 byte order mark — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_byte_order` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_byte_order_mark (test_verify_project.NoticesGrammarTest.test_g3_byte_order_mark)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:1: unsupported Markdown (byte order mark)']
+- []
++ ['THIRD_PARTY_NOTICES.md:1: unsupported Markdown (byte order mark)']
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #125 G3 carriage return — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_carriage` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_carriage_return (test_verify_project.NoticesGrammarTest.test_g3_carriage_return)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (carriage return)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (carriage return)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #126 G3 backtick in info string — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_backtick_in` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_backtick_in_info_string (test_verify_project.NoticesGrammarTest.test_g3_backtick_in_info_string)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[35 chars]ng)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backtick in fence info '
++  'string)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #127 G3 unmatched backtick — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_unmatched` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_unmatched_backtick (test_verify_project.NoticesGrammarTest.test_g3_unmatched_backtick)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unmatched backtick)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unmatched backtick)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #128 G3 HTML comment — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_html_comment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_html_comment (test_verify_project.NoticesGrammarTest.test_g3_html_comment)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #129 G3 HTML block — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_html_block` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_html_block (test_verify_project.NoticesGrammarTest.test_g3_html_block)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #130 G3 autolink — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_autolink` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_autolink (test_verify_project.NoticesGrammarTest.test_g3_autolink)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #131 G3 blockquote — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_blockquote` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_blockquote (test_verify_project.NoticesGrammarTest.test_g3_blockquote)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (blockquote)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (blockquote)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #132 G3 tab-indented — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_tab_indented` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_tab_indented (test_verify_project.NoticesGrammarTest.test_g3_tab_indented)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #133 G3 spaces then tab — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_spaces_then` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_spaces_then_tab (test_verify_project.NoticesGrammarTest.test_g3_spaces_then_tab)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (tab indentation)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #134 G3 reference definition — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_g3_reference_definition` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_reference_definition (test_verify_project.NoticesGrammarTest.test_g3_reference_definition)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (link reference definition)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (link reference definition)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #135 G3 indented reference definition — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_indented_reference` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_indented_reference_definition (test_verify_project.NoticesGrammarTest.test_g3_indented_reference_definition)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (link reference definition)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (link reference definition)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #136 G3 indented line with a link — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_indented_line` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_indented_line_with_link (test_verify_project.NoticesGrammarTest.test_g3_indented_line_with_link)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #137 G3 escaped bracket — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_escaped_bracket` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_bracket (test_verify_project.NoticesGrammarTest.test_g3_escaped_bracket)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #138 G3 escaped paren — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_escaped_paren` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_paren (test_verify_project.NoticesGrammarTest.test_g3_escaped_paren)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### #139 G3 empty link text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_empty_link` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_empty_link_text (test_verify_project.NoticesGrammarTest.test_g3_empty_link_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (empty link text)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (empty link text)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #140 G3 blank link text — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_blank_link` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_blank_link_text (test_verify_project.NoticesGrammarTest.test_g3_blank_link_text)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (empty link text)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (empty link text)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #141 G3 nested image — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_nested` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_nested_image (test_verify_project.NoticesGrammarTest.test_g3_nested_image)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #142 G3 space in destination — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_space_in` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_space_in_destination (test_verify_project.NoticesGrammarTest.test_g3_space_in_destination)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #143 G3 link text over two lines — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g3_link_text_over` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_link_text_over_two_lines (test_verify_project.NoticesGrammarTest.test_g3_link_text_over_two_lines)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:4: unsupported Markdown (unrecognized link)']
+- []
++ ['THIRD_PARTY_NOTICES.md:4: unsupported Markdown (unrecognized link)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #144 G4 comment beats backslash — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g4_comment` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g4_comment_beats_backslash (test_verify_project.NoticesGrammarTest.test_g4_comment_beats_backslash)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #145 G4 carriage return beats HTML — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g4_carriage` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g4_carriage_return_beats_html (test_verify_project.NoticesGrammarTest.test_g4_carriage_return_beats_html)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (carriage return)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (carriage return)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #151 G6 link on a construct line — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g6_link_on` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g6_link_on_construct_line (test_verify_project.NoticesGrammarTest.test_g6_link_on_construct_line)
+AssertionError: Lists differ: ['THI[18 chars]d:3: license reference "missing" does not exist'] != ['THI[18 chars]d:3: unsupported Markdown (raw HTML or autolin[71 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)',
+- ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+? ^
++  'THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+? ^
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### #152 G6 required link in a comment — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g6_required` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g6_required_link_in_comment (test_verify_project.NoticesGrammarTest.test_g6_required_link_in_comment)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:2: unsupported Markdown (raw HTML or autolink)']
+- []
++ ['THIRD_PARTY_NOTICES.md:2: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #154 G8 pipe in a title — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g8_pipe_in_title` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_pipe_in_title (test_verify_project.NoticesGrammarTest.test_g8_pipe_in_title)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
++  'element)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #155 G8 pipe in a code span — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g8_pipe_in_code` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_pipe_in_code_span (test_verify_project.NoticesGrammarTest.test_g8_pipe_in_code_span)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
++  'element)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #157 G9 fence in a list item — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_fence` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_fence_in_list_item (test_verify_project.NoticesGrammarTest.test_g9_fence_in_list_item)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #158 G9 indented code in a list item — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_indented` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_indented_code_in_list_item (test_verify_project.NoticesGrammarTest.test_g9_indented_code_in_list_item)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #159 G9 reference definition in a list item — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_reference` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_reference_definition_in_list_item (test_verify_project.NoticesGrammarTest.test_g9_reference_definition_in_list_item)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #160 G9 blockquote in a list item — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_blockquote` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_blockquote_in_list_item (test_verify_project.NoticesGrammarTest.test_g9_blockquote_in_list_item)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #163 G10 code span in a destination — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `c647c3d0a32d9a4339a6dceb00c434f2355e791c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g10_code_span_in_destination` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g10_code_span_in_destination (test_verify_project.NoticesGrammarTest.test_g10_code_span_in_destination)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: license reference "a`b`" does not exist'] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "a`b`" does not exist']
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #67 N1 image (deferred) (passed on first run; mutation: treat images as unrecognized) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `d0d3b61cd9b7fe3959d77236aed46bcecba2780c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_image` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_image (test_verify_project.NoticesReferenceTest.test_n1_image)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #69 N1 double-quoted title (deferred) (passed on first run; mutation: drop double-quoted titles from the link pattern) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `6bab311996d0876505f9ddbab1b806e8fd096f4e`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_title_double` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_title_double (test_verify_project.NoticesReferenceTest.test_n1_title_double)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #70 N1 single-quoted title (deferred) (passed on first run; mutation: drop single-quoted titles) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `84625359d0a611874b67f0c8e09ff036bd6f1878`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_title_single` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_title_single (test_verify_project.NoticesReferenceTest.test_n1_title_single)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #71 N1 parenthesized title (deferred) (passed on first run; mutation: drop parenthesized titles) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `a248aac17f22d212962f5b756b7f857ab936ccff`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_title_paren` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_title_paren (test_verify_project.NoticesReferenceTest.test_n1_title_paren)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #72 N1 link after a code span (deferred) (passed on first run; mutation: skip the rest of a line after a code span) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `5df8877cb34aca057f70b18f1e5b482727c0816d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_after_code` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_after_code_span (test_verify_project.NoticesReferenceTest.test_n1_after_code_span)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #73 N1 two-space indent (deferred) (passed on first run; mutation: treat any indented line as indented code) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `f1d3614c50215b0efdd12ff2071eee82e018a351`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_n1_two_space` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_two_space_indent (test_verify_project.NoticesReferenceTest.test_n1_two_space_indent)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #146 G5 comment inside a fence (passed on first run; mutation: check constructs inside fences) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `0265f6686b91cd4ee5351d4314c16dcd5eace7b8`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_comment_in_fence` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_comment_in_fence (test_verify_project.NoticesGrammarTest.test_g5_comment_in_fence)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:4: unsupported Ma[97 chars]ck)'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:4: unsupported Markdown (raw HTML or autolink)',
+-  'THIRD_PARTY_NOTICES.md:5: unsupported Markdown (unmatched backtick)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #147 G5 four spaces without a link (passed on first run; mutation: report every 4-space line) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `fd99845de5f21ded363dc5f5c0af7b71cb1d51ea`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_four_spaces` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_four_spaces_without_link (test_verify_project.NoticesGrammarTest.test_g5_four_spaces_without_link)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (indented line with a link)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #148 G5 comment inside a code span (passed on first run; mutation: look for < inside code spans) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `aa7517ba084934653505eefe3f34da2eb7d7ed8a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_comment_in_code` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_comment_in_code_span (test_verify_project.NoticesGrammarTest.test_g5_comment_in_code_span)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #149 G5 other backslash (passed on first run; mutation: report a backslash before any character) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `b80d8976d257b1fe4805980da7ed77403b07b568`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_other_backslash` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_other_backslash (test_verify_project.NoticesGrammarTest.test_g5_other_backslash)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #150 G5 angle destination (passed on first run; mutation: treat every < as raw HTML) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `ddbabf6502ca41cee44a72b9311e4158a3ffd9aa`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g5_angle` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g5_angle_destination (test_verify_project.NoticesGrammarTest.test_g5_angle_destination)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
++ []
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #153 G7 link text in a title (passed on first run; mutation: scan the title again (deviation: the table expected a natural red)) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `5b350a1b4212703357f8a7abab80c99bbb5d3221`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g7` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g7_link_text_in_title (test_verify_project.NoticesGrammarTest.test_g7_link_text_in_title)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+- []
++ ['THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #156 G8 plain table row (passed on first run; mutation: report any | on a table row) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `f5fc3037f7b25b28a2786751e0c65a728092acd2`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g8_plain` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_plain_table_row (test_verify_project.NoticesGrammarTest.test_g8_plain_table_row)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)'] != []
++ []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
+-  'element)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #161 G9 plain list item (passed on first run; mutation: report every list item) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `2f067df952d83ea1c545e8e66f86519f333c297c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g9_plain` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g9_plain_list_item (test_verify_project.NoticesGrammarTest.test_g9_plain_list_item)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (block inside a list item)']
++ []
+Ran 1 test in 0.006s
+FAILED (failures=1)
+```
+
+#### #162 G10 code span in link text (passed on first run; mutation: reject code spans in link text) — red
+
+- HEAD: `2c6dc76a1ebec42cfe81a8f0ddef1c9f4a25ebf3`
+- test file blob: `9804311fa404bde35a32a73cf9e9ed7c6673e9ad`; verifier blob: `f9d924211a79ff4613a6b6140a2b0c75862cdfd5`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_g10_code_span_in_link` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g10_code_span_in_link_text (test_verify_project.NoticesGrammarTest.test_g10_code_span_in_link_text)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
