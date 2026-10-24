@@ -3156,7 +3156,9 @@ The code and texts after the stage-6 rulings are in `967a227` (#203–#216 and A
     `…directory_in_other_case`;
   - #75's `test_n2_http` also ran #74's `https` test.
 
-  Every test in those runs was expected to fail, and each did so on its own record's line as well.
+  In the two I1 cases, both tests were red at the time and each also has its own record. In #75's
+  run, the `https` test passed under the mutation and the `http` test failed, so the record still
+  shows #75's red.
   Seven records keep only the first differing lines, without the `FAILED (…)` summary; their exit
   code is on the command line.
 - D2: as in T-0007, every run used `python3 -I -B` after removing `scripts/__pycache__`. The
