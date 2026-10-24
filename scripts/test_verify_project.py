@@ -608,6 +608,13 @@ class ProvenanceInputTest(LicenseCase):
         self.addCleanup(agents.chmod, 0o755)
         self.unreadable("not readable")
 
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unlistable_directory(self):
+        agents = self.fx.root / "docs/agents"
+        agents.chmod(0o333)
+        self.addCleanup(agents.chmod, 0o755)
+        self.unreadable("not readable")
+
 
 class NoticesCase(LicenseCase):
     """Shared helpers for the notices tests: the default two links, then the row's lines from line 3."""
@@ -667,6 +674,12 @@ class NoticesReferenceTest(NoticesCase):
 
     def test_n1_two_space_indent(self):
         self.none("  [x](LICENSE)")
+
+    def test_n1_tab_before_destination(self):
+        self.none("[x](\tLICENSE)")
+
+    def test_n1_tab_before_closing_paren(self):
+        self.none("[x](LICENSE\t)")
 
     def test_n2_https(self):
         self.none("[x](https://example.org)")
@@ -1038,6 +1051,9 @@ class NoticesGrammarTest(NoticesCase):
         self.fx.write("a|b", "x\n")
         self.construct(["| [x](a|b) |"], "pipe inside a table cell element")
 
+    def test_g8_spaces_before_table_row(self):
+        self.construct(["  | `a|b` |"], "pipe inside a table cell element")
+
     def test_g3_escaped_closing_bracket(self):
         self.construct([r"a\]b"], "backslash escape")
 
@@ -1046,6 +1062,9 @@ class NoticesGrammarTest(NoticesCase):
 
     def test_g3_escaped_greater_than(self):
         self.construct([r"a\>b"], "backslash escape")
+
+    def test_g3_escaped_backtick(self):
+        self.construct([r"a\`b\`c"], "backslash escape")
 
     def test_g9_star_marker(self):
         self.construct(["* ~~~"], "block inside a list item")

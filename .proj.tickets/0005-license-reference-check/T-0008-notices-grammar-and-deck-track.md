@@ -3365,3 +3365,83 @@ The repository owner: "J1–J8 都照建議，#217–#221 核准。"
 | 219 | G3 | ``a\`b\`c`` (the backticks pair, so `unmatched backtick` does not apply) | `M(3, backslash escape)` | drop the backtick from the escape set |
 | 220 | G8 | two spaces, then `` \| `a\|b` \| `` | `M(3, pipe inside a table cell element)` | test `line.startswith("\|")` |
 | 221 | I3 | provenance; `docs/agents` mode 0o333, searchable but not listable (skipped as root) | `U(not readable)` | let `os.listdir` errors propagate |
+
+### 2026-10-24 — Red records for #217–#221, committed with their green
+
+Each row was written, run on its own and recorded before the next was written (Ruling J2), so each
+record cites its own test file blob. All five passed on their first run and took the approved
+mutation. The template now prints the `-I -B` flags the runner has always used (Ruling J5, N-7).
+
+#### #217 N1 tab before a destination (passed on first run; mutation: allow only spaces after `(`) — red
+
+- HEAD: `d9bd00fca2cb20ea408d28a4c926e967bc7ad79c`
+- test file blob: `e01c200690cfe56fc49fd5e1ee40cc9c58768125`; verifier blob: `76fa9f70a194a067b8c46333de041f530f34e0d7`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_n1_tab_before_destination` (exit 1; `-I -B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_tab_before_destination (test_verify_project.NoticesReferenceTest.test_n1_tab_before_destination)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #218 N1 tab before the closing parenthesis (passed on first run; mutation: allow only spaces before `)`) — red
+
+- HEAD: `d9bd00fca2cb20ea408d28a4c926e967bc7ad79c`
+- test file blob: `5c2715b2f6a3c4e291a1dc6a6491bb7318ea7fef`; verifier blob: `5735e84eefac625e921b06996d0615b52659d461`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_n1_tab_before_closing_paren` (exit 1; `-I -B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_n1_tab_before_closing_paren (test_verify_project.NoticesReferenceTest.test_n1_tab_before_closing_paren)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)'] != []
+- ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (unrecognized link)']
++ []
+Ran 1 test in 0.002s
+FAILED (failures=1)
+```
+
+#### #219 G3 escaped backtick (passed on first run; mutation: drop the backtick from the escape set) — red
+
+- HEAD: `d9bd00fca2cb20ea408d28a4c926e967bc7ad79c`
+- test file blob: `67cba8fb8d6689c41c84f4accae24f015248799f`; verifier blob: `cc116f43b46f92b7bad08695499b408828de7f49`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_g3_escaped_backtick` (exit 1; `-I -B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g3_escaped_backtick (test_verify_project.NoticesGrammarTest.test_g3_escaped_backtick)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (backslash escape)']
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #220 G8 spaces before a table row (passed on first run; mutation: test `line.startswith("|")`) — red
+
+- HEAD: `d9bd00fca2cb20ea408d28a4c926e967bc7ad79c`
+- test file blob: `74363dbdd719a68719effd55f604ff7ac60a86ed`; verifier blob: `1b5dcece898bb14e5a40d48383076766d2da4d9d`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_g8_spaces_before_table_row` (exit 1; `-I -B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_g8_spaces_before_table_row (test_verify_project.NoticesGrammarTest.test_g8_spaces_before_table_row)
+AssertionError: Lists differ: [] != ['THIRD_PARTY_NOTICES.md:3: unsupported Ma[38 chars]nt)']
+- []
++ ['THIRD_PARTY_NOTICES.md:3: unsupported Markdown (pipe inside a table cell '
++  'element)']
+Ran 1 test in 0.005s
+FAILED (failures=1)
+```
+
+#### #221 I3 provenance parent not listable (passed on first run; mutation: let `os.listdir` errors propagate) — red
+
+- HEAD: `d9bd00fca2cb20ea408d28a4c926e967bc7ad79c`
+- test file blob: `d4a99e8d678bfec0e6bbea25f8b2fa88db32b490`; verifier blob: `d255191f10a59f25542c42d81b66fc9a2488a5e2`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k *test_i3_unlistable_directory` (exit 1; `-I -B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i3_unlistable_directory (test_verify_project.ProvenanceInputTest.test_i3_unlistable_directory)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmpzcnt2psd/docs/agents'
+Ran 1 test in 0.002s
+FAILED (errors=1)
+```
