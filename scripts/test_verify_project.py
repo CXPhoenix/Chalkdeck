@@ -1029,6 +1029,89 @@ class NoticesGrammarTest(NoticesCase):
     def test_g10_code_span_in_destination(self):
         self.construct(["[x](a`b`)"], "unrecognized link")
 
+class NoticesInputOrderTest(NoticesCase):
+    """T-0008 approved test plan items #190-#202: unreadable notices, message order, rendering and wiring."""
+
+    def unreadable_notices(self, reason):
+        """Row I2 under Ruling I2-order: the unreadable-input group comes before provenance references."""
+        self.fx.provenance({"license_location": "missing"})
+        self.assertEqual(self.fx.check(), [
+            f"{NOTICES}: cannot read license references ({reason})",
+            ref('"missing"', '"/license_location"', "does not exist"),
+        ])
+
+    def test_i2_missing(self):
+        (self.fx.root / NOTICES).unlink()
+        self.unreadable_notices("missing")
+
+    def test_i2_symlink(self):
+        target = self.fx.write("real-notices.md", DEFAULT_NOTICES)
+        (self.fx.root / NOTICES).unlink()
+        make_symlink(self, target.name, self.fx.root / NOTICES)
+        self.unreadable_notices("a symlink")
+
+    def test_i2_directory(self):
+        (self.fx.root / NOTICES).unlink()
+        (self.fx.root / NOTICES).mkdir()
+        self.unreadable_notices("not a regular file")
+
+    def test_i2_not_utf8(self):
+        (self.fx.root / NOTICES).write_bytes(b"[x](\xff)\n")
+        self.unreadable_notices("not UTF-8")
+
+    def test_i2_other_case(self):
+        (self.fx.root / NOTICES).rename(self.fx.root / "third_party_notices.md")
+        self.unreadable_notices("missing")
+
+    @unittest.skipIf(CANNOT_DENY_READ, "read permission cannot be removed here")
+    def test_i3_unreadable_notices(self):
+        path = self.fx.root / NOTICES
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.assertEqual(self.fx.check(), [f"{NOTICES}: cannot read license references (not readable)"])
+
+    def test_i4_both_missing(self):
+        (self.fx.root / NOTICES).unlink()
+        (self.fx.root / PROVENANCE).unlink()
+        self.assertEqual(self.fx.check(), [
+            f"{PROVENANCE}: cannot read license references (missing)",
+            f"{NOTICES}: cannot read license references (missing)",
+        ])
+
+    def test_o1_group_order(self):
+        self.fx.provenance({"license_location": "missing"})
+        self.fx.write(NOTICES, "[CC BY-SA 4.0](LICENSE)\n[x](missing)\n<b>\n")
+        self.assertEqual(self.fx.check(), [
+            ref('"missing"', '"/license_location"', "does not exist"),
+            markdown(3, "raw HTML or autolink"),
+            notices_ref(2, '"missing"', "does not exist"),
+            f"{NOTICES}: no inline link [MIT](LICENSE-CODE)",
+        ])
+
+    def test_o2_column_order(self):
+        self.expect_notices(["[a](zz) [b](aa)"], [notices_ref(3, '"zz"', "does not exist"), notices_ref(3, '"aa"', "does not exist")])
+
+    def test_o3_control_characters(self):
+        b = chr(92)
+        value = ['"' + b + "\n" + chr(7) + chr(0x2028)]
+        rendered = '["' + b + '"' + b + b + b + "n" + b + "u0007" + b + 'u2028"]'
+        self.expect({"license_location": value}, [ref(rendered, '"/license_location"', "is not a string")])
+
+    def test_o3_printable_non_ascii(self):
+        self.expect({"license_location": ["授權"]}, [ref('["授權"]', '"/license_location"', "is not a string")])
+
+    def test_o4_pointer_escapes(self):
+        self.expect({"a/b": {"c~d": {'e"f': {"": {"license_location": "missing"}}}}},
+                    [ref('"missing"', '"/a~1b/c~0d/e' + chr(92) + '"f//license_location"', "does not exist")])
+
+    def test_w1_wiring(self):
+        self.notices("[x](missing)")
+        names, errors = verify_project.verify(self.fx.root)
+        licence_messages = self.fx.check()
+        self.assertIn(notices_ref(3, '"missing"', "does not exist"), licence_messages)
+        self.assertEqual(errors[-len(licence_messages):], licence_messages)
+        self.assertEqual(errors[-len(licence_messages) - 1], "GLOSSARY.md is missing, not a regular file, or blank")
+
 
 if __name__ == "__main__":
     unittest.main()

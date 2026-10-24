@@ -2396,3 +2396,300 @@ Ran 1 test in 0.004s
 FAILED (failures=1)
 ```
 
+
+### 2026-10-24 — Ruling I2-order
+
+The tests for #190–#194 followed traceability row I2: the provenance reference first, then the
+unreadable notices message. That contradicts the Messages order in traceability:246–248, where
+unreadable inputs form group 1, ahead of provenance references. The implementation followed the
+order list, so the five tests failed. The repository owner: "I2 以 Messages 的排序規則為準：無法讀取的輸入排第 1 組，修正 #190–#194 的預期。"
+
+- #190–#194 now expect the unreadable notices message first. Their earlier failures checked the
+  wrong expectation, so they are not reds.
+- With the corrected expectation they passed on their first run. Their red is by mutation: unreadable
+  inputs placed after the provenance references.
+- The I2 row of `traceability.md` keeps the error, because the spec is frozen. It is corrected at the
+  epic close-out and added to the carry list there.
+
+### 2026-10-24 — Red records for #190–#202, committed with their green
+
+- **Passed on their first run:** #195–#202, because the readers and ordering already existed. W1
+  (#202) used the table's mutation. #195–#201 had "—" in the table, so their mutations are
+  deviations.
+- **Test literals:** #199 and #201 first failed on a test-literal error (an escaped backslash in a
+  non-raw string). They were fixed with `chr(92)` before any record.
+
+### 2026-10-24 — T-0007 handover: a `RecursionError` from Q
+
+Checked on the installed interpreter, Python 3.13.11 with recursion limit 1000:
+
+- a provenance `license_location` that is an array nested to the deepest level `json.loads`
+  accepts (9,997 levels);
+- a `license` value nested to its deepest accepted level (9,996).
+
+In every case from five levels below the limit up to the limit, `check_license_references` returned
+its message without raising. Q is not reachable with a `RecursionError` on this interpreter, so no
+sub-case is added. Python 3.14 and later were not tested.
+
+#### #195 I3 notices not readable (passed on first run; mutation: let read errors propagate (deviation: the table expected a natural red)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `0897334e2893463333d10566be9d9965dbfb4bfc`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i3_unreadable_notices` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+ERROR: test_i3_unreadable_notices (test_verify_project.NoticesInputOrderTest.test_i3_unreadable_notices)
+PermissionError: [Errno 13] Permission denied: '/private/var/folders/z3/gp_vxt9j4vv4gmf09pmkprvr0000gn/T/tmp8cm2mm_w/THIRD_PARTY_NOTICES.md'
+Ran 1 test in 0.004s
+FAILED (errors=1)
+```
+
+#### #196 I4 both inputs missing (passed on first run; mutation: read the notices before the provenance file (deviation)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `56751b36eec96bd934afb7d5be27653eb2476f4a`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i4` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i4_both_missing (test_verify_project.NoticesInputOrderTest.test_i4_both_missing)
+AssertionError: Lists differ: ['THIRD_PARTY_NOTICES.md: cannot read licen[96 chars]ng)'] != ['docs/agents/skill-sources.json: cannot re[96 chars]ng)']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md: cannot read license references (missing)',
+-  'docs/agents/skill-sources.json: cannot read license references (missing)']
+? ^                                                                          ^
++ ['docs/agents/skill-sources.json: cannot read license references (missing)',
+? ^                                                                          ^
++  'THIRD_PARTY_NOTICES.md: cannot read license references (missing)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #197 O1 group order (passed on first run; mutation: put constructs after the notices references (deviation)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `aff06f6aacc4f2a53d68c2859fd88c297bced976`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_o1` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_o1_group_order (test_verify_project.NoticesInputOrderTest.test_o1_group_order)
+AssertionError: Lists differ: ['doc[116 chars]S.md:2: license reference "missing" does not e[136 chars]nk)'] != ['doc[116 chars]S.md:3: unsupported Markdown (raw HTML or auto[136 chars]DE)']
+First differing element 1:
++  'THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)',
+-  'THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)',
+?                                                              ^
++  'THIRD_PARTY_NOTICES.md: no inline link [MIT](LICENSE-CODE)']
+?                                                              ^
+-  'THIRD_PARTY_NOTICES.md:3: unsupported Markdown (raw HTML or autolink)']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #198 O2 column order (passed on first run; mutation: sort notices references by text (deviation)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `df98f8363b632c4933fe6fb3b3fb198b578f471c`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_o2` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_o2_column_order (test_verify_project.NoticesInputOrderTest.test_o2_column_order)
+AssertionError: Lists differ: ['THI[37 chars]nce "aa" does not exist', 'THIRD_PARTY_NOTICES[41 chars]ist'] != ['THI[37 chars]nce "zz" does not exist', 'THIRD_PARTY_NOTICES[41 chars]ist']
+First differing element 0:
+- ['THIRD_PARTY_NOTICES.md:3: license reference "aa" does not exist',
+?                                                ^^
++ ['THIRD_PARTY_NOTICES.md:3: license reference "zz" does not exist',
+?                                                ^^
+-  'THIRD_PARTY_NOTICES.md:3: license reference "zz" does not exist']
+?                                                ^^
++  'THIRD_PARTY_NOTICES.md:3: license reference "aa" does not exist']
+?                                                ^^
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #199 O3 control characters (passed on first run; mutation: skip the printable() pass of Q (deviation; the first run failed on a test literal, not on the code)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `d6c7f0ba7009abd134a90fb15f8e6928936c18e6`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_o3_control` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_o3_control_characters (test_verify_project.NoticesInputOrderTest.test_o3_control_characters)
+AssertionError: Lists differ: ['doc[53 chars]\\\\\n\\u0007\u2028"] at "/license_location" is not a string'] != ['doc[53 chars]\\\\\n\\u0007\\u2028"] at "/license_location" is not a string']
+First differing element 0:
+- ['docs/agents/skill-sources.json: license reference ["\\"\\\\\\n\\u0007\u2028'
+?                                                     -------------------------
++ ['docs/agents/skill-sources.json: license reference '
+-  '"] at "/license_location" is not a string']
++  '["\\"\\\\\\n\\u0007\\u2028"] at "/license_location" is not a string']
+?   ++++++++++++++++++++++++++
+Ran 1 test in 0.004s
+FAILED (failures=1)
+```
+
+#### #200 O3 printable non-ASCII (passed on first run; mutation: encode Q with ensure_ascii=True (deviation)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `059967716c3b1c23f9edc55745ec1bc1472e9c09`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_o3_printable` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_o3_printable_non_ascii (test_verify_project.NoticesInputOrderTest.test_o3_printable_non_ascii)
+AssertionError: Lists differ: ['doc[43 chars]nce ["\\u6388\\u6b0a"] at "/license_location" is not a string'] != ['doc[43 chars]nce ["授權"] at "/license_location" is not a string']
+First differing element 0:
+- ['docs/agents/skill-sources.json: license reference ["\\u6388\\u6b0a"] at '
+?                                                       ^^^^^^^^^^^^^^
++ ['docs/agents/skill-sources.json: license reference ["授權"] at '
+?                                                       ^^
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #201 O4 pointer escapes (passed on first run; mutation: skip the ~0/~1 escapes in JSON Pointers (deviation; the first run failed on a test literal)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `090721a6e21b82b82456a730e3fd777c6cbd27aa`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_o4` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_o4_pointer_escapes (test_verify_project.NoticesInputOrderTest.test_o4_pointer_escapes)
+AssertionError: Lists differ: ['doc[50 chars]ssing" at "/a/b/c~d/e\\"f//license_location" does not exist'] != ['doc[50 chars]ssing" at "/a~1b/c~0d/e\\"f//license_location" does not exist']
+First differing element 0:
+-  '"/a/b/c~d/e\\"f//license_location" does not exist']
+?      ^
++  '"/a~1b/c~0d/e\\"f//license_location" does not exist']
+?      ^^    +
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #202 W1 wiring (passed on first run; mutation: make verify() call the check before the glossary check) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `73f8d885702e588e2299f14571601ef08bdb501d`; verifier blob: `512e1006f5dc9afd01b35eada267b79e7d5692bd`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_w1` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_w1_wiring (test_verify_project.NoticesInputOrderTest.test_w1_wiring)
+AssertionError: Lists differ: ['GLOSSARY.md is missing, not a regular file, or blank'] != ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+First differing element 0:
+- ['GLOSSARY.md is missing, not a regular file, or blank']
++ ['THIRD_PARTY_NOTICES.md:3: license reference "missing" does not exist']
+Ran 1 test in 0.003s
+FAILED (failures=1)
+```
+
+#### #190 I2 notices missing (passed on first run; mutation: place unreadable inputs after the provenance references (Ruling I2-order; the first expectation followed the I2 row)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `bff6c244f0c6143c3cd028f3c4651749c0fbfdac`; verifier blob: `2d40145d6c6edb1a0defd301b384001c0c84fd0f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i2_missing` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i2_missing (test_verify_project.NoticesInputOrderTest.test_i2_missing)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license r[121 chars]ng)'] != ['THIRD_PARTY_NOTICES.md: cannot read licen[121 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md: cannot read license references (missing)',
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+? ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+? ^
+-  '"/license_location" does not exist',
+?                                      ^
++  '"/license_location" does not exist']
+?                                      ^
+-  'THIRD_PARTY_NOTICES.md: cannot read license references (missing)']
+Ran 1 test in 0.006s
+```
+
+#### #191 I2 notices a symlink (passed on first run; mutation: place unreadable inputs after the provenance references (Ruling I2-order; the first expectation followed the I2 row)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `bff6c244f0c6143c3cd028f3c4651749c0fbfdac`; verifier blob: `2d40145d6c6edb1a0defd301b384001c0c84fd0f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i2_symlink` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i2_symlink (test_verify_project.NoticesInputOrderTest.test_i2_symlink)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license r[123 chars]nk)'] != ['THIRD_PARTY_NOTICES.md: cannot read licen[123 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md: cannot read license references (a symlink)',
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+? ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+? ^
+-  '"/license_location" does not exist',
+?                                      ^
++  '"/license_location" does not exist']
+?                                      ^
+-  'THIRD_PARTY_NOTICES.md: cannot read license references (a symlink)']
+Ran 1 test in 0.004s
+```
+
+#### #192 I2 notices a directory (passed on first run; mutation: place unreadable inputs after the provenance references (Ruling I2-order; the first expectation followed the I2 row)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `bff6c244f0c6143c3cd028f3c4651749c0fbfdac`; verifier blob: `2d40145d6c6edb1a0defd301b384001c0c84fd0f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i2_directory` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i2_directory (test_verify_project.NoticesInputOrderTest.test_i2_directory)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license r[132 chars]le)'] != ['THIRD_PARTY_NOTICES.md: cannot read licen[132 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md: cannot read license references (not a regular file)',
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+? ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+? ^
+-  '"/license_location" does not exist',
+?                                      ^
++  '"/license_location" does not exist']
+?                                      ^
+-  'THIRD_PARTY_NOTICES.md: cannot read license references (not a regular file)']
+Ran 1 test in 0.004s
+```
+
+#### #193 I2 notices not UTF-8 (passed on first run; mutation: place unreadable inputs after the provenance references (Ruling I2-order; the first expectation followed the I2 row)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `bff6c244f0c6143c3cd028f3c4651749c0fbfdac`; verifier blob: `2d40145d6c6edb1a0defd301b384001c0c84fd0f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i2_not_utf8` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i2_not_utf8 (test_verify_project.NoticesInputOrderTest.test_i2_not_utf8)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license r[123 chars]-8)'] != ['THIRD_PARTY_NOTICES.md: cannot read licen[123 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md: cannot read license references (not UTF-8)',
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+? ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+? ^
+-  '"/license_location" does not exist',
+?                                      ^
++  '"/license_location" does not exist']
+?                                      ^
+-  'THIRD_PARTY_NOTICES.md: cannot read license references (not UTF-8)']
+Ran 1 test in 0.003s
+```
+
+#### #194 I2 notices in another case (passed on first run; mutation: place unreadable inputs after the provenance references (Ruling I2-order; the first expectation followed the I2 row)) — red
+
+- HEAD: `153e09ac2d9457f600a86208a59025ce87468812`
+- test file blob: `bff6c244f0c6143c3cd028f3c4651749c0fbfdac`; verifier blob: `2d40145d6c6edb1a0defd301b384001c0c84fd0f`
+- command: `python3 -m unittest discover -s scripts -p test_verify_project.py -k test_i2_other_case` (exit 1; `-B`, `scripts/__pycache__` removed first)
+
+```
+FAIL: test_i2_other_case (test_verify_project.NoticesInputOrderTest.test_i2_other_case)
+AssertionError: Lists differ: ['docs/agents/skill-sources.json: license r[121 chars]ng)'] != ['THIRD_PARTY_NOTICES.md: cannot read licen[121 chars]ist']
+First differing element 0:
++ ['THIRD_PARTY_NOTICES.md: cannot read license references (missing)',
+- ['docs/agents/skill-sources.json: license reference "missing" at '
+? ^
++  'docs/agents/skill-sources.json: license reference "missing" at '
+? ^
+-  '"/license_location" does not exist',
+?                                      ^
++  '"/license_location" does not exist']
+?                                      ^
+-  'THIRD_PARTY_NOTICES.md: cannot read license references (missing)']
+Ran 1 test in 0.003s
+```
+
