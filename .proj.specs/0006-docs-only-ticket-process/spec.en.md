@@ -1,19 +1,22 @@
 ---
 epic: 0006-docs-only-ticket-process
 status: draft
-revision: 1
+revision: 2
 ---
 
-# Spec 0006 — A process for documentation-only tickets, and the takedown exception
+# Spec 0006 — A process for documentation-only tickets, and a stricter code-ticket loop
 
 `traceability.md` holds what this spec does not repeat: the definitions (B0, B, code ticket,
-verbatim ticket, takedown, exception text E), the target texts T1–T13, the matrix and the
-self-check. The owner's answers are quoted in `grill.md`.
+ticket file, region, match, drift), the target texts, the matrix and the self-checks. The owner's
+answers are quoted in `grill.md`; the stage-3 rulings are in `review/round-1.md`.
+
+Revision 2 applies the round-1 Rulings R1–R6. Under R1 the takedown exception left this epic for
+epic 0007; the texts and rows it needed are removed and remain readable in revision 1.
 
 ## Problem Statement
 
 The workflow assumes every ticket is code. `docs/agents/workflow.md` stage 5 says "Run
-`/implement`, which uses `/tdd`" with no other branch, so T-0006, a ticket that changed only
+`/implement`, which uses `/tdd`" with no other branch, so T-0006, a ticket that changed mostly
 license text and the notices, had to explain on its own why `/tdd` did not apply. The same stage
 gives two times for the coverage report table ("when the ticket closes" and "before stage 6"), and
 `AGENTS.md` hard rule 2 repeats the first. Stage 6 re-reviewed verbatim spec wording at a cost of
@@ -25,145 +28,129 @@ and red evidence was kept in loose `git hash-object -w` blobs that `git gc` can 
 ruling D1, that a standing "do it to completion" is not test plan approval, lives only in a ticket
 and in agent memory.
 
-Finally, nothing allows an urgent privacy or legal takedown. Charter Must-hold 5 freezes a
-delivered deck except for typos and broken links, and the deck track blocks a merge on any verifier
-FAIL, even one unrelated to the deck. A photo of a person who asked to be removed could stay public
-because of either rule.
-
 ## Solution
 
-The repository owner gets one written process for each kind of ticket, and one narrow exception
-for takedowns:
+The repository owner gets one written process for each kind of ticket:
 
-- A **documentation-only ticket** is a defined term, marked in ticket frontmatter at stage 4. It
-  runs an approved acceptance checklist instead of `/implement`, `/tdd` and the two tables. When
-  the spec gives its text verbatim, stage 6 checks the text by exact comparison and reviews only
-  what the comparison cannot.
-- A **code ticket** keeps `/tdd`, now with explicit approval, one row per cycle, a mandatory
-  mutation column and red records written into the ticket as diffs.
-- A **takedown** may change a delivered deck and may merge despite a FAIL that already exists on
-  `origin/main` and lies outside the deck's rows, on the owner's explicit instruction and approval.
+- A **documentation-only ticket** is a defined term, marked in ticket frontmatter and approved at
+  stage 4. It runs an approved acceptance checklist instead of `/implement`, `/tdd` and the two
+  tables. Regions whose text the spec gives verbatim are checked at stage 6 by a comparison the
+  review runs itself, and only the rest is reviewed in full.
+- A **code ticket** keeps `/tdd`, now with recorded explicit approval, one test per row and one row
+  per cycle, a mutation fixed in advance for every row and allowed only where the behaviour
+  already existed, and red and green records written into the ticket as diffs.
 
 ## User Stories
 
 1. As the repository owner, I want documentation-only tickets defined and marked, so that an agent
    knows from the ticket which process applies.
-2. As the repository owner, I want a documentation-only ticket to run an acceptance checklist I
+2. As the repository owner, I want configuration, script-read data and ADR-0006 rewrites kept out
+   of documentation-only tickets, so that no change that alters a tool's or a skill's behaviour
+   skips its tests.
+3. As the repository owner, I want a documentation-only ticket to run an acceptance checklist I
    approve, so that its evidence is real checks rather than tests that cannot fail.
-3. As the repository owner, I want stage 6 of a verbatim ticket to skip re-reviewing settled
-   wording, so that review effort goes where the spec review could not look.
-4. As the repository owner, I want every test plan table, checklist and added row to wait for my
-   explicit approval, so that a standing instruction never stands in for it.
-5. As the repository owner, I want one row per cycle with each row's mutation fixed in advance, so
-   that every red is genuine and was approved before it ran.
-6. As the repository owner, I want red evidence written into the ticket, so that it survives
+4. As the repository owner, I want stage 6 to skip re-reviewing settled verbatim wording, so that
+   review effort goes where the spec review could not look.
+5. As the repository owner, I want every test plan table, checklist and change to them to wait for
+   my explicit, recorded approval, so that neither a standing instruction nor a relayed claim
+   stands in for it.
+6. As the repository owner, I want one test per row, one row per cycle and each row's mutation
+   fixed in advance, so that every red is genuine and was approved before it ran.
+7. As the repository owner, I want red evidence written into the ticket, so that it survives
    `git gc` and travels with the PR.
-7. As the repository owner, I want one stated time for the coverage report, so that the gate before
+8. As the repository owner, I want one stated time for the coverage report, so that the gate before
    stage 6 is unambiguous.
-8. As the repository owner, I want to take down a person's photo or contested material from a
-   delivered deck, so that privacy and legal requests are not blocked by the frozen-deck rule.
-9. As the repository owner, I want such a takedown to merge despite a FAIL it did not cause, so
-   that an unrelated defect does not keep the material public.
 
 ## Implementation Decisions
 
-- **Documents changed.** The workflow doc (stages 5 and 6, deck track items 4 and 6), `AGENTS.md`
-  (Charter Must-hold 5, hard rule 2, the slide hard rule on Assets rows), the tracker configuration
-  (ticket format), the glossary, the ADR index, ADR-0008 (an amendment note), a new ADR-0009 and two
-  new open questions. Every changed region has a target text, T1–T13.
-- **No skill, script, test or deck changes** (grill Q11). The workflow doc carries the
-  documentation-only branch of stage 5; the `implement` skill already defers to it for the coverage
-  table and later gates. The residual risk is OQ-10.
-- **Documentation-only ticket** (T9, K7–K9). The line is drawn by what a file is for, not by
-  whether a script reads it: text for people and agents counts even where a script checks its form;
-  code, configuration, files a script reads as settings or data, and decks do not. A ticket that
-  turns out to need the second kind stops and returns to the owner.
-- **Ticket keys** (T8, K1–K6). `docs_only: true` and `verbatim: true` are optional frontmatter keys,
-  set at stage 4 and approved with the breakdown. `verbatim` requires `docs_only`. No script reads
-  them.
-- **Approval** (T1, T6, A1–A4). Explicit approval before the first test or the first changed file,
-  and for each row added later, including an unplanned mutation. A standing instruction is not
+- **Documents changed.** The workflow doc (stage 4 gate, stages 5 and 6), `AGENTS.md` (pipeline row
+  5, hard rule 2), the tracker configuration (ticket format), the glossary, and two new open
+  questions. Every changed region has a target text: T1, T2, T6, T8, T9, T13, T14, T15.
+- **No skill, script, test or deck changes** (grill Q11). The workflow doc carries every rule. It
+  states where it outranks the skills (Rulings R5, R6); OQ-10 tracks bringing the skills in line.
+- **Kind of ticket** (T1, T9, K7–K11; Rulings R2, R3). Prose for people and agents counts, even
+  where a script checks its form. Code, tests, build and deploy configuration, any frontmatter of a
+  skill or agent role file, any YAML, JSON or TOML file, the `CLAUDE.md` import line, other files a
+  script reads as settings or data, and decks do not. The ticket file and the epic's review reports
+  do not count. A ticket ADR-0006 governs is never documentation-only. A documentation-only ticket
+  that needs a code-ticket change stops before making it.
+- **Ticket keys** (T8, T15, K1–K6, K12). `docs_only: true` and `verbatim: true`, set at stage 4 and
+  shown in the breakdown the owner approves; `verbatim` requires `docs_only` and a list of regions
+  under Deliverable. A wrong key is fixed before stage 5; a key changed after stage 4 needs recorded
   approval.
-- **The code-ticket loop** (T1, L1–L5). One row is one test. Every row names its mutation before
-  approval. Each cycle runs write, run, record red, implement, green before the next row's test is
-  written. A first-run pass takes its red from the row's mutation.
-- **Red records** (T1, R1–R3). In the ticket's Comments: the HEAD commit, the added test as a diff,
-  the mutation as a unified diff when used, and the key failing lines. No evidence points at an
-  object that no ref reaches. A custom `refs/evidence/…` ref was rejected because it is not pushed
-  by default and does not appear in a PR (decision 2).
-- **Coverage timing** (T1, T6, C1–C3). Before stage 6 for every ticket; results of stages 7–9 are
-  added afterwards. A documentation-only ticket's coverage report is its checklist with every
-  Result filled.
-- **Checklist** (T1, Q1–Q5). Five columns; each item is a command or an exact comparison; run in
-  order with each result recorded and no red; a failure and its rerun both stay; the last item runs
-  the three existing checks.
-- **Narrowed stage 6** (T2, S1–S3). For a verbatim ticket only: an exact comparison against the
-  spec first, then a review of Comments, evidence against each AC and out-of-scope changes. A text
-  that differs from the spec gets the full review.
-- **Takedown** (T3, T5, D1–D3). Defined in the Charter as a removal of assets, their Assets rows and
-  the deck's references, on the owner's explicit instruction, for privacy or a legal claim, and
-  nothing else. Anything added or replaced is not a takedown.
-- **Merge exception E** (T4, T7, D4–D12). One paragraph in two places, identical except for the
-  ADR link path. Its conditions: removal only; every FAIL line also appears on `origin/main`, apart
-  from shifted notices line numbers, and none points at the deck's rows; the owner explicitly
-  approves the merge, recorded in the PR with the FAIL lines. A public deck needs a published
-  Release to redeploy.
-- **ADR-0009** (T10, T12) records the takedown decision, its alternatives and its amendment of
-  ADR-0008, which gains an amendment note in the form ADR-0004 and ADR-0007 already use.
+- **Approval** (T1, T6, A1–A8). The repository owner approves before the first test or any change
+  outside the ticket file, and approves every later change to an approved row. Approvals are
+  recorded with the owner's words and a date. A standing instruction is not approval, and the rule
+  outranks carry-forward wording elsewhere.
+- **The code-ticket loop** (T1, L1–L8; Ruling R4). One row is one test method or one `subTest`.
+  Each cycle records a red and a green before the next row's test is written. A first-run pass is
+  allowed only for behaviour that already existed, with the reason recorded, and then takes its red
+  from the row's mutation; a mutation that fails to fail stops the loop. ADR-0006 tickets keep that
+  ADR's order.
+- **Records** (T1, R1–R3). A red record holds HEAD, `git diff HEAD` at the run and the failing
+  test's name and message; a green record holds HEAD and the test's name. The diffs are the
+  evidence; no Git object or local ref is relied on. A custom `refs/evidence/…` ref was rejected
+  because it is not pushed by default and does not appear in a PR (decision 2).
+- **Coverage timing** (T1, T6, C1–C3). Before stage 6 for every ticket; results of stages 7–9 go to
+  Comments afterwards.
+- **Checklist** (T1, Q1–Q9). Five columns; each item is a command or a comparison against the spec;
+  each Result names its commit; failures and reruns stay in the same item; a scope item and a final
+  three-checks item are mandatory; stage-8 items are marked and filled later; any later change
+  reruns the rest. It counts as the coverage report once every unmarked item's latest Result equals
+  its Expected, from one commit.
+- **Verbatim regions** (T2, S1–S5; Ruling R5). The stage-6 review runs and records the comparison
+  for each listed region; matched regions skip the wording review, and everything else gets the
+  full review. This replaces the `code-review` skill's full-diff review for matched regions only.
 
 ## Testing Decisions
 
 - **No new tests.** Every ticket of this epic is documentation-only; its stage-5 evidence is an
-  acceptance checklist in the form T1 defines. This epic is the first to use that form, so its
-  tickets also exercise it.
-- **What a good check is here.** An exact comparison of each landed region with its target text,
-  with line breaks free only where the definitions say so; a `git diff --name-only` and a per-region
-  diff check for scope (X1, X2); the three existing checks (X4). ADR-0009 is not verbatim and is
-  checked against T10's list by reading.
+  acceptance checklist in the form T1 defines.
+- **What a good check is here.** A comparison of each landed region with its target text under the
+  Match rule; a `git diff --name-only` per ticket and a per-region check for scope (X1, X2); the
+  drift check before the first change (X5); the three existing checks with a clean work tree (X4).
 - **Prior art.** T-0006's checklist (exact comparisons, `git diff --name-only`, the existing checks)
   and 0005's target texts T1–T9.
 - **End to end.** The surface is the GitHub file view of the pushed ticket branch, driven before
   the merge by `/agent-browser` or a native browser tool the workflow accepts as equivalent (E1).
-  Page text, not screenshots, is recorded. There is no harness for agent behaviour (OQ-1), so no
-  run checks that an agent follows the new rules.
+  Page text, not screenshots, is recorded. It is the checklist's `(stage 8)` item. There is no
+  harness for agent behaviour (OQ-1), so no run checks that an agent follows the new rules.
 
 ## Acceptance Criteria
 
-- **AC1.** `docs/agents/workflow.md` holds T1–T4, by exact comparison, and no other change.
-- **AC2.** `AGENTS.md` holds T5–T7, by exact comparison, and no other change.
-- **AC3.** `docs/agents/issue-tracker.md` holds T8 and `GLOSSARY.md` holds T9, by exact comparison,
-  and no other change.
-- **AC4.** ADR-0009 exists with the frontmatter and every item T10 lists; `docs/README.md` holds
-  T11; ADR-0008 holds T12; none has another change.
-- **AC5.** `.proj.specs/OPEN-QUESTIONS.md` ends with T13, and no other change.
-- **AC6.** E1 gives the result its matrix row states, recorded in Comments, naming the GitHub file
-  view as the surface.
-- **AC7.**
-  - `git diff <B SHA>...HEAD --name-only`, with the latest recorded B, lists only the paths of X1.
-  - Every changed line outside `.proj.tickets/` belongs to one of T1–T13 (X2).
-  - B is the first Comment the ticket writes (X3).
-  - The three checks exit 0 at HEAD (X4).
+- **AC1.** In `docs/agents/workflow.md`, the regions of T1, T2 and T15 match their texts, and
+  nothing else in the file changes.
+- **AC2.** In `AGENTS.md`, the regions of T6 and T14 match, and nothing else changes.
+- **AC3.** In `docs/agents/issue-tracker.md` the region of T8 matches and in `GLOSSARY.md` the region
+  of T9 matches; nothing else in either file changes.
+- **AC4.** `.proj.specs/OPEN-QUESTIONS.md` ends with T13, which matches, and nothing else changes.
+- **AC5.** E1 gives the result its matrix row states, recorded in the ticket's Comments, naming the
+  GitHub file view as the surface.
+- **AC6.** For each ticket, X1–X5 hold, judged against that ticket's own latest B; once all tickets
+  have landed, X6 holds.
+- **AC7.** The stage-4 breakdown records the repository owner's approval that this epic's tickets
+  run under T1's checklist and T2's verbatim review before those texts land (Z1).
 
 ## Out of Scope
 
+- The takedown exception for delivered decks and unrelated verifier FAILs: epic 0007 (Ruling R1),
+  starting from revision 1's draft texts and round-1 findings listed in `review/round-1.md`.
 - The verifier's PASS line stating what it does not check (decision 5): the notices-grammar epic.
-- The three item-6 sentences of OQ-8 (Ruling L3): the notices-grammar epic. T4 adds E to item 6
-  without touching its other sentences, so that epic can add them later.
 - A record script enforcing one row per cycle: OQ-9.
-- Changes to the `implement`, `tdd`, `to-tickets` or `code-review` skills: OQ-10.
+- Changes to the `implement`, `tdd`, `to-tickets`, `code-review` or `tune-skills` skills, and to
+  `docs/agents/codex.md`: OQ-10.
 - The epic 0005 retrospective's items 4 (commit type) and 5 (checking matrix rows against rules
   before freeze), which the owner has not decided.
-- Removing a whole deck from publication: already covered by the allowlist rule.
 - ADR-0006 and other ADRs that mention the coverage table: history, not edited.
 
 ## Further Notes
 
-- **Derived, not asked.** Three details follow from confirmed answers rather than from a direct
-  question, and stage 3 should test them: a documentation-only ticket's coverage report is its
-  filled checklist (C3); FAIL lines are compared apart from notices line numbers the removed rows
-  shift (D8); E applies to a deck not yet delivered as well (D4).
-- **Order against the notices-grammar epic.** That epic follows this one (decision 3) and will edit
-  deck track item 6 again. T4 appends to the item, so the later edit starts from B0's sentences.
-- **Stage 4.** The next ticket id is T-0009. Whether the epic lands as one ticket or several, each
-  ticket names the T-texts and matrix rows it closes; X1 and X2 are judged on the HEAD of the last
-  ticket to land.
+- **Self-application** (Ruling R6, Z1). This epic's tickets run under T1's checklist and T2's
+  verbatim review before those texts are on `main`, overriding B0's hard rule 2 and stage 5 for
+  these tickets only. The owner approves this at stage 4.
+- **Extensions beyond the grill answers**, stated so review can test them: the checklist's Result
+  column and the HEAD commit in records (Q6, Q7 of `grill.md` named neither); the drift rule and the
+  Match rule; T14 and T15, which the confirmed file list did not name but which the stage-3 rulings
+  require.
+- **Stage 4.** The next ticket id is T-0009. Each ticket lists the regions it lands; X6 checks that
+  together they land every region exactly once.
