@@ -199,4 +199,52 @@ Checked by axis 4 and found clean: the takedown paths are gone (R1); the allowli
 
 ## Rulings
 
-Pending: put to the repository owner on 2026-11-09.
+Put to the repository owner on 2026-11-09 and answered "全部照建議". Each ruling is the
+recommendation the parent gave.
+
+- **S1 — 3-7 is P1; the comparison becomes reproducible instead of independent** (3-7, 2-15, 1-5,
+  4-11). The ticket records a comparison script, its source and full output; the stage-6 Spec axis
+  reads the script and the spec text and confirms it compares the right regions at the right
+  place. Read-only reviewers can do this, and a bare "matches" is no longer evidence.
+- **S2 — skill instructions are never documentation-only** (3-1, 3-2, 4-8). A skill's body text
+  counts as prose only when the change alters none of its instructions (a typo, a link, a path, a
+  license or provenance note). A change to a skill's instructions stays blocked by OQ-1 or follows
+  ADR-0006. User Story 2 stays as written.
+- **S3 — the "already fails at B" exit has two outcomes only** (4-7). Either the failure is fixed in
+  another ticket first and B is re-recorded with the owner's agreement, or the ticket proceeds
+  with the item's Expected quoting the exact failure lines at B, so that any further failure line
+  fails the item.
+- **S4 — revision 3, no third round.** As in epic 0005 (its Ruling S4): revision 3 applies S1–S3 and
+  the parent fixes below, is self-checked, and is not reviewed again. `spec.zh-TW.md` is then
+  produced for the owner's audit, and stage 4 follows.
+
+Parent fixes in revision 3, needing no new decision: one commit per cycle, `git add -N`, the diff
+excluding the ticket file (1-2, 1-3, 1-18, 2-2, 2-3, 3-9, 3-31, 4-2); first-run passes limited to
+behaviour at B or from an earlier recorded cycle (4-1); an Expected changed after its run is a
+changed row (4-5); approval records pin the table's commit and the question (2-4, 4-6); prose
+examples as a non-exhaustive list, T9's form clause and exclusions (2-5, 3-4–3-6, 2-18, 4-10);
+the script-read part of a mixed file is configuration (2-6, 4-9, 3-11); a changed skill's own
+tests in the last item (3-8); T14's stage-8 gap and T6's timing (2-1, 3-3, 2-40, 3-16, 4-23); the
+commit circularity (2-12–2-14, 4-16); B defined in T1 (4-4); drift for inserted regions, drift
+rulings, OQ numbering (1-8, 2-8, 2-9); AC1–AC4 per ticket against its own B (1-1, 2-10); AC7 in
+each ticket's Comments (2-16); OQ-10's exit (3-10, 3-12).
+
+Also fixed in passing while editing those texts: 1-4 (every AC has an item), 1-10 and 3-27 (one
+wording for the excluded files), 1-17 and 2-25 (the green record after a mutation), 1-19 and 2-39
+(ADR-0006 records), 1-20 (which errors count as a red), 1-22 (X3 with a re-recorded B), 1-27 and
+2-11 (blank line at end of file), 1-36 and 1-40 (matrix citations), 1-44 (record rows renamed V1–V3),
+2-17 and 4-15 (comparisons are commands with output), 2-19 (T9 compared line for line), 2-23
+(outcome, not the whole Result), 2-27, 3-14 and 4-24 (precedence limited to tables and
+checklists), 2-29 (stage-4 approval recorded), 2-30, 1-41 and 3-18 (Z1's full scope), 3-17
+(`runtime.md` named), 3-22 (decks are not tickets), 3-26 (YAML without comments), 4-3 (green
+records carry the diff), 4-12 (the spec's frozen commit), 4-13 (T2 requires `docs_only`), 4-17 (a
+failing stage-8 item blocks stage 9), 4-18 (mutations never change the test), 4-30 (hard line
+breaks compared exactly), 1-16, 2-37 and 4-22 (coverage table updated after later changes), 1-9,
+2-26, 3-23 and 4-25 (the switch to a code ticket).
+
+Recorded and not changed: every other round-2 finding. In particular 1-6 and 1-7 (how a spec
+makes a non-verbatim prose criterion checkable: a spec-writing concern, first met by epic 0007),
+1-12's binary assets and deletions, 1-13 (pinned content is caught by its checks), 1-15, 1-21,
+1-25, 1-35, 1-39, 1-42, 1-43 and 4-21 (transition of open tickets: T-0004 and T-0005 are re-marked
+when they start), 1-45, 1-46, 1-48 (the translation follows `language.md`), 3-13 (the hierarchy is
+R6's choice), 3-15, 3-19–3-21, 3-24, 3-28–3-30, 3-32, 4-14, 4-19, 4-20, 4-26–4-29, 4-31–4-35.
