@@ -18,8 +18,8 @@ work, Documentation-only ticket.
 **B0.** `32a51620afcdffce920459ab662d7f42173b7217`, the `origin/main` commit this spec was written
 against. Line numbers marked "at B0" were read there.
 
-**B.** As T1 defines it: the commit on `main` a ticket branch starts from, recorded as the ticket's
-first Comment and re-recorded only with the owner's agreement. Each ticket is judged against its
+**B.** As T1 defines it: the commit on `main` a ticket branch starts from, recorded as the first
+Comment written on the ticket branch and re-recorded only with the owner's agreement. Each ticket is judged against its
 own latest recorded B.
 
 **Code ticket.** A ticket that is not a documentation-only ticket.
@@ -59,8 +59,8 @@ heading through the `**Gate:**` paragraph of that section (lines 112–135 at B0
 ## Stage 5 — Implement
 
 Branch first: `tickets/<ticket-id>/<ticket-slug>`, from `main`. **B** is the commit on `main` that
-the branch starts from; record its full SHA as the ticket's first Comment. While the ticket is
-open, do not merge or rebase onto `main` unless the repository owner agrees; the Comment that
+the branch starts from; record its full SHA as the first Comment written on the branch. While the
+ticket is open, do not merge or rebase onto `main` unless the repository owner agrees; the Comment that
 re-records B quotes that agreement.
 
 **Which kind of ticket.** A ticket is documentation-only (`docs_only: true`; term in
@@ -401,7 +401,7 @@ row is met when that text matches (AC1–AC4). E, X and Z rows are checked direc
 | E1 | E2E × GitHub file view of the pushed ticket branch, each Markdown file the ticket lands a region in, before the merge, by `/agent-browser` or an accepted native browser tool | the page shows rendered Markdown, not raw text or an error; T1's three tables and the Pipeline table render as tables with their header cells, read from the accessibility tree; T8's YAML renders as a code block; each relative link a landed text adds opens a file page; the page text of each landed region is recorded | AC5 |
 | X1 | each ticket × `git diff <B>...HEAD --name-only` | lists only files among `docs/agents/workflow.md`, `AGENTS.md`, `docs/agents/issue-tracker.md`, `GLOSSARY.md`, `.proj.specs/OPEN-QUESTIONS.md`, the ticket file, and files under `.proj.specs/0006-docs-only-ticket-process/review/` and `.proj.specs/0006-docs-only-ticket-process/reports/`; outside `.proj.tickets/` and that spec directory, only files its Deliverable lists | AC6 |
 | X2 | each ticket × regions | outside `.proj.tickets/` and that spec directory, every changed line belongs to a region the ticket lands | AC6 |
-| X3 | each ticket × base | the ticket's first Comment is B; any later B is re-recorded with the owner's agreement quoted; the branch's first commit changes only the ticket file | AC6 |
+| X3 | each ticket × base | the first Comment the branch adds is B (Comments written at stage 4, before the branch exists, come before it); any later B is re-recorded with the owner's agreement quoted; the branch's first commit changes only the ticket file | AC6 |
 | X4 | each ticket × final commit | the three checks exit 0 and `git status --short` prints nothing | AC6 |
 | X5 | each ticket × drift | before its first change outside the ticket file, and again after any re-recorded B, each region it lands is checked for drift; on drift, stop and ask the owner | AC6 |
 | X6 | epic × breakdown and landing | the stage-4 breakdown assigns every region of T1, T2, T6, T8, T9, T13, T14 and T15 to exactly one ticket, recorded in the tickets' Deliverables; the last ticket to land confirms each region landed | AC6 |
@@ -435,3 +435,13 @@ existing rules. Revision 3 is not reviewed again (Ruling S4), so this check is i
 | one row per cycle | T1, T6 | each cycle | code tickets | ADR-0006 tickets (T1) |
 | ticket kind | T1, T8, T9, T14, T15 | stage 4 | T1 lists changes and examples; T9 is the short definition, with the same exclusions; T8 the keys; T14 and T15 name both kinds | the ticket file and review and report files (T1 only; T9 speaks of the ticket's changes) |
 | verbatim regions | T2, T8, T15 | stage 4 listing, stage 6 review | listed regions only; requires `docs_only` in T2 and T8 | none |
+
+## Correction after stage 4 (2026-11-09)
+
+Found while writing T-0009 and approved by the repository owner ("套用並開 PR"). Revision 3 said B
+is "the ticket's first Comment" (T1, the B definition, X3), while T8 and T15 record the stage-4
+breakdown approval in each ticket's Comments before the ticket branch exists, so no ticket could
+meet X3 as written. The three places now say "the first Comment written on the branch". The intent
+is unchanged: B is recorded before any other change on the branch. No review round runs for this
+correction. `spec.en.md` (Implementation Decisions, "B in the workflow") and `spec.zh-TW.md` carry
+the same wording and are corrected with it; the translation's `synced_from_sha` is updated.

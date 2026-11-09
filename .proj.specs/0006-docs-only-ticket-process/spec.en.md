@@ -71,7 +71,7 @@ The repository owner gets one written process for each kind of ticket:
 - **No skill, script, test or deck changes** (grill Q11). The workflow doc carries every rule. It
   states where it outranks the skills (Rulings R5, R6); OQ-10 tracks bringing the skills in line.
 - **B in the workflow** (T1). A ticket branch starts from `main` at B, recorded as the first
-  Comment; it is not merged or rebased onto `main` without the owner's agreement.
+  Comment written on the branch; it is not merged or rebased onto `main` without the owner's agreement.
 - **Kind of ticket** (T1, T9, K7–K13; Rulings R2, R3, S2). Prose for people and agents counts, even
   where a script checks its form, and the workflow names examples. Code, tests, build and deploy
   configuration, frontmatter of a skill or agent role file, YAML, JSON and TOML files, the

@@ -1,6 +1,6 @@
 ---
 synced_from: spec.en.md
-synced_from_sha: 227e88a857c14d7d96bfa79541b6c5c2aa1be1d4
+synced_from_sha: 5d0a26cb3d646d3a6f51599b057c385ef76416d4
 ---
 
 # Spec 0006：純文件票的流程，以及更嚴格的 code ticket 循環
@@ -55,7 +55,7 @@ repository owner 得到兩種票各自成文的流程：
 
 - **要改的文件。** workflow 文件（stage 4 的 gate、stage 5、stage 6）、`AGENTS.md`（pipeline 表第 5 列、hard rule 2）、tracker 設定（票的格式）、glossary，以及兩條新的 open question。每一段要改的地方都有目標文字：T1、T2、T6、T8、T9、T13、T14、T15。
 - **不改 skill、script、測試或 deck**（grill Q11）。所有規則都寫在 workflow 文件裡，並寫明它在哪些地方優先於 skill（Rulings R5、R6）；讓 skill 跟上的工作由 OQ-10 追蹤。
-- **workflow 裡的 B**（T1）。ticket 分支從 `main` 的 B 開出，B 記錄為票的第一則 Comment；沒有 owner 同意，不 merge 或 rebase 到 `main`。
+- **workflow 裡的 B**（T1）。ticket 分支從 `main` 的 B 開出，B 記錄為這個分支上寫下的第一則 Comment；沒有 owner 同意，不 merge 或 rebase 到 `main`。
 - **票的種類**（T1、T9、K7–K13；Rulings R2、R3、S2）。
   - **算純文件**：給人和 agent 讀的文字，即使 script 會檢查它的格式也算，workflow 裡列有例子。
   - **不算純文件**：程式、測試、建置與部署設定、skill 或 agent role 檔的 frontmatter、YAML／JSON／TOML 檔、`CLAUDE.md` 的 import 行，以及任何檔案中被 script 當設定或資料讀取的部分。
