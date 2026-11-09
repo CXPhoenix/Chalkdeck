@@ -177,4 +177,47 @@ Intended consequences listed by axis 4: fewer re-reviews of verbatim wording; `m
 
 ## Rulings
 
-Pending: put to the repository owner on 2026-11-09.
+Put to the repository owner on 2026-11-09 and answered "全部照建議". Each ruling is the
+recommendation the parent gave.
+
+- **R1 — split the takedown exception out.** Epic 0006 keeps the ticket process; the takedown
+  exception becomes epic 0007 and restarts at stage 1. Both P0s (1-1, 2-1) move with it, so the
+  P0/P1 grading disagreement on the Delivered deck definition (1-1 P0; 3-2, 4-24 P1) is settled
+  there. Moved to 0007: 1-1, 1-13, 1-14, 1-29–1-35, 2-1, 2-14, 2-15, 2-28, 3-2, 3-4, the
+  ADR-0007 half of 3-14, 3-22–3-24, 3-28, 3-29, 4-15–4-24, 4-31, and decision 4 with grill Q5, Q9
+  and Q12. The deploy findings in 4-22 go with them. Revision 1's texts T3, T4, T5, T7, T10, T11,
+  T12 and E remain readable in that revision as 0007's starting draft.
+- **R2 — keep the classification strict (3-7).** `docs/agents/skill-sources.json` stays a file a
+  script reads as data. Under the new rule T-0006 would have been two tickets: a
+  documentation-only one for the notices and `LICENSE-CODE`, and a code ticket for the provenance
+  file. `grill.md` records that its round-2 reasoning was wrong on this point.
+- **R3 — configuration frontmatter and ADR-0006 tickets are not documentation-only** (4-7, 1-15,
+  2-13, 3-8, 4-8). Frontmatter of a skill or an agent role file, any YAML, JSON or TOML file, and
+  the `CLAUDE.md` import line count as configuration. A ticket that ADR-0006 governs is never
+  documentation-only.
+- **R4 — mutation for a first-run pass is a fallback** (3-1, 3-15, 1-24, 4-1). It applies only
+  when the row's behaviour existed before the cycle, and the record says why. Tickets under
+  ADR-0006 follow that ADR; T1 does not override its scope.
+- **R5 — narrowed stage 6 by region** (1-8, 3-20, 4-10). The ticket lists its verbatim regions.
+  The stage-6 review runs and records the comparison itself; matched regions are not re-reviewed
+  for wording, everything else is. The text states that it overrides the `code-review` skill's
+  full-diff review for matched regions only; the skill is unchanged and OQ-10 tracks it.
+- **R6 — state the self-application and the precedence** (3-12, 4-26, 4-5, 3-19). The spec states
+  that 0006's tickets run under T1 and T2 before they land, approved by the owner at stage 4. T1
+  states that D1 outranks wording elsewhere that carries approvals forward; those files are
+  unchanged.
+
+Parent fixes in revision 2, needing no new decision: approval timing, recording, approver,
+changed rows and reruns (1-3, 1-4, 2-4–2-7, 3-5, 3-13, 3-16, 4-4, 4-6, 4-14, 4-28); one test per
+row, record completeness, `git diff HEAD` in red records, a mutation that does not fail (1-5,
+1-21, 1-22, 1-23, 2-8, 2-26, 2-27, 4-2, 4-3, 4-27); checklist gate, stage-8 items, scope item,
+reruns, a check already failing (1-11, 1-26, 2-2, 2-3, 4-12, 4-13); ticket kind after stage 4 and
+the stage-4 gate (1-6, 1-7, 1-16, 2-22–2-24, 3-9, 3-11, 4-9, 4-32); pipeline row 5 (1-2, 2-29,
+3-3, 4-25); X1 report paths, per-ticket B, drift, comparison rule, checks, E1 (1-9, 1-10, 1-28,
+2-9–2-12, 2-16–2-18, 3-6, 4-11, 4-29); the code-review mapping and comparison record (2-20,
+2-21, 3-10); OQ-10's scope and exit (3-25, 4-30); the approver's name (1-18).
+
+Recorded and not changed: 1-12 (moves with ADR-0009 under R1), 1-17 (closed by R3's K8), 1-19 and
+1-20 (matrix citations, fixed in passing), 1-25, 1-27, 1-36, 2-19 (moves with ADR-0009), 3-14's
+ADR-0006 half (history), 3-17, 3-18 ("one row" is intended), 3-21 and 3-26 (stated in revision 2),
+3-27 (fixed in passing), 4-11 (closed by the comparison rule), 4-30 (fixed with OQ-10).

@@ -96,7 +96,24 @@ documentation-only, and the spec gives its target text verbatim where it can.
 
 Out of scope: the verifier's PASS line (decision 5, epic L1); 0005 retrospective items 4–5.
 
+## Changes after stage 3 round 1
+
+Rulings R1–R6 of `review/round-1.md`, answered "全部照建議" on 2026-11-09, change this record:
+
+- **R1.** The takedown exception (decision 4, Q5, Q9, Q12, shared-understanding item 7) leaves
+  this epic and becomes epic 0007, which restarts at stage 1. This epic keeps items 1–6.
+- **R2, correcting round 2.** Round 2's correction said Q2's definition would exclude T-0006 and
+  implied Q2′ includes it. That is wrong: T-0006 also changed `docs/agents/skill-sources.json`
+  (its AC5), a file a script reads as data, so Q2′ excludes it as well. The owner kept Q2′ strict;
+  under it T-0006 would have been a documentation-only ticket plus a code ticket.
+- **R3** adds to Q2′: frontmatter of a skill or an agent role file, any YAML, JSON or TOML file,
+  and the `CLAUDE.md` import line are configuration, and a ticket ADR-0006 governs is never
+  documentation-only.
+- **R5** refines Q8 back to Q1(f)'s wording: the narrowed review works per region.
+
 ## Deferred
+
+- The takedown exception: epic 0007 (R1).
 
 - The record script refusing a second red under one test blob (decision 1): an OQ, written by this
   epic's spec.
