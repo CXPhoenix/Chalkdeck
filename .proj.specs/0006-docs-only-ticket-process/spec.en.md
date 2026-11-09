@@ -1,0 +1,178 @@
+---
+epic: 0006-docs-only-ticket-process
+status: draft
+revision: 3
+---
+
+# Spec 0006 — A process for documentation-only tickets, and a stricter code-ticket loop
+
+`traceability.md` holds what this spec does not repeat: the definitions (B0, B, code ticket,
+ticket file, region, match, drift), the target texts, the matrix and the self-checks. The owner's
+answers are quoted in `grill.md`; the stage-3 rulings are in `review/round-1.md` (R1–R6) and
+`review/round-2.md` (S1–S4).
+
+Revision 2 applied R1–R6; under R1 the takedown exception left this epic for epic 0007, and the
+texts and rows it needed remain readable in revision 1. Revision 3 applies S1–S4 and is
+self-checked; no third review round runs (Ruling S4).
+
+## Problem Statement
+
+The workflow assumes every ticket is code. `docs/agents/workflow.md` stage 5 says "Run
+`/implement`, which uses `/tdd`" with no other branch, so T-0006, a ticket that changed mostly
+license text and the notices, had to explain on its own why `/tdd` did not apply. The same stage
+gives two times for the coverage report table ("when the ticket closes" and "before stage 6"), and
+`AGENTS.md` hard rule 2 repeats the first. Stage 6 re-reviewed verbatim spec wording at a cost of
+about 1.9M subagent tokens, mostly rediscovering points the spec review had already ruled on.
+
+Code tickets have their own gaps. Epic 0005 wrote tests in batches ahead of their reds three times,
+although each occurrence was recorded; about 41 mutations ran without being in an approved table;
+and red evidence was kept in loose `git hash-object -w` blobs that `git gc` can delete. The owner's
+ruling D1, that a standing "do it to completion" is not test plan approval, lives only in a ticket
+and in agent memory.
+
+## Solution
+
+The repository owner gets one written process for each kind of ticket:
+
+- A **documentation-only ticket** is a defined term, marked in ticket frontmatter and approved at
+  stage 4. It runs an approved acceptance checklist of commands instead of `/implement`, `/tdd` and
+  the two tables. Regions whose text the spec gives verbatim are checked by a recorded comparison
+  script, which the stage-6 Spec axis confirms; only the rest is reviewed in full.
+- A **code ticket** keeps `/tdd`, now with recorded explicit approval, one test per row, one
+  committed cycle per row, a mutation fixed in advance for every row and used only where the
+  behaviour already existed, and red and green records written into the ticket as diffs.
+
+## User Stories
+
+1. As the repository owner, I want documentation-only tickets defined and marked, so that an agent
+   knows from the ticket which process applies.
+2. As the repository owner, I want configuration, script-read data and changes to a skill's
+   instructions kept out of documentation-only tickets, so that no change that alters a tool's or a
+   skill's behaviour skips its tests.
+3. As the repository owner, I want a documentation-only ticket to run an acceptance checklist I
+   approve, so that its evidence is real checks rather than tests that cannot fail.
+4. As the repository owner, I want stage 6 to skip re-reviewing settled verbatim wording, so that
+   review effort goes where the spec review could not look.
+5. As the repository owner, I want every test plan table, checklist and change to them to wait for
+   my explicit, recorded approval, so that neither a standing instruction nor a relayed claim
+   stands in for it.
+6. As the repository owner, I want one test per row, one committed cycle per row and each row's
+   mutation fixed in advance, so that every red is genuine and was approved before it ran.
+7. As the repository owner, I want red and green evidence written into the ticket, so that it
+   survives `git gc` and travels with the PR.
+8. As the repository owner, I want one stated time for the coverage report, so that the gate before
+   stage 6 is unambiguous.
+
+## Implementation Decisions
+
+- **Documents changed.** The workflow doc (stage 4 gate, stages 5 and 6), `AGENTS.md` (pipeline row
+  5, hard rule 2), the tracker configuration (ticket format), the glossary, and two new open
+  questions. Every changed region has a target text: T1, T2, T6, T8, T9, T13, T14, T15.
+- **No skill, script, test or deck changes** (grill Q11). The workflow doc carries every rule. It
+  states where it outranks the skills (Rulings R5, R6); OQ-10 tracks bringing the skills in line.
+- **B in the workflow** (T1). A ticket branch starts from `main` at B, recorded as the first
+  Comment written on the branch; it is not merged or rebased onto `main` without the owner's agreement.
+- **Kind of ticket** (T1, T9, K7–K13; Rulings R2, R3, S2). Prose for people and agents counts, even
+  where a script checks its form, and the workflow names examples. Code, tests, build and deploy
+  configuration, frontmatter of a skill or agent role file, YAML, JSON and TOML files, the
+  `CLAUDE.md` import line, and the part of any file a script reads as settings or data do not. A
+  change to a skill's instructions is never documentation-only: OQ-1 blocks it, or ADR-0006
+  governs it. Decks are deck content work, not tickets. A documentation-only ticket that needs a
+  code-ticket change stops first; on the owner's agreement it becomes a code ticket with an
+  approved test plan table before the change.
+- **Ticket keys** (T8, T15, K1–K6, K14). `docs_only: true` and `verbatim: true`, set at stage 4,
+  shown in the breakdown the owner approves, approval recorded in each ticket. `verbatim` requires
+  `docs_only` and a list of regions under Deliverable. A wrong key is fixed before `processing`; a
+  key changed later needs recorded approval.
+- **Approval** (T1, T6, A1–A8). The repository owner approves before the first test or any change
+  outside the ticket file, and approves every later change to an approved row, including an
+  Expected edited after its run. Each approval records the date, the commit holding the table, the
+  question and the owner's words. A standing instruction is not approval; for tables and
+  checklists the rule outranks carry-forward wording elsewhere, without touching stage 9.
+- **The code-ticket loop** (T1, L1–L9; Rulings R4, S4 fixes). One row is one test method or one
+  `subTest`. Each cycle records a red and a green and is committed before the next row's test is
+  written; new files are added with `git add -N`. A first-run pass is allowed only for behaviour at
+  B or from an earlier committed cycle and then takes its red from the row's mutation, which never
+  changes the test; any other first-run pass, or a mutation that fails to fail, stops the loop.
+  ADR-0006 tickets keep that ADR's order.
+- **Records** (T1, V1–V3). Red and green records hold HEAD and `git diff HEAD` without the ticket
+  file; a red also holds the failing test's name and message. The diffs are the evidence; no Git
+  object or local ref is relied on. A custom `refs/evidence/…` ref was rejected because it is not
+  pushed by default and does not appear in a PR (decision 2).
+- **Coverage timing** (T1, T6, C1–C3). Before stage 6 for every ticket, updated after later changes;
+  results of stages 7–9 go to Comments afterwards.
+- **Checklist** (T1, Q1–Q9; Ruling S3). Every AC has an item; every item is a command, a comparison
+  being a recorded script; items run on a committed tree and record commit, output and outcome; a
+  scope item and a final checks item (including a changed skill's own tests) are mandatory;
+  stage-8 items are marked and block stage 9 if they fail; checks are run at B first, and a failure
+  there leads to one of two owner-chosen outcomes; later changes rerun the rest. It counts as the
+  coverage report once every unmarked item's latest outcome equals its Expected, from one commit.
+- **Verbatim regions** (T2, S1–S6; Ruling S1). For each listed region the ticket records a
+  comparison script and its output against the spec on `main` at B; the stage-6 Spec axis confirms
+  the script compares the right regions at the right places; matched regions skip the wording
+  review. This replaces the `code-review` skill's and `runtime.md`'s full-diff review for matched
+  regions only.
+
+## Testing Decisions
+
+- **No new tests.** Every ticket of this epic is documentation-only; its stage-5 evidence is an
+  acceptance checklist in the form T1 defines.
+- **What a good check is here.** A comparison script per landed region under the Match rule, with
+  its output recorded; a `git diff --name-only` per ticket and a per-region check for scope (X1,
+  X2); the drift check before the first change (X5); the three existing checks with a clean work
+  tree (X4).
+- **Prior art.** T-0006's checklist (exact comparisons, `git diff --name-only`, the existing checks)
+  and 0005's target texts T1–T9.
+- **End to end.** The surface is the GitHub file view of the pushed ticket branch, driven before
+  the merge by `/agent-browser` or a native browser tool the workflow accepts as equivalent (E1).
+  Page text and the accessibility tree are recorded, not screenshots. It is the checklist's
+  `(stage 8)` item. There is no harness for agent behaviour (OQ-1), so no run checks that an agent
+  follows the new rules.
+
+## Acceptance Criteria
+
+Each ticket judges AC1–AC4 for the regions it lands, against its own latest recorded B.
+
+- **AC1.** In `docs/agents/workflow.md`, the regions of T1, T2 and T15 match their texts (or their
+  drift-ruled replacements), and nothing else in the file changes.
+- **AC2.** In `AGENTS.md`, the regions of T6 and T14 match, and nothing else changes.
+- **AC3.** In `docs/agents/issue-tracker.md` the region of T8 matches and in `GLOSSARY.md` the region
+  of T9 matches; nothing else in either file changes.
+- **AC4.** `.proj.specs/OPEN-QUESTIONS.md` ends with T13, numbered as the Drift definition says,
+  which matches, and nothing else changes.
+- **AC5.** E1 gives the result its matrix row states, recorded in the ticket's Comments, naming the
+  GitHub file view as the surface.
+- **AC6.** For each ticket, X1–X5 hold against that ticket's own latest B; the breakdown and the last
+  ticket to land meet X6.
+- **AC7.** Each ticket's Comments record the repository owner's approval, with the owner's words,
+  that it runs under T1's checklist and T2's verbatim review, with the keys of T8, before those
+  texts land (Z1).
+
+## Out of Scope
+
+- The takedown exception for delivered decks and unrelated verifier FAILs: epic 0007 (Ruling R1),
+  starting from revision 1's draft texts and round-1 findings listed in `review/round-1.md`.
+- The verifier's PASS line stating what it does not check (decision 5): the notices-grammar epic.
+- A record script enforcing one row per cycle: OQ-9.
+- Changes to the `implement`, `tdd`, `to-tickets`, `code-review` or `tune-skills` skills, and to
+  `docs/agents/runtime.md` and `docs/agents/codex.md`: OQ-10.
+- How a spec makes a non-verbatim prose criterion checkable by a command (round-2 1-6, 1-7): left to
+  each spec; epic 0007 meets it first.
+- The epic 0005 retrospective's items 4 (commit type) and 5 (checking matrix rows against rules
+  before freeze), which the owner has not decided.
+- ADR-0006 and other ADRs that mention the coverage table: history, not edited.
+- Open tickets T-0004 and T-0005: re-marked under the new rules when they start.
+
+## Further Notes
+
+- **Self-application** (Ruling R6, Z1). This epic's tickets carry the T8 keys and run under T1's
+  checklist and T2's verbatim review before those texts are on `main`. That overrides B0's stage 4
+  gate, stage 5, stage 6, ticket format, hard rule 2 and pipeline row 5 for these tickets only. The
+  owner approves it at stage 4, recorded in each ticket.
+- **Extensions beyond the grill answers**, stated so they can be tested: the checklist's Result
+  column, the HEAD commit and per-cycle commits in records (Q6, Q7 of `grill.md` named none of
+  them); the drift rule and the Match rule; T14 and T15, which the confirmed file list did not name
+  but which the stage-3 rulings require.
+- **Stage 4.** Each ticket lists the regions it lands; X6 checks that together they land every
+  region exactly once. Ticket ids are allocated by scanning, as `docs/agents/issue-tracker.md`
+  says.
